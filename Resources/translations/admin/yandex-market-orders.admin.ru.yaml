@@ -1,0 +1,13 @@
+page:
+  index: 'Заказы Yandex Market'
+  get: 'Получить новые заказы Yandex Market'
+
+breadcrumb:
+  index: 'Заказы Yandex Market'
+
+
+success:
+  get: 'Обновление заказов Yandex Market добавлено в очередь'
+
+danger:
+  get: 'Уже было обновление! Повторите попытку через 5 минут!'

@@ -1,0 +1,13 @@
+# Role
+
+ROLE_YA_MARKET_ORDERS:
+  name: 'Yandex Market Orders'
+  desc: 'Orders of Yandex Market goods'
+
+ROLE_YA_MARKET_ORDERS_INDEX:
+  name: 'View'
+  desc: ''
+
+ROLE_YA_MARKET_ORDERS_GET:
+  name: 'Get new'
+  desc: 'Get new orders from the Market'

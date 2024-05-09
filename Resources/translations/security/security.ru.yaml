@@ -1,0 +1,15 @@
+# Роль
+
+ROLE_YA_MARKET_ORDERS:
+  name: 'Заказы Yandex Market'
+  desc: 'Заказы товаров Yandex Market'
+
+ROLE_YA_MARKET_ORDERS_INDEX:
+  name: 'Просмотр'
+  desc: ''
+
+
+ROLE_YA_MARKET_ORDERS_GET:
+  name: 'Получить новые'
+  desc: 'Получить новые заказы с Market'
+

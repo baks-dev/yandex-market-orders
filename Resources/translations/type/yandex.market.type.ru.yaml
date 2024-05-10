@@ -2,3 +2,13 @@ name: 'Yandex Market'
 desc: 'Пользователь Yandex Market'
 
 
+section:
+  contact:
+    name: 'Контактные данные'
+    desc: 'Данные для связи менеджерами магазина с покупателем.'
+
+    field:
+
+      name:
+        name: 'Контактное лицо'
+        desc: 'ФИО пользователя'

@@ -31,6 +31,11 @@ final class TypeProfileYandexMarket implements TypeProfileInterface
 {
     public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
+    public function __toString(): string
+    {
+        return self::TYPE;
+    }
+
     /** Возвращает значение (value) */
     public function getValue(): string
     {

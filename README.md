@@ -13,6 +13,12 @@ $ composer require baks-dev/yandex-market-orders
 
 ## Дополнительно
 
+Добавить тип профиля Yandex Market
+
+``` bash
+$ baks:users-profile-type:yandex-market
+```
+
 Изменения в схеме базы данных с помощью миграции
 
 ``` bash

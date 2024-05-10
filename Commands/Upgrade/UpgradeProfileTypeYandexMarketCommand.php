@@ -103,6 +103,54 @@ class UpgradeProfileTypeYandexMarketCommand extends Command
                 $ProfileTrans->setDescription($desc);
             }
 
+            /**
+             * Создаем секцию Контактные данные
+             */
+            $SectionDTO = new SectionDTO();
+            $SectionDTO->setSort(100);
+
+            /** @var SectionTransDTO $SectionTrans */
+            foreach($SectionDTO->getTranslate() as $SectionTrans)
+            {
+                $name = $this->translator->trans('section.contact.name', domain: 'yandex.market.type', locale: $SectionTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('section.contact.desc', domain: 'yandex.market.type', locale: $SectionTrans->getLocal()->getLocalValue());
+
+                $SectionTrans->setName($name);
+                $SectionTrans->setDescription($desc);
+            }
+
+            $TypeProfileDTO->addSection($SectionDTO);
+
+            /* Добавляем поля для заполнения */
+
+            $fields = ['name'];
+
+            foreach($fields as $sort => $field)
+            {
+                $SectionFieldDTO = new SectionFieldDTO();
+                $SectionFieldDTO->setSort($sort);
+                $SectionFieldDTO->setPublic(true);
+                $SectionFieldDTO->setRequired(true);
+                $SectionFieldDTO->setType(new InputField('input_field'));
+
+
+                /** @var SectionFieldTransDTO $SectionFieldTrans */
+                foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)
+                {
+                    $name = $this->translator->trans('section.contact.field.'.$field.'.name', domain: 'yandex.market.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $desc = $this->translator->trans('section.contact.field.'.$field.'.desc', domain: 'yandex.market.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+
+                    $SectionFieldTrans->setName($name);
+                    $SectionFieldTrans->setDescription($desc);
+                }
+
+
+                $SectionDTO->addField($SectionFieldDTO);
+            }
+
+            $TypeProfileDTO->addSection($SectionDTO);
+
+
 
             $handle = $this->profileHandler->handle($TypeProfileDTO);
 

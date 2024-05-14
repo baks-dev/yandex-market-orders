@@ -1,6 +1,6 @@
 # BaksDev Orders YandexMarket
 
-[![Version](https://img.shields.io/badge/version-7.0.3-blue)](https://github.com/baks-dev/yandex-market-orders/releases)
+[![Version](https://img.shields.io/badge/version-7.0.4-blue)](https://github.com/baks-dev/yandex-market-orders/releases)
 ![php 8.2+](https://img.shields.io/badge/php-min%208.1-red.svg)
 
 Модуль заказов Yandex Market
@@ -16,8 +16,9 @@ $ composer require baks-dev/yandex-market-orders
 Добавить тип профиля и доставку Yandex Market
 
 ``` bash
-$ baks:users-profile-type:yandex-market
-$ baks:delivery:yandex-market
+$ php bin/console baks:users-profile-type:yandex-market
+$ php bin/console baks:payment:yandex-market
+$ php bin/console baks:delivery:yandex-market
 ```
 
 Изменения в схеме базы данных с помощью миграции

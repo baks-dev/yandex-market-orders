@@ -31,6 +31,7 @@ use BaksDev\Delivery\Type\Event\DeliveryEventUid;
 use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\Orders\Order\Entity\User\Delivery\OrderDeliveryInterface;
 use BaksDev\Users\Address\Type\Geocode\GeocodeAddressUid;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
 use DateInterval;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -39,11 +40,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 /** @see OrderDeliveryRepository */
 final class OrderDeliveryDTO implements OrderDeliveryInterface
 {
-    /** Способ оплаты */
+    /** Способ доставки */
     #[Assert\NotBlank]
-    private ?DeliveryUid $delivery = null;
+    private readonly DeliveryUid $delivery;
 
-    /** Событие способа оплаты (для расчета стоимости) */
+    /** Адрес клиента */
+    #[Assert\NotBlank]
+    private string $address;
+
+
+    /** Событие способа доставки (для расчета стоимости) */
     #[Assert\NotBlank]
     private DeliveryEventUid $event;
 
@@ -63,9 +69,10 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
     #[Assert\NotBlank]
     private ?GpsLongitude $longitude = null;
 
+
+
     /** Координаты на карте */
     private ?GeocodeAddressUid $geocode = null;
-
 
     /** Дата доставки заказа */
     #[Assert\NotBlank]
@@ -74,6 +81,10 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
 
     public function __construct()
     {
+
+        /** Способ доставки Yandex Market */
+        $this->delivery = new DeliveryUid(TypeDeliveryYandexMarket::class);
+
         $this->field = new ArrayCollection();
 
         $now = (new DateTimeImmutable())->setTime(0, 0, 0);
@@ -86,10 +97,10 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
         return $this->delivery;
     }
 
-    public function setDelivery(DeliveryUid $delivery): void
-    {
-        $this->delivery = $delivery;
-    }
+//    public function setDelivery(DeliveryUid $delivery): void
+//    {
+//        $this->delivery = $delivery;
+//    }
 
     /** Событие способа оплаты (для расчета стоимости) */
     public function getEvent(): DeliveryEventUid
@@ -178,4 +189,22 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
         $this->deliveryDate = $deliveryDate;
         return $this;
     }
+
+    /**
+     * Address
+     */
+    public function getAddress(): string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(string $address): self
+    {
+        $this->address = $address;
+        return $this;
+    }
+
+
+
+
 }

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2023.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,34 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
+namespace BaksDev\Yandex\Market\Orders\Schedule\NewOrders;
 
-use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
+use BaksDev\Core\Schedule\ScheduleInterface;
+use DateInterval;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-#[AutoconfigureTag('baks.users.profile.type')]
-final class TypeProfileYandexMarket implements TypeProfileInterface
+
+/**
+ * Проверяем новые заказы Yandex Market каждые 5 минут
+ */
+
+#[AutoconfigureTag('baks.schedule')]
+final class NewOrdersSchedule implements ScheduleInterface
 {
-    public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
-
-    public function __toString(): string
+    /**
+     * Возвращает класс сообщение
+     */
+    public function getMessage(): object
     {
-        return self::TYPE;
+        return new NewOrdersScheduleMessage();
     }
 
-    /** Возвращает значение (value) */
-    public function getValue(): string
+    /**
+     * Интервал повтора
+     * @see https://www.php.net/manual/en/dateinterval.createfromdatestring.php
+     */
+    public function getInterval(): DateInterval
     {
-        return self::TYPE;
-    }
-
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 300;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
+       return DateInterval::createFromDateString('5 minutes');
     }
 }

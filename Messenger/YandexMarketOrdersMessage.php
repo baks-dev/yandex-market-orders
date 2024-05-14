@@ -23,35 +23,16 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
+namespace BaksDev\Yandex\Market\Orders\Messenger;
 
-use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[AutoconfigureTag('baks.users.profile.type')]
-final class TypeProfileYandexMarket implements TypeProfileInterface
+
+final class YandexMarketOrdersMessage
 {
-    public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
-    public function __toString(): string
-    {
-        return self::TYPE;
-    }
+    /** Идентификатор */
+    #[Assert\Uuid]
+    private $id = null;
 
-    /** Возвращает значение (value) */
-    public function getValue(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 300;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
-    }
 }

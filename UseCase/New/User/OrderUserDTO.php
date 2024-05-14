@@ -67,6 +67,8 @@ final class OrderUserDTO implements OrderUserInterface
 		$this->userProfile = new UserProfile\UserProfileDTO();
 		$this->payment = new Payment\OrderPaymentDTO;
 		$this->delivery = new Delivery\OrderDeliveryDTO;
+
+        $this->usr = new UserUid();
 	}
 	
 	

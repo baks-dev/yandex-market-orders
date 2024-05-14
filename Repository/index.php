@@ -23,35 +23,9 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
+namespace BaksDev\Yandex\Market\Orders\Repository;
 
-use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
-
-#[AutoconfigureTag('baks.users.profile.type')]
-final class TypeProfileYandexMarket implements TypeProfileInterface
+final class index
 {
-    public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
-    public function __toString(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Возвращает значение (value) */
-    public function getValue(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 300;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
-    }
 }

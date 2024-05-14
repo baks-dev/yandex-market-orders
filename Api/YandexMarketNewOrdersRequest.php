@@ -25,38 +25,48 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Api;
 
+use BaksDev\Delivery\Type\Field\DeliveryFieldUid;
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use DateInterval;
+use DateTimeImmutable;
 use DomainException;
 
 /**
- * Информация о заказе
+ * Информация о заказах
  */
-final class YandexMarketOrderRequest extends YandexMarket
+final class YandexMarketNewOrdersRequest extends YandexMarket
 {
-
-    private int $page = 1;
-
-    public function page(int $page): self
-    {
-        $this->page = $page;
-        return $this;
-    }
-
     /**
-     * Возвращает информацию о заказе.
+     * Возвращает информацию о 50 последних заказах со статусом:
+     *
+     * PROCESSING - заказ находится в обработке.
+     * STARTED — заказ подтвержден, его можно начать обрабатывать
      *
      * Лимит: 1 000 000 запросов в час
      *
-     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function find(string $order)
+    public function findAll()
     {
+        // заказы за последние 10 минут (планировщик на каждые 5 минут)
+        $dateTime = new DateTimeImmutable();
+        $newDateTime = $dateTime->sub(new DateInterval('PT10M'));
+
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
-                sprintf('/campaigns/%s/orders/%s', $this->getCompany(), $order)
+                sprintf('/campaigns/%s/orders', $this->getCompany()),
+                ['query' =>
+                    [
+                        'page' => 1,
+                        'pageSize' => 50,
+                        'status' => 'PROCESSING',
+                        'substatus' => 'STARTED',
+                        'updatedAtFrom' => $newDateTime->format('Y-m-d\TH:i:sP')
+                    ]
+                ],
             );
 
         $content = $response->toArray(false);
@@ -74,8 +84,21 @@ final class YandexMarketOrderRequest extends YandexMarket
             );
         }
 
-        /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
-        return new YandexMarketOrderDTO($content);
-
+        foreach($content['orders'] as $order)
+        {
+            /** Доставка YANDEX MARKET */
+            if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
+            {
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+                yield new YandexMarketOrderDTO($order);
+            }
+            else
+            {
+                $this->logger->critical(
+                    sprintf('Доставка '.$order['delivery']['deliveryPartnerType']),
+                    [__FILE__.':'.__LINE__]
+                );
+            }
+        }
     }
 }

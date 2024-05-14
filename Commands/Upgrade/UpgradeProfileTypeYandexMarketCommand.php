@@ -96,8 +96,8 @@ class UpgradeProfileTypeYandexMarketCommand extends Command
              */
             foreach($TypeProfileTranslateDTO as $ProfileTrans)
             {
-                $name = $this->translator->trans('name', domain: 'yandex.market.type', locale: $ProfileTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('desc', domain: 'yandex.market.type', locale: $ProfileTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('name', domain: 'yandex.market.profile', locale: $ProfileTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('desc', domain: 'yandex.market.profile', locale: $ProfileTrans->getLocal()->getLocalValue());
 
                 $ProfileTrans->setName($name);
                 $ProfileTrans->setDescription($desc);
@@ -112,8 +112,8 @@ class UpgradeProfileTypeYandexMarketCommand extends Command
             /** @var SectionTransDTO $SectionTrans */
             foreach($SectionDTO->getTranslate() as $SectionTrans)
             {
-                $name = $this->translator->trans('section.contact.name', domain: 'yandex.market.type', locale: $SectionTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('section.contact.desc', domain: 'yandex.market.type', locale: $SectionTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('section.contact.name', domain: 'yandex.market.profile', locale: $SectionTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('section.contact.desc', domain: 'yandex.market.profile', locale: $SectionTrans->getLocal()->getLocalValue());
 
                 $SectionTrans->setName($name);
                 $SectionTrans->setDescription($desc);
@@ -137,8 +137,8 @@ class UpgradeProfileTypeYandexMarketCommand extends Command
                 /** @var SectionFieldTransDTO $SectionFieldTrans */
                 foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)
                 {
-                    $name = $this->translator->trans('section.contact.field.'.$field.'.name', domain: 'yandex.market.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
-                    $desc = $this->translator->trans('section.contact.field.'.$field.'.desc', domain: 'yandex.market.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $name = $this->translator->trans('section.contact.field.'.$field.'.name', domain: 'yandex.market.profile', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $desc = $this->translator->trans('section.contact.field.'.$field.'.desc', domain: 'yandex.market.profile', locale: $SectionFieldTrans->getLocal()->getLocalValue());
 
                     $SectionFieldTrans->setName($name);
                     $SectionFieldTrans->setDescription($desc);

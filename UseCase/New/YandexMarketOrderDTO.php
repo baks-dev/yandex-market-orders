@@ -25,12 +25,18 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
+use BaksDev\Core\Type\Gps\GpsLatitude;
+use BaksDev\Core\Type\Gps\GpsLongitude;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
+use BaksDev\Reference\Currency\Type\Currency;
+use BaksDev\Reference\Money\Type\Money;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/** @see OrderEvent */
 final class YandexMarketOrderDTO implements OrderEventInterface
 {
     /** Идентификатор события */
@@ -39,6 +45,11 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     /** Идентификатор заказа YandexMarket */
     private string $number;
+
+    /** Дата заказа */
+    #[Assert\NotBlank]
+    private DateTimeImmutable $created;
+
 
     /** Коллекция продукции в заказе */
     #[Assert\Valid]
@@ -51,13 +62,61 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Ответственный */
     private ?UserProfileUid $profile = null;
 
-
-    public function __construct(array $order) {
+    public function __construct(array $order, )
+    {
 
         $this->number = (string) $order['id'];
+        $this->created = new DateTimeImmutable($order['creationDate']);
 
         $this->product = new ArrayCollection();
         $this->usr = new User\OrderUserDTO();
+
+
+        /** Дата доставки */
+        $shipments = current($order['delivery']['shipments']);
+        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate'].' '.$shipments['shipmentTime']);
+
+        $OrderDeliveryDTO = $this->usr->getDelivery();
+        $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
+
+
+
+        $address = $order['delivery']['address'];
+
+        /** Геолокация клиента */
+        $OrderDeliveryDTO->setLatitude(new GpsLatitude($address['gps']['latitude']));
+        $OrderDeliveryDTO->setLongitude(new GpsLongitude($address['gps']['longitude']));
+
+
+        /** Адрес доставки клиента */
+        $addressClient = $address['country'];
+        $addressClient .= $address['city'] ? ', '.$address['city'] : null;
+        $addressClient .= $address['street'] ? ', ул.'.$address['street'] : null;
+        $addressClient .= $address['house'] ? ', д.'.$address['house'] : null;
+        $addressClient .= $address['apartment'] ? ', кв.'.$address['apartment'] : null;
+
+        $OrderDeliveryDTO->setAddress($addressClient);
+
+
+        /** Продукция */
+
+        foreach($order['items'] as $item)
+        {
+            $NewOrderProductDTO = new Products\NewOrderProductDTO($item['offerId']);
+
+            $NewOrderPriceDTO = $NewOrderProductDTO->getPrice();
+
+            $Money = new Money($item['price']);
+            $Currency = new Currency($order['currency']);
+
+            $NewOrderPriceDTO->setPrice($Money);
+            $NewOrderPriceDTO->setCurrency($Currency);
+            $NewOrderPriceDTO->setTotal($item['count']);
+
+            $this->addProduct($NewOrderProductDTO);
+
+        }
+
 
     }
 
@@ -75,5 +134,46 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     {
         return $this->number;
     }
+
+
+    /** Коллекция продукции в заказе */
+
+    public function getProduct(): ArrayCollection
+    {
+        return $this->product;
+    }
+
+    public function setProduct(ArrayCollection $product): void
+    {
+        $this->product = $product;
+    }
+
+    public function addProduct(Products\NewOrderProductDTO $product): void
+    {
+        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product)
+        {
+            return $element->getArticle() === $product->getArticle();
+        });
+
+        if($filter->isEmpty())
+        {
+            $this->product->add($product);
+        }
+    }
+
+    public function removeProduct(Products\NewOrderProductDTO $product): void
+    {
+        $this->product->removeElement($product);
+    }
+
+    /**
+     * Usr
+     */
+    public function getUsr(): User\OrderUserDTO
+    {
+        return $this->usr;
+    }
+
+
 
 }

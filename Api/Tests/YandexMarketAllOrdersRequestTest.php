@@ -69,8 +69,6 @@ class YandexMarketAllOrdersRequestTest extends KernelTestCase
         /** @var ExistsOrderNumberInterface $ExistsOrderNumberInterface */
         $ExistsOrderNumberInterface = self::getContainer()->get(ExistsOrderNumberInterface::class);
 
-
-
         $orders = $YandexMarketAllOrdersRequest->findAll();
 
 
@@ -79,12 +77,9 @@ class YandexMarketAllOrdersRequestTest extends KernelTestCase
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
             $YandexMarketOrderDTO = $orders->current();
 
-            $isExists = $ExistsOrderNumberInterface->isExists($YandexMarketOrderDTO->getNumber());
+            $ExistsOrderNumberInterface->isExists($YandexMarketOrderDTO->getNumber());
 
-            if(false === $isExists)
-            {
-                $YandexMarketOrderHandler->handle($YandexMarketOrderDTO);
-            }
+            self::assertTrue($orders->valid());
 
         }
         else

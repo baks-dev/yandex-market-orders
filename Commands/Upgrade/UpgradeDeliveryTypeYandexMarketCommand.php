@@ -37,16 +37,7 @@ use BaksDev\Delivery\UseCase\Admin\NewEdit\Fields\Trans\DeliveryFieldTransDTO;
 use BaksDev\Delivery\UseCase\Admin\NewEdit\Trans\DeliveryTransDTO;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
-use BaksDev\Users\Profile\TypeProfile\Entity\TypeProfile;
-use BaksDev\Users\Profile\TypeProfile\Repository\ExistTypeProfile\ExistTypeProfileInterface;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\Fields\SectionFieldDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\Fields\Trans\SectionFieldTransDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\SectionDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\Trans\SectionTransDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Trans\TransDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileDTO;
-use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileHandler;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -117,8 +108,8 @@ class UpgradeDeliveryTypeYandexMarketCommand extends Command
              */
             foreach($DeliveryTransDTO as $DeliveryTrans)
             {
-                $name = $this->translator->trans('name', domain: 'yandex.market.delivery', locale: $DeliveryTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('desc', domain: 'yandex.market.delivery', locale: $DeliveryTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.name', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.desc', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
 
                 $DeliveryTrans->setName($name);
                 $DeliveryTrans->setDescription($desc);
@@ -135,8 +126,8 @@ class UpgradeDeliveryTypeYandexMarketCommand extends Command
             /** @var DeliveryFieldTransDTO $DeliveryFieldTrans */
             foreach($DeliveryFieldDTO->getTranslate() as $DeliveryFieldTrans)
             {
-                $name = $this->translator->trans('address.name', domain: 'yandex.market.delivery', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('address.desc', domain: 'yandex.market.delivery', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.address.name', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.address.desc', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
 
                 $DeliveryFieldTrans->setName($name);
                 $DeliveryFieldTrans->setDescription($desc);
@@ -148,10 +139,7 @@ class UpgradeDeliveryTypeYandexMarketCommand extends Command
 
             if(!$handle instanceof Delivery)
             {
-                $io->success(
-                    sprintf('Ошибка %s при добавлении способа доставки', $handle)
-                );
-
+                $io->error(sprintf('Ошибка %s при добавлении способа доставки', $handle));
                 return Command::FAILURE;
             }
         }

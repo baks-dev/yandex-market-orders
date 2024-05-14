@@ -1,8 +1,0 @@
-name: 'Yandex Market'
-desc: 'Доставка Yandex Market'
-
-
-address:
-  name: 'Адрес клиента'
-  desc: 'Адрес доставки заказа клиенту'
-

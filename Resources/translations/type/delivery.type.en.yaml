@@ -1,0 +1,8 @@
+yandex:
+  name: 'Yandex Market'
+  desc: 'Yandex Market Delivery'
+
+
+  address:
+    name: 'Client address'
+    desc: 'Address of delivery of the order to the client'

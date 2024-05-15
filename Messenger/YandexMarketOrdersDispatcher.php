@@ -28,7 +28,6 @@ namespace BaksDev\Yandex\Market\Orders\Messenger;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Yandex\Market\Orders\Api\YandexMarketAllOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
-use BaksDev\Yandex\Market\Products\Messenger\Card\YaMarketProductsCardMessage;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]

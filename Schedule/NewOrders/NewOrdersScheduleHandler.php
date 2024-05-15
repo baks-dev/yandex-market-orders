@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Schedule\NewOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Yandex\Market\Orders\Messenger\NewOrders\NewOrdersMessage;
+use BaksDev\Yandex\Market\Orders\Messenger\NewOrders\NewYandexOrdersMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileTokenInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -57,7 +57,7 @@ final class NewOrdersScheduleHandler
             foreach($profiles as $profile)
             {
                 $this->messageDispatch->dispatch(
-                    message: new NewOrdersMessage($profile),
+                    message: new NewYandexOrdersMessage($profile),
                     transport: (string) $profile,
                 );
             }

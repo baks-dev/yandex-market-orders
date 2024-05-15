@@ -38,6 +38,9 @@ use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
+use BaksDev\Users\Address\Services\GeocodeAddressParser;
+use BaksDev\Users\Address\UseCase\Geocode\GeocodeAddressDTO;
+use BaksDev\Users\Address\UseCase\Geocode\GeocodeAddressHandler;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Repository\CurrentUserProfileEvent\CurrentUserProfileEventInterface;
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
@@ -50,16 +53,17 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 final class YandexMarketOrderHandler extends AbstractHandler
 {
-
+    private TokenStorageInterface $tokenStorage;
     private RegistrationHandler $registrationHandler;
-    private UserProfileHandler $profileHandler;
     private AccountEventActiveByEmailInterface $accountEventActiveByEmail;
     private UserPasswordHasherInterface $passwordHasher;
+
     private CurrentUserProfileEventInterface $currentUserProfileEvent;
-    private TokenStorageInterface $tokenStorage;
+    private UserProfileHandler $profileHandler;
     private CurrentProductEventByArticleInterface $currentProductEventByArticle;
     private FieldByDeliveryChoiceInterface $fieldByDeliveryChoice;
     private CurrentDeliveryEventInterface $currentDeliveryEvent;
+    private GeocodeAddressParser $geocodeAddressParser;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -77,8 +81,8 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         CurrentProductEventByArticleInterface $currentProductEventByArticle,
         FieldByDeliveryChoiceInterface $fieldByDeliveryChoice,
-        CurrentDeliveryEventInterface $currentDeliveryEvent
-
+        CurrentDeliveryEventInterface $currentDeliveryEvent,
+        GeocodeAddressParser $geocodeAddressParser,
 
 
     )
@@ -96,22 +100,18 @@ final class YandexMarketOrderHandler extends AbstractHandler
         $this->currentProductEventByArticle = $currentProductEventByArticle;
         $this->fieldByDeliveryChoice = $fieldByDeliveryChoice;
         $this->currentDeliveryEvent = $currentDeliveryEvent;
+        $this->geocodeAddressParser = $geocodeAddressParser;
     }
 
     public function handle(YandexMarketOrderDTO $command): string|Order
     {
-
         /**
          * Получаем события продукции
          * @var Products\NewOrderProductDTO $product
          */
         foreach($command->getProduct() as $product)
         {
-
-            /** TODO: */
-            $article = 'TR281-16-235-85-120/116Q';
-
-            $ProductData = $this->currentProductEventByArticle->find($article);
+            $ProductData = $this->currentProductEventByArticle->find($product->getArticle());
 
             if(!$ProductData)
             {
@@ -135,8 +135,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
             /** @var InputField $InputField */
 
-                return $v->getType()->getType() === 'address_field';
-            });
+            return $v->getType()->getType() === 'address_field';
+        });
+
         $address_field = current($address_field);
 
         if($address_field)
@@ -145,11 +146,20 @@ final class YandexMarketOrderHandler extends AbstractHandler
             $OrderDeliveryFieldDTO->setField($address_field);
             $OrderDeliveryFieldDTO->setValue($OrderDeliveryDTO->getAddress());
             $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
-
         }
 
         $DeliveryEvent = $this->currentDeliveryEvent->get($OrderDeliveryDTO->getDelivery());
         $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
+
+
+        /** Создаем адрес геолокации */
+        $GeocodeAddress = $this->geocodeAddressParser->getGeocode($OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude());
+
+        if($GeocodeAddress)
+        {
+            $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
+            $OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
+        }
 
 
         /** Валидация DTO  */
@@ -192,9 +202,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
                 }
 
                 $UserProfileEvent = $UserProfile->getEvent();
-
-                //dd($UserProfileEvent);
-
             }
 
             $OrderUserDTO->setProfile($UserProfileEvent);
@@ -203,17 +210,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
         $this->main = new Order();
         $this->event = new OrderEvent();
 
-//        try
-//        {
-//            $command->getEvent() ? $this->preUpdate($command, true) : $this->prePersist($command);
-//        }
-//        catch(DomainException $errorUniqid)
-//        {
-//            return $errorUniqid->getMessage();
-//        }
 
         $this->prePersist($command);
-
+        $this->main->setNumber($command->getNumber());
 
         /** Валидация всех объектов */
         if($this->validatorCollection->isInvalid())
@@ -231,126 +230,4 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         return $this->main;
     }
-
-
-//    public function OLDhandle(OrderDTO $command,): string|Order
-//    {
-//        // Валидация
-//        $errors = $this->validator->validate($command);
-//
-//        if(count($errors) > 0)
-//        {
-//
-//            /** Ошибка валидации */
-//            $uniqid = uniqid('', false);
-//            $this->logger->error(sprintf('%s: %s', $uniqid, $errors), [__FILE__.':'.__LINE__]);
-//
-//            return $uniqid;
-//        }
-//
-//        if($command->getEvent())
-//        {
-//            $EventRepo = $this->entityManager->getRepository(OrderEvent::class)->find(
-//                $command->getEvent()
-//            );
-//
-//            if(null === $EventRepo)
-//            {
-//                $uniqid = uniqid('', false);
-//                $errorsString = sprintf(
-//                    'Not found %s by id: %s',
-//                    OrderEvent::class,
-//                    $command->getEvent()
-//                );
-//                $this->logger->error($uniqid.': '.$errorsString);
-//
-//                return $uniqid;
-//            }
-//
-//            $EventRepo->setEntity($command);
-//            $EventRepo->setEntityManager($this->entityManager);
-//            $Event = $EventRepo->cloneEntity();
-//        }
-//        else
-//        {
-//            $Event = new OrderEvent();
-//            $Event->setEntity($command);
-//            $this->entityManager->persist($Event);
-//        }
-//
-//        //        $this->entityManager->clear();
-//        //        $this->entityManager->persist($Event);
-//
-//
-//        if($Event->getOrders())
-//        {
-//            $Main = $this->entityManager->getRepository(Order::class)
-//                ->findOneBy(['event' => $command->getEvent()]);
-//
-//            if(empty($Main))
-//            {
-//                $uniqid = uniqid('', false);
-//                $errorsString = sprintf(
-//                    'Not found %s by event: %s',
-//                    Order::class,
-//                    $command->getEvent()
-//                );
-//                $this->logger->error($uniqid.': '.$errorsString);
-//
-//                return $uniqid;
-//            }
-//        }
-//        else
-//        {
-//            $Main = new Order();
-//            $this->entityManager->persist($Main);
-//            $Event->setMain($Main);
-//        }
-//
-//        // присваиваем событие корню
-//        $Main->setEvent($Event);
-//
-//
-//        /**
-//         * Валидация Event
-//         */
-//
-//        $errors = $this->validator->validate($Event);
-//
-//        if(count($errors) > 0)
-//        {
-//            /** Ошибка валидации */
-//            $uniqid = uniqid('', false);
-//            $this->logger->error(sprintf('%s: %s', $uniqid, $errors), [__FILE__.':'.__LINE__]);
-//
-//            return $uniqid;
-//        }
-//
-//
-//        /**
-//         * Валидация Main
-//         */
-//
-//        $errors = $this->validator->validate($Event);
-//
-//        if(count($errors) > 0)
-//        {
-//            /** Ошибка валидации */
-//            $uniqid = uniqid('', false);
-//            $this->logger->error(sprintf('%s: %s', $uniqid, $errors), [__FILE__.':'.__LINE__]);
-//
-//            return $uniqid;
-//        }
-//
-//
-//        $this->entityManager->flush();
-//
-//        /* Отправляем сообщение в шину */
-//        $this->messageDispatch->dispatch(
-//            message: new OrderMessage($Main->getId(), $Main->getEvent(), $command->getEvent()),
-//            transport: 'orders-order'
-//        );
-//
-//        return $Main;
-//    }
 }

@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class NewOrderHandler
+final class NewYandexOrderHandler
 {
     private LoggerInterface $logger;
     private YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest;
@@ -80,7 +80,7 @@ final class NewOrderHandler
         $this->yandexMarketOrderHandler = $yandexMarketOrderHandler;
     }
 
-    public function __invoke(NewOrdersMessage $message): void
+    public function __invoke(NewYandexOrdersMessage $message): void
     {
         /* Получить список новых сборочных заданий */
         $orders = $this->yandexMarketNewOrdersRequest
@@ -89,8 +89,22 @@ final class NewOrderHandler
 
         if(!$orders->valid())
         {
+            $this->logger->info('Новых заказов не найдено',
+                [
+                    __FILE__.':'.__LINE__,
+                    'profile' => (string) $message->getProfile(),
+                ]
+            );
+
             return;
         }
+
+        $this->logger->notice('Получаем заказы и добавляем новые',
+            [
+                __FILE__.':'.__LINE__,
+                'profile' => (string) $message->getProfile(),
+            ]
+        );
 
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)

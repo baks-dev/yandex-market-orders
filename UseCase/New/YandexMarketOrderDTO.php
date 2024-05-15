@@ -80,7 +80,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
 
 
-
         $address = $order['delivery']['address'];
 
         /** Геолокация клиента */
@@ -90,10 +89,25 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         /** Адрес доставки клиента */
         $addressClient = $address['country'];
-        $addressClient .= $address['city'] ? ', '.$address['city'] : null;
-        $addressClient .= $address['street'] ? ', ул.'.$address['street'] : null;
-        $addressClient .= $address['house'] ? ', д.'.$address['house'] : null;
-        $addressClient .= $address['apartment'] ? ', кв.'.$address['apartment'] : null;
+        $addressClient .= isset($address['city']) ? ', '.$address['city'] : null;
+
+        if(isset($address['street']))
+        {
+            if(mb_strpos($address['street'], 'улица'))
+            {
+                $addressClient .= ', '.$address['street'];
+            }
+            else
+            {
+                $addressClient .= ', улица '.$address['street'];
+            }
+        }
+
+        $addressClient .= isset($address['house']) ? ' '.$address['house'] : null;
+
+        $addressClient .= isset($address['block']) ? 'к'.$address['block'] : null;
+
+        $addressClient .= isset($address['entrance']) ? ', под.'.$address['entrance'] : null;
 
         $OrderDeliveryDTO->setAddress($addressClient);
 
@@ -106,7 +120,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
             $NewOrderPriceDTO = $NewOrderProductDTO->getPrice();
 
-            $Money = new Money($item['price']);
+            $Money = new Money($item['priceBeforeDiscount']); // Стоимость товара в валюте магазина до применения скидок.
             $Currency = new Currency($order['currency']);
 
             $NewOrderPriceDTO->setPrice($Money);
@@ -116,7 +130,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
             $this->addProduct($NewOrderProductDTO);
 
         }
-
 
     }
 

@@ -37,7 +37,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see OrderDeliveryRepository */
+/** @see OrderDelivery */
 final class OrderDeliveryDTO implements OrderDeliveryInterface
 {
     /** Способ доставки */
@@ -68,7 +68,6 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
      */
     #[Assert\NotBlank]
     private ?GpsLongitude $longitude = null;
-
 
 
     /** Координаты на карте */

@@ -129,6 +129,16 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /** Идентификатор свойства адреса доставки */
         $OrderDeliveryDTO = $command->getUsr()->getDelivery();
 
+        /** Создаем адрес геолокации */
+        $GeocodeAddress = $this->geocodeAddressParser->getGeocode($OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude());
+
+        if($GeocodeAddress)
+        {
+            $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
+            $OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
+        }
+
+
         $fields = $this->fieldByDeliveryChoice->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
         $address_field = array_filter($fields, function($v) {
@@ -152,14 +162,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
 
 
-        /** Создаем адрес геолокации */
-        $GeocodeAddress = $this->geocodeAddressParser->getGeocode($OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude());
 
-        if($GeocodeAddress)
-        {
-            $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
-            $OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
-        }
 
 
         /** Валидация DTO  */

@@ -45,4 +45,5 @@ return static function(ContainerConfigurator $configurator) {
 
     $services->load($NAMESPACE.'Type\DeliveryType\\', $MODULE.'Type/DeliveryType');
     $services->load($NAMESPACE.'Type\ProfileType\\', $MODULE.'Type/ProfileType');
+    $services->load($NAMESPACE.'Type\PaymentType\\', $MODULE.'Type/PaymentType');
 };

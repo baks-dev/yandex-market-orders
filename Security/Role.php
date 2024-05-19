@@ -27,9 +27,8 @@ namespace BaksDev\Yandex\Market\Orders\Security;
 
 use BaksDev\Menu\Admin\Command\Upgrade\MenuAdminInterface;
 use BaksDev\Menu\Admin\Type\SectionGroup\Group\Collection\MenuAdminSectionGroupCollectionInterface;
+use BaksDev\Orders\Order\Security\MenuGroupMarketplace;
 use BaksDev\Users\Profile\Group\Security\RoleInterface;
-use BaksDev\Wildberries\Security\MenuGroupWildberries;
-use BaksDev\Yandex\Market\Security\MenuGroupYandex;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('baks.security.role')]
@@ -59,7 +58,7 @@ final class Role implements RoleInterface, MenuAdminInterface
      */
     public function getGroupMenu(): MenuAdminSectionGroupCollectionInterface|bool
     {
-        return new MenuGroupYandex();
+        return new MenuGroupMarketplace();
     }
 
     /**
@@ -67,7 +66,7 @@ final class Role implements RoleInterface, MenuAdminInterface
      */
     public function getSortMenu(): int
     {
-        return 100;
+        return 220;
     }
 
     /**

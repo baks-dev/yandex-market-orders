@@ -51,6 +51,10 @@ final class IndexController extends AbstractController
         $searchForm = $this->createForm(SearchForm::class, $search);
         $searchForm->handleRequest($request);
 
+        // Ожидается найти класс «BaksDev\Yandex\Market\Orders\Controller\Admin\IndexController» в файле «/home/bundles.baks.dev/vendor/baks-dev/yandex-market-orders/Controller/Admin/IndexController.php». " при импорте сервисов из ресурса "/home/bundles.baks.dev/vendor/baks
+        // -dev/yandex-market-orders/", но он не найден! Проверьте префикс пространства имен, используемый с ресурсом, в /home/bundles.baks.dev/vendor/baks-dev/yandex-market-orders/Resources /config/services.php (который импортируется из «/home/bundles.baks.dev/vendor/baks-dev/yand»
+        // ex-market-orders/BaksDevYandexMarketOrdersBundle.php").
+
 
         // Фильтр
         // $filter = new ProductsStocksFilterDTO($request, $ROLE_ADMIN ? null : $this->getProfileUid());

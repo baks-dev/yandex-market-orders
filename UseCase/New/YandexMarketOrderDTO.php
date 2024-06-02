@@ -62,7 +62,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Ответственный */
     private ?UserProfileUid $profile = null;
 
-    public function __construct(array $order, )
+    public function __construct(array $order)
     {
 
         $this->number = (string) $order['id'];

@@ -1,6 +1,6 @@
 # BaksDev Orders YandexMarket
 
-[![Version](https://img.shields.io/badge/version-7.1.1-blue)](https://github.com/baks-dev/yandex-market-orders/releases)
+[![Version](https://img.shields.io/badge/version-7.1.2-blue)](https://github.com/baks-dev/yandex-market-orders/releases)
 ![php 8.3+](https://img.shields.io/badge/php-min%208.3-red.svg)
 
 Модуль заказов Yandex Market
@@ -12,6 +12,12 @@ $ composer require baks-dev/yandex-market-orders
 ```
 
 ## Дополнительно
+
+Установка конфигурации и файловых ресурсов:
+
+``` bash
+$ php bin/console baks:assets:install
+```
 
 Добавить тип профиля и доставку Yandex Market
 
@@ -25,17 +31,10 @@ $ php bin/console baks:delivery:yandex-market
 
 ``` bash
 $ php bin/console doctrine:migrations:diff
-
 $ php bin/console doctrine:migrations:migrate
 ```
 
-Установка файловых ресурсов в публичную директорию (javascript, css, image ...):
-
-``` bash
-$ php bin/console baks:assets:install
-```
-
-Тесты
+## Тестирование
 
 ``` bash
 $ php bin/phpunit --group=yandex-market-orders

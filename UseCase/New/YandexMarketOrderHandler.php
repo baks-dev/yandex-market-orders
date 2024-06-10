@@ -25,43 +25,31 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
-use BaksDev\Auth\Email\Repository\AccountEventActiveByEmail\AccountEventActiveByEmailInterface;
-use BaksDev\Auth\Email\UseCase\User\Registration\RegistrationHandler;
 use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Core\Validator\ValidatorCollectionInterface;
 use BaksDev\Delivery\Repository\CurrentDeliveryEvent\CurrentDeliveryEventInterface;
-use BaksDev\Delivery\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
 use BaksDev\Files\Resources\Upload\File\FileUploadInterface;
 use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
+use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
-use BaksDev\Users\Address\UseCase\Geocode\GeocodeAddressDTO;
-use BaksDev\Users\Address\UseCase\Geocode\GeocodeAddressHandler;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Repository\CurrentUserProfileEvent\CurrentUserProfileEventInterface;
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Products\Repository\Card\CurrentProductEvent\CurrentProductEventByArticleInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use DomainException;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final class YandexMarketOrderHandler extends AbstractHandler
 {
-    private TokenStorageInterface $tokenStorage;
-    private RegistrationHandler $registrationHandler;
-    private AccountEventActiveByEmailInterface $accountEventActiveByEmail;
-    private UserPasswordHasherInterface $passwordHasher;
-
     private CurrentUserProfileEventInterface $currentUserProfileEvent;
     private UserProfileHandler $profileHandler;
     private CurrentProductEventByArticleInterface $currentProductEventByArticle;
-    private FieldByDeliveryChoiceInterface $fieldByDeliveryChoice;
+    private FieldByDeliveryChoiceInterface $deliveryFields;
     private CurrentDeliveryEventInterface $currentDeliveryEvent;
     private GeocodeAddressParser $geocodeAddressParser;
 
@@ -71,16 +59,10 @@ final class YandexMarketOrderHandler extends AbstractHandler
         ValidatorCollectionInterface $validatorCollection,
         ImageUploadInterface $imageUpload,
         FileUploadInterface $fileUpload,
-        RegistrationHandler $registrationHandler,
         UserProfileHandler $profileHandler,
-        AccountEventActiveByEmailInterface $accountEventActiveByEmail,
-        UserPasswordHasherInterface $passwordHasher,
         CurrentUserProfileEventInterface $currentUserProfileEvent,
-        TokenStorageInterface $tokenStorage,
-
-
         CurrentProductEventByArticleInterface $currentProductEventByArticle,
-        FieldByDeliveryChoiceInterface $fieldByDeliveryChoice,
+        FieldByDeliveryChoiceInterface $deliveryFields,
         CurrentDeliveryEventInterface $currentDeliveryEvent,
         GeocodeAddressParser $geocodeAddressParser,
 
@@ -89,16 +71,11 @@ final class YandexMarketOrderHandler extends AbstractHandler
     {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
 
-        $this->registrationHandler = $registrationHandler;
         $this->profileHandler = $profileHandler;
-        $this->accountEventActiveByEmail = $accountEventActiveByEmail;
-        $this->passwordHasher = $passwordHasher;
         $this->currentUserProfileEvent = $currentUserProfileEvent;
-        $this->tokenStorage = $tokenStorage;
-
 
         $this->currentProductEventByArticle = $currentProductEventByArticle;
-        $this->fieldByDeliveryChoice = $fieldByDeliveryChoice;
+        $this->deliveryFields = $deliveryFields;
         $this->currentDeliveryEvent = $currentDeliveryEvent;
         $this->geocodeAddressParser = $geocodeAddressParser;
     }
@@ -139,7 +116,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         }
 
 
-        $fields = $this->fieldByDeliveryChoice->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
+        $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
         $address_field = array_filter($fields, function($v) {
 
@@ -160,9 +137,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         $DeliveryEvent = $this->currentDeliveryEvent->get($OrderDeliveryDTO->getDelivery());
         $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
-
-
-
 
 
         /** Валидация DTO  */

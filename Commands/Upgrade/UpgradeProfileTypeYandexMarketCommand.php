@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade;
 
-
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Users\Profile\TypeProfile\Entity\TypeProfile;
 use BaksDev\Users\Profile\TypeProfile\Repository\ExistTypeProfile\ExistTypeProfileInterface;
@@ -149,7 +148,6 @@ class UpgradeProfileTypeYandexMarketCommand extends Command
             }
 
             $TypeProfileDTO->addSection($SectionDTO);
-
 
 
             $handle = $this->profileHandler->handle($TypeProfileDTO);

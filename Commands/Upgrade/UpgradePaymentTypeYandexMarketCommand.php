@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade;
 
-
 use BaksDev\Payment\Entity\Payment;
 use BaksDev\Payment\Repository\ExistTypePayment\ExistTypePaymentInterface;
 use BaksDev\Payment\Type\Id\Choice\TypePaymentCache;
@@ -33,7 +32,9 @@ use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentDTO;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentHandler;
 use BaksDev\Payment\UseCase\Admin\NewEdit\Trans\PaymentTransDTO;
+use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,7 +50,6 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[AutoconfigureTag('baks.project.upgrade')]
 class UpgradePaymentTypeYandexMarketCommand extends Command
 {
-
     private TranslatorInterface $translator;
     private PaymentHandler $paymentHandler;
     private ExistTypePaymentInterface $existTypePayment;
@@ -81,7 +81,9 @@ class UpgradePaymentTypeYandexMarketCommand extends Command
             $io->text('Добавляем способ оплаты Yandex Market');
 
             $PaymentDTO = new PaymentDTO($PaymentUid);
+            $PaymentDTO->setType(new TypeProfileUid(TypeProfileYandexMarket::class));
             $PaymentDTO->setSort(TypePaymentCache::priority());
+
 
             $PaymentTransDTO = $PaymentDTO->getTranslate();
 

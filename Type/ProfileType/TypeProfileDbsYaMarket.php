@@ -23,16 +23,26 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\DeliveryType;
+namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
 
-use BaksDev\Delivery\Type\Id\Choice\Collection\TypeDeliveryInterface;
+use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-#[AutoconfigureTag('baks.delivery.type')]
-final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
+#[AutoconfigureTag('baks.users.profile.type')]
+final class TypeProfileDbsYaMarket implements TypeProfileInterface
 {
-    /** Yandex Market */
-    public const TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
+    public const TYPE = 'b11d5991-68dc-7b65-998d-4d6a1d870c8a';
+
+    /** Сортировка */
+    public static function priority(): int
+    {
+        return 301;
+    }
+
+    public static function equals(mixed $uid): bool
+    {
+        return self::TYPE === (string) $uid;
+    }
 
     public function __toString(): string
     {
@@ -43,16 +53,5 @@ final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
     public function getValue(): string
     {
         return self::TYPE;
-    }
-
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 800;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
     }
 }

@@ -1,8 +1,9 @@
 yandex:
-  name: 'Yandex Market'
-  desc: 'Yandex Market Delivery'
+  fbs:
+    name: 'Курьером YaMarket'
+    desc: 'Куръерская доставка YaMarket'
 
 
-  address:
-    name: 'Client address'
-    desc: 'Address of delivery of the order to the client'
+    address:
+      name: 'Client address'
+      desc: 'Address of delivery of the order to the client'

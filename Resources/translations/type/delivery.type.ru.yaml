@@ -1,9 +1,17 @@
 yandex:
-  name: 'Yandex Market'
-  desc: 'Доставка Yandex Market'
+  fbs:
+    name: 'Склад Yandex Market'
+    desc: 'Курьерская доставка Yandex Market'
+
+    address:
+      name: 'Адрес ПВЗ Yandex Market'
+      desc: 'Адрес пункта выдачи заказов Yandex Market выбранный клиентом'
 
 
-  address:
-    name: 'Адрес клиента'
-    desc: 'Адрес доставки заказа клиенту'
+  dbs:
+    name: 'Доставка клиенту'
+    desc: 'Доставка клиенту Yandex Market'
 
+    address:
+      name: 'Адрес клиента'
+      desc: 'Адрес доставки заказа клиенту Yandex Market'

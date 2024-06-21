@@ -29,21 +29,10 @@ use BaksDev\Delivery\Type\Id\Choice\Collection\TypeDeliveryInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('baks.delivery.type')]
-final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
+final class TypeDeliveryDbsYaMarket implements TypeDeliveryInterface
 {
-    /** Yandex Market */
-    public const TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
-
-    public function __toString(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Возвращает значение (value) */
-    public function getValue(): string
-    {
-        return self::TYPE;
-    }
+    /** Доставка клиенту */
+    public const TYPE = '5f97cf1c-7278-7c2a-b55f-e87ec660f3a6';
 
     /** Сортировка */
     public static function priority(): int
@@ -54,5 +43,16 @@ final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
     public static function equals(mixed $uid): bool
     {
         return self::TYPE === (string) $uid;
+    }
+
+    public function __toString(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Возвращает значение (value) */
+    public function getValue(): string
+    {
+        return self::TYPE;
     }
 }

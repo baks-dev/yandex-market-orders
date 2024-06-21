@@ -25,14 +25,14 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 
-
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YandexMarketAllOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YandexMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
+use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
@@ -41,9 +41,8 @@ use Symfony\Component\DependencyInjection\Attribute\When;
  * @group yandex-market-orders
  */
 #[When(env: 'test')]
-class YandexMarketAllOrdersRequestTest extends KernelTestCase
+class YandexMarketNewOrdersRequestTest extends KernelTestCase
 {
-
     private static YaMarketAuthorizationToken $Authorization;
 
     public static function setUpBeforeClass(): void
@@ -51,29 +50,39 @@ class YandexMarketAllOrdersRequestTest extends KernelTestCase
         self::$Authorization = new YaMarketAuthorizationToken(
             new UserProfileUid(),
             $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
-            $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
-            $_SERVER['TEST_YANDEX_MARKET_BUSINESS']
+            98760670, // 85604808, //$_SERVER['TEST_YANDEX_MARKET_COMPANY'],
+            110522011 //$_SERVER['TEST_YANDEX_MARKET_BUSINESS']
         );
     }
 
     public function testComplete(): void
     {
-        /** @var YandexMarketAllOrdersRequest $YandexMarketAllOrdersRequest */
-        $YandexMarketAllOrdersRequest = self::getContainer()->get(YandexMarketAllOrdersRequest::class);
-        $YandexMarketAllOrdersRequest->TokenHttpClient(self::$Authorization);
+        /** @var YandexMarketNewOrdersRequest $YandexMarketNewOrdersRequest */
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(YandexMarketNewOrdersRequest::class);
+        $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
 
         /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
-        $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
+        //$YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
 
         /** @var ExistsOrderNumberInterface $ExistsOrderNumberInterface */
-        $ExistsOrderNumberInterface = self::getContainer()->get(ExistsOrderNumberInterface::class);
+        //$ExistsOrderNumberInterface = self::getContainer()->get(ExistsOrderNumberInterface::class);
 
-        $orders = $YandexMarketAllOrdersRequest->findAll();
+        $orders = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
+        //$orders = $YandexMarketNewOrdersRequest->findAll();
 
 
         if($orders->valid())
         {
+            /** @var YandexMarketOrderDTO $order */
+            foreach($orders as $order)
+            {
+                dd($order);
+            }
+
+            dd(454);
+
+
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
             $YandexMarketOrderDTO = $orders->current();
 

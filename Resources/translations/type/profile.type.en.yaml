@@ -1,14 +1,38 @@
 yandex:
-  name: 'Yandex Market'
-  desc: 'Yandex Market User'
 
-  section:
-    contact:
-      name: 'Contact details'
-      desc: 'Data for communication between store managers and customers.'
+  fbs:
 
-      field:
+    name: 'Yandex Market'
+    desc: 'Yandex Market user'
 
-        name:
-          name: 'Contact person'
-          desc: 'User name'
+    section:
+      contact:
+        name: 'Contact details'
+        desc: 'Data for communication between store managers and customers.'
+
+        field:
+
+          name:
+            name: 'Contact person'
+            desc: 'User name'
+
+
+  dbs:
+
+    name: 'DBS YaMarket'
+    desc: 'DBS YaMarket user'
+
+    section:
+      contact:
+        name: 'Contact details'
+        desc: 'Data for communication between store managers and customers.'
+
+        field:
+
+          name:
+            name: 'Contact person'
+            desc: 'User name'
+
+          phone:
+            name: 'Contact phone'
+            desc: 'Contact number for communication'

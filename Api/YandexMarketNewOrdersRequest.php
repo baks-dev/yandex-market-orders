@@ -48,11 +48,12 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function findAll()
+    public function findAll(?DateInterval $interval = null)
     {
         // заказы за последние 15 минут (планировщик на каждые 5 минут)
         $dateTime = new DateTimeImmutable();
-        $newDateTime = $dateTime->sub(DateInterval::createFromDateString('15 minutes'));
+
+        $newDateTime = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
 
         $response = $this->TokenHttpClient()
             ->request(

@@ -26,14 +26,14 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Controller\Admin;
 
 
+use BaksDev\Core\Controller\AbstractController;
 use BaksDev\Core\Form\Search\SearchDTO;
 use BaksDev\Core\Form\Search\SearchForm;
+use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[AsController]
 #[RoleSecurity('ROLE_YA_MARKET_ORDERS')]
@@ -46,6 +46,9 @@ final class IndexController extends AbstractController
         int $page = 0,
     ): Response
     {
+
+        return new Response('Временно недоступно: '.self::class);
+
         // Поиск
         $search = new SearchDTO();
         $searchForm = $this->createForm(SearchForm::class, $search);

@@ -71,10 +71,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $this->product = new ArrayCollection();
         $this->usr = new User\OrderUserDTO();
 
-
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
-        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate'].' '.$shipments['shipmentTime']);
+        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
 
         $OrderDeliveryDTO = $this->usr->getDelivery();
         $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
@@ -185,7 +184,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     {
         return $this->usr;
     }
-
 
 
 }

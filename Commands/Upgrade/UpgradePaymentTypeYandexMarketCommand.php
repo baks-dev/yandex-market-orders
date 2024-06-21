@@ -40,31 +40,21 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
     name: 'baks:payment:yandex-market',
     description: 'Добавляет способ оплаты Yandex Market'
 )]
-#[AutoconfigureTag('baks.project.upgrade')]
 class UpgradePaymentTypeYandexMarketCommand extends Command
 {
-    private TranslatorInterface $translator;
-    private PaymentHandler $paymentHandler;
-    private ExistTypePaymentInterface $existTypePayment;
-
     public function __construct(
-        ExistTypePaymentInterface $existTypePayment,
-        PaymentHandler $paymentHandler,
-        TranslatorInterface $translator,
+        private readonly ExistTypePaymentInterface $existTypePayment,
+        private readonly PaymentHandler $paymentHandler,
+        private readonly TranslatorInterface $translator,
     )
     {
         parent::__construct();
-
-        $this->translator = $translator;
-        $this->existTypePayment = $existTypePayment;
-        $this->paymentHandler = $paymentHandler;
     }
 
     /** Добавляет способ оплаты Yandex Market  */

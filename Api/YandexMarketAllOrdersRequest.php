@@ -28,14 +28,12 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 use BaksDev\Delivery\Type\Field\DeliveryFieldUid;
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use DomainException;
 
 /**
  * Информация о заказах
  */
 final class YandexMarketAllOrdersRequest extends YandexMarket
 {
-
     private int $page = 1;
 
     public function page(int $page): self
@@ -87,7 +85,6 @@ final class YandexMarketAllOrdersRequest extends YandexMarket
                     code: $response->getStatusCode()
                 );
             }*/
-
 
 
             $content = $this->debug();

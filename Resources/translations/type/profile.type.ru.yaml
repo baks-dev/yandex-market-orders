@@ -1,15 +1,38 @@
 yandex:
-  name: 'Yandex Market'
-  desc: 'Пользователь Yandex Market'
+
+  fbs:
+
+    name: 'Yandex Market'
+    desc: 'Пользователь Yandex Market'
+
+    section:
+      contact:
+        name: 'Контактные данные'
+        desc: 'Данные для связи менеджерами магазина с покупателем.'
+
+        field:
+
+          name:
+            name: 'Контактное лицо'
+            desc: 'ФИО пользователя'
 
 
-  section:
-    contact:
-      name: 'Контактные данные'
-      desc: 'Данные для связи менеджерами магазина с покупателем.'
+  dbs:
 
-      field:
+    name: 'DBS YaMarket'
+    desc: 'Пользователь DBS YaMarket'
 
-        name:
-          name: 'Контактное лицо'
-          desc: 'ФИО пользователя'
+    section:
+      contact:
+        name: 'Контактные данные'
+        desc: 'Данные для связи менеджерами магазина с покупателем.'
+
+        field:
+
+          name:
+            name: 'Контактное лицо'
+            desc: 'ФИО пользователя'
+
+          phone:
+            name: 'Контактный телефон'
+            desc: 'Контактный телефон для связи'

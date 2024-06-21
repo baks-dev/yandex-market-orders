@@ -71,7 +71,7 @@ class UpgradePaymentTypeFbsYaMarketCommand extends Command
 
             $PaymentDTO = new PaymentDTO($PaymentUid);
             $PaymentDTO->setType(new TypeProfileUid(TypeProfileYandexMarket::class));
-            $PaymentDTO->setSort(TypePaymentCache::priority());
+            $PaymentDTO->setSort(TypePaymentYandex::priority());
 
 
             $PaymentTransDTO = $PaymentDTO->getTranslate();

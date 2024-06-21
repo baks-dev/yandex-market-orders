@@ -28,6 +28,9 @@ namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
+/**
+ * Идентификатор: b11d5991-68dc-7b65-998d-4d6a1d870c8a
+ */
 #[AutoconfigureTag('baks.users.profile.type')]
 final class TypeProfileDbsYaMarket implements TypeProfileInterface
 {

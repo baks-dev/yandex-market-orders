@@ -30,7 +30,7 @@ yandex:
         field:
 
           name:
-            name: 'Контактное лицо'
+            name: 'Получатель'
             desc: 'ФИО пользователя'
 
           phone:

@@ -44,7 +44,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
@@ -57,8 +56,7 @@ class UpgradeDeliveryTypeDbsYaMarketCommand extends Command
         private readonly ExistTypeDeliveryInterface $existTypeDelivery,
         private readonly TranslatorInterface $translator,
         private readonly DeliveryHandler $deliveryHandler
-    )
-    {
+    ) {
         parent::__construct();
     }
 

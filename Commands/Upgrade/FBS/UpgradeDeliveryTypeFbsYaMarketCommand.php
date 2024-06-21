@@ -56,8 +56,7 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
         private readonly ExistTypeDeliveryInterface $existTypeDelivery,
         private readonly TranslatorInterface $translator,
         private readonly DeliveryHandler $deliveryHandler
-    )
-    {
+    ) {
         parent::__construct();
     }
 

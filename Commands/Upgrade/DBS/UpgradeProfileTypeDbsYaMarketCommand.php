@@ -54,8 +54,7 @@ class UpgradeProfileTypeDbsYaMarketCommand extends Command
         private readonly ExistTypeProfileInterface $existTypeProfile,
         private readonly TranslatorInterface $translator,
         private readonly TypeProfileHandler $profileHandler
-    )
-    {
+    ) {
         parent::__construct();
     }
 

@@ -50,7 +50,7 @@ final class TypePaymentYandex implements TypePaymentInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 100;
+        return 420;
     }
 
     public static function equals(mixed $uid): bool

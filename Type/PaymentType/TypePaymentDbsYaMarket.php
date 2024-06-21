@@ -39,7 +39,7 @@ final class TypePaymentDbsYaMarket implements TypePaymentInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 101;
+        return 421;
     }
 
     public static function equals(mixed $uid): bool

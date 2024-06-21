@@ -47,7 +47,7 @@ final class TypeProfileYandexMarket implements TypeProfileInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 300;
+        return 420;
     }
 
     public static function equals(mixed $uid): bool

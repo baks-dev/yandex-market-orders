@@ -37,7 +37,7 @@ final class TypeDeliveryDbsYaMarket implements TypeDeliveryInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 801;
+        return 421;
     }
 
     public static function equals(mixed $uid): bool

@@ -48,7 +48,7 @@ final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 800;
+        return 420;
     }
 
     public static function equals(mixed $uid): bool

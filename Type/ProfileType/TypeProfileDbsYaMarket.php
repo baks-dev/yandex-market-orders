@@ -39,7 +39,7 @@ final class TypeProfileDbsYaMarket implements TypeProfileInterface
     /** Сортировка */
     public static function priority(): int
     {
-        return 301;
+        return 421;
     }
 
     public static function equals(mixed $uid): bool

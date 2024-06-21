@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade;
+namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade\DBS;
 
 use BaksDev\Payment\Entity\Payment;
 use BaksDev\Payment\Repository\ExistTypePayment\ExistTypePaymentInterface;
@@ -33,7 +33,7 @@ use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentDTO;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentHandler;
 use BaksDev\Payment\UseCase\Admin\NewEdit\Trans\PaymentTransDTO;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -43,10 +43,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
-    name: 'baks:payment:yandex-market',
-    description: 'Добавляет способ оплаты Yandex Market'
+    name: 'baks:payment:yandex-market-dbs',
+    description: 'Добавляет способ оплаты DBS Yandex Market'
 )]
-class UpgradePaymentTypeYandexMarketCommand extends Command
+class UpgradePaymentTypeDbsYaMarketCommand extends Command
 {
     public function __construct(
         private readonly ExistTypePaymentInterface $existTypePayment,
@@ -60,7 +60,7 @@ class UpgradePaymentTypeYandexMarketCommand extends Command
     /** Добавляет способ оплаты Yandex Market  */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $PaymentUid = new PaymentUid(TypePaymentYandex::class);
+        $PaymentUid = new PaymentUid(TypePaymentDbsYaMarket::class);
 
         /** Проверяем наличие способа оплаты Yandex Market */
         $exists = $this->existTypePayment->isExists($PaymentUid);
@@ -84,8 +84,8 @@ class UpgradePaymentTypeYandexMarketCommand extends Command
              */
             foreach($PaymentTransDTO as $PaymentTrans)
             {
-                $name = $this->translator->trans('yandex.name', domain: 'payment.type', locale: $PaymentTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.desc', domain: 'payment.type', locale: $PaymentTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.dbs.name', domain: 'payment.type', locale: $PaymentTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.dbs.desc', domain: 'payment.type', locale: $PaymentTrans->getLocal()->getLocalValue());
 
                 $PaymentTrans->setName($name);
                 $PaymentTrans->setDescription($desc);

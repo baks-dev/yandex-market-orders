@@ -13,13 +13,22 @@ baks-dev/yandex-market \
 baks-dev/yandex-market-orders
 ```
 
-При первоначальной установке пакета автоматически выполнится консольная комманда на добавление тип профиля,
-доставку и способ оплаты «Yandex Market»:
+Для работы с заказами выполнить комманду для добавления типа профиля и доставку:
+
+#### FBS
 
 ``` bash
-php bin/console baks:users-profile-type:yandex-market
-php bin/console baks:payment:yandex-market
-php bin/console baks:delivery:yandex-market
+php bin/console baks:users-profile-type:yandex-market-fbs
+php bin/console baks:payment:yandex-market-fbs
+php bin/console baks:delivery:yandex-market-fbs
+```
+
+#### DBS
+
+``` bash
+php bin/console baks:users-profile-type:yandex-market-fbs
+php bin/console baks:payment:yandex-market-fbs
+php bin/console baks:delivery:yandex-market-fbs
 ```
 
 ## Дополнительно

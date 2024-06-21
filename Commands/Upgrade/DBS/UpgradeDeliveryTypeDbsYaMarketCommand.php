@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade;
+namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade\DBS;
 
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Delivery\Entity\Delivery;
@@ -44,13 +44,14 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
-    name: 'baks:delivery:yandex-market',
-    description: 'Добавляет курьерскую доставку Yandex Market'
+    name: 'baks:delivery:yandex-market-dbs',
+    description: 'Добавляет собственную доставку клиенту Yandex Market'
 )]
-class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
+class UpgradeDeliveryTypeDbsYaMarketCommand extends Command
 {
     public function __construct(
         private readonly ExistTypeDeliveryInterface $existTypeDelivery,
@@ -72,7 +73,7 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
         if(!$exists)
         {
             $io = new SymfonyStyle($input, $output);
-            $io->text('Добавляем курьерскую доставку Yandex Market');
+            $io->text('Добавляем собственную доставку клиенту заказов DBS YaMarket');
 
             $DeliveryDTO = new DeliveryDTO($DeliveryUid);
 
@@ -97,8 +98,8 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
              */
             foreach($DeliveryTransDTO as $DeliveryTrans)
             {
-                $name = $this->translator->trans('yandex.fbs.name', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.fbs.desc', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.dbs.name', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.dbs.desc', domain: 'delivery.type', locale: $DeliveryTrans->getLocal()->getLocalValue());
 
                 $DeliveryTrans->setName($name);
                 $DeliveryTrans->setDescription($desc);
@@ -115,8 +116,8 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
             /** @var DeliveryFieldTransDTO $DeliveryFieldTrans */
             foreach($DeliveryFieldDTO->getTranslate() as $DeliveryFieldTrans)
             {
-                $name = $this->translator->trans('yandex.fbs.address.name', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.fbs.address.desc', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.dbs.address.name', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.dbs.address.desc', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
 
                 $DeliveryFieldTrans->setName($name);
                 $DeliveryFieldTrans->setDescription($desc);

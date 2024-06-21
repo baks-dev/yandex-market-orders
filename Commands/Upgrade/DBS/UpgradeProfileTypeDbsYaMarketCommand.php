@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade;
+namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade\DBS;
 
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Users\Profile\TypeProfile\Entity\TypeProfile;
@@ -36,25 +36,24 @@ use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\Trans\Sectio
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Trans\TransDTO;
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileDTO;
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileHandler;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
-    name: 'baks:users-profile-type:yandex-market-fbs',
-    description: 'Добавляет тип FBS Yandex Market профилей пользователя'
+    name: 'baks:users-profile-type:yandex-market-dbs',
+    description: 'Добавляет тип профилей пользователя DBS Yandex Market '
 )]
-class UpgradeProfileTypeFbsYaMarketCommand extends Command
+class UpgradeProfileTypeDbsYaMarketCommand extends Command
 {
     public function __construct(
         private readonly ExistTypeProfileInterface $existTypeProfile,
         private readonly TranslatorInterface $translator,
-        private readonly TypeProfileHandler $profileHandler,
+        private readonly TypeProfileHandler $profileHandler
     )
     {
         parent::__construct();
@@ -63,7 +62,7 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
     /** Добавляет тип профиля Yandex Market  */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $TypeProfileUid = new TypeProfileUid(TypeProfileYandexMarket::class);
+        $TypeProfileUid = new TypeProfileUid(TypeProfileDbsYaMarket::class);
 
         /** Проверяем наличие типа Yandex Market */
         $exists = $this->existTypeProfile->isExistTypeProfile($TypeProfileUid);
@@ -71,10 +70,10 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
         if(!$exists)
         {
             $io = new SymfonyStyle($input, $output);
-            $io->text('Добавляем тип профиля FBS Yandex Market');
+            $io->text('Добавляем тип профиля Yandex Market DBS');
 
             $TypeProfileDTO = new TypeProfileDTO();
-            $TypeProfileDTO->setSort(TypeProfileYandexMarket::priority());
+            $TypeProfileDTO->setSort(TypeProfileDbsYaMarket::priority());
             $TypeProfileDTO->setProfile($TypeProfileUid);
 
             $TypeProfileTranslateDTO = $TypeProfileDTO->getTranslate();
@@ -86,8 +85,8 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
              */
             foreach($TypeProfileTranslateDTO as $ProfileTrans)
             {
-                $name = $this->translator->trans('yandex.fbs.name', domain: 'profile.type', locale: $ProfileTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.fbs.desc', domain: 'profile.type', locale: $ProfileTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.dbs.name', domain: 'profile.type', locale: $ProfileTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.dbs.desc', domain: 'profile.type', locale: $ProfileTrans->getLocal()->getLocalValue());
 
                 $ProfileTrans->setName($name);
                 $ProfileTrans->setDescription($desc);
@@ -102,8 +101,8 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
             /** @var SectionTransDTO $SectionTrans */
             foreach($SectionDTO->getTranslate() as $SectionTrans)
             {
-                $name = $this->translator->trans('yandex.fbs.section.contact.name', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.fbs.section.contact.desc', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
+                $name = $this->translator->trans('yandex.dbs.section.contact.name', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
+                $desc = $this->translator->trans('yandex.dbs.section.contact.desc', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
 
                 $SectionTrans->setName($name);
                 $SectionTrans->setDescription($desc);
@@ -113,7 +112,7 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
 
             /* Добавляем поля для заполнения */
 
-            $fields = ['name'];
+            $fields = ['name', 'phone'];
 
             foreach($fields as $sort => $field)
             {
@@ -123,20 +122,19 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
                 $SectionFieldDTO->setRequired(true);
                 $SectionFieldDTO->setType(new InputField('input_field'));
 
-
                 /** @var SectionFieldTransDTO $SectionFieldTrans */
                 foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)
                 {
-                    $name = $this->translator->trans('yandex.section.contact.field.'.$field.'.name', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
-                    $desc = $this->translator->trans('yandex.section.contact.field.'.$field.'.desc', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $name = $this->translator->trans('yandex.dbs.section.contact.field.'.$field.'.name', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $desc = $this->translator->trans('yandex.dbs.section.contact.field.'.$field.'.desc', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
 
                     $SectionFieldTrans->setName($name);
                     $SectionFieldTrans->setDescription($desc);
                 }
 
-
                 $SectionDTO->addField($SectionFieldDTO);
             }
+
 
             $TypeProfileDTO->addSection($SectionDTO);
 

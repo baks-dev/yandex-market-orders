@@ -33,16 +33,6 @@
       "BaksDev\\Yandex\\Market\\Orders\\": ""
     }
   },
-  "scripts": {
-    "auto-scripts": {
-      "baks:users-profile-type:yandex-market": "symfony-cmd",
-      "baks:payment:yandex-market": "symfony-cmd",
-      "baks:delivery:yandex-market": "symfony-cmd"
-    },
-    "post-install-cmd": [
-      "@auto-scripts"
-    ]
-  },
   "config": {
     "sort-packages": true,
     "allow-plugins": {

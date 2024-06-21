@@ -9,7 +9,7 @@ yandex:
 
 
   dbs:
-    name: 'Доставка клиенту'
+    name: 'Доставка клиенту Yandex'
     desc: 'Доставка клиенту Yandex Market'
 
     address:

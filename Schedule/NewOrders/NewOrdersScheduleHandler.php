@@ -27,27 +27,20 @@ namespace BaksDev\Yandex\Market\Orders\Schedule\NewOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Yandex\Market\Orders\Messenger\NewOrders\NewYandexOrdersMessage;
-use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileTokenInterface;
+use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class NewOrdersScheduleHandler
 {
-    private AllProfileTokenInterface $allProfileToken;
-
-    private MessageDispatchInterface $messageDispatch;
-
     public function __construct(
-        AllProfileTokenInterface $allProfileToken,
-        MessageDispatchInterface $messageDispatch,
-    )
-    {
-        $this->allProfileToken = $allProfileToken;
-        $this->messageDispatch = $messageDispatch;
-    }
+        private readonly AllProfileYaMarketTokenInterface $allProfileToken,
+        private readonly MessageDispatchInterface $messageDispatch,
+    ) {}
 
     public function __invoke(NewOrdersScheduleMessage $message): void
     {
+        /** Получаем активные токены авторизации профилей */
         $profiles = $this->allProfileToken
             ->onlyActiveToken()
             ->findAll();
@@ -62,7 +55,5 @@ final class NewOrdersScheduleHandler
                 );
             }
         }
-
-
     }
 }

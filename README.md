@@ -15,7 +15,7 @@ baks-dev/yandex-market-orders
 
 Для работы с заказами выполнить комманду для добавления типа профиля и доставку:
 
-#### FBS
+* #### FBS
 
 ``` bash
 php bin/console baks:users-profile-type:yandex-market-fbs
@@ -23,12 +23,12 @@ php bin/console baks:payment:yandex-market-fbs
 php bin/console baks:delivery:yandex-market-fbs
 ```
 
-#### DBS
+* #### DBS
 
 ``` bash
-php bin/console baks:users-profile-type:yandex-market-fbs
-php bin/console baks:payment:yandex-market-fbs
-php bin/console baks:delivery:yandex-market-fbs
+php bin/console baks:users-profile-type:yandex-market-dbs
+php bin/console baks:payment:yandex-market-dbs
+php bin/console baks:delivery:yandex-market-dbs
 ```
 
 ## Дополнительно

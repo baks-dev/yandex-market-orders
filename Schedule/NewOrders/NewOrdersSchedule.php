@@ -29,11 +29,9 @@ use BaksDev\Core\Schedule\ScheduleInterface;
 use DateInterval;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-
 /**
  * Проверяем новые заказы Yandex Market каждые 5 минут
  */
-
 #[AutoconfigureTag('baks.schedule')]
 final class NewOrdersSchedule implements ScheduleInterface
 {
@@ -51,6 +49,6 @@ final class NewOrdersSchedule implements ScheduleInterface
      */
     public function getInterval(): DateInterval
     {
-       return DateInterval::createFromDateString('5 minutes');
+        return DateInterval::createFromDateString('5 minutes');
     }
 }

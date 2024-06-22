@@ -31,11 +31,11 @@ use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInte
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class NewOrdersScheduleHandler
+final readonly class NewOrdersScheduleHandler
 {
     public function __construct(
-        private readonly AllProfileYaMarketTokenInterface $allProfileToken,
-        private readonly MessageDispatchInterface $messageDispatch,
+        private AllProfileYaMarketTokenInterface $allProfileToken,
+        private MessageDispatchInterface $messageDispatch,
     ) {}
 
     public function __invoke(NewOrdersScheduleMessage $message): void

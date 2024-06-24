@@ -1,10 +1,10 @@
 yandex:
   fbs:
-    name: 'Склад Yandex Market'
+    name: 'Склад Yandex'
     desc: 'Курьерская доставка Yandex Market'
 
     address:
-      name: 'Адрес ПВЗ Yandex Market'
+      name: 'Адрес ПВЗ YaMarket'
       desc: 'Адрес пункта выдачи заказов Yandex Market выбранный клиентом'
 
 

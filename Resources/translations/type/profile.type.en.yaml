@@ -30,9 +30,9 @@ yandex:
         field:
 
           name:
-            name: 'Contact person'
+            name: 'Recipient'
             desc: 'User name'
 
           phone:
             name: 'Contact phone'
-            desc: 'Contact number for communication'
+            desc: 'Contact telephone number'

@@ -1,9 +1,17 @@
 yandex:
   fbs:
-    name: 'Курьером YaMarket'
-    desc: 'Куръерская доставка YaMarket'
+    name: 'Yandex warehouse'
+    desc: 'Yandex Market courier delivery'
 
+    address:
+      name: 'YaMarket pick-up point address'
+      desc: 'Address of the Yandex Market order pick-up point selected by the client'
+
+
+  dbs:
+    name: 'Delivery to Yandex client'
+    desc: 'Delivery to Yandex Market client'
 
     address:
       name: 'Client address'
-      desc: 'Address of delivery of the order to the client'
+      desc: 'Delivery address of the order to the Yandex Market client'

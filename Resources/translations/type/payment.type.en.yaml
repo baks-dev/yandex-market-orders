@@ -1,9 +1,8 @@
 yandex:
   fbs:
     name: 'Yandex Market'
-    desc: 'Оплата FBS Yandex Market'
+    desc: 'Payment for FBS Yandex Market'
 
   dbs:
     name: 'DBS Yandex Market'
-    desc: 'Оплата DBS Yandex Market'
-
+    desc: 'Payment for DBS Yandex Market'

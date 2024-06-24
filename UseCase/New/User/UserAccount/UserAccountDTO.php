@@ -32,97 +32,96 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class UserAccountDTO implements AccountEventInterface
 {
-	/** UserEvent ID */
-	#[Assert\IsNull]
-	private ?AccountEventUid $id;
-	
-	/** Email */
-	#[Assert\NotBlank]
-	#[Assert\Email]
-	private AccountEmail $email;
-	
-	/** Дайджест Пароля */
-	private string $password;
-	
-	
-	/** Пароль */
-	#[Assert\NotBlank]
-	#[Assert\Length(
-		min: 8,
-		max: 4096
-	)]
-	private readonly string $passwordPlain;
-	
-	#[Assert\Valid]
-	private Status\UserAccountStatusDTO $status;
-	
+    /** UserEvent ID */
+    #[Assert\IsNull]
+    private ?AccountEventUid $id;
 
-	
-	public function __construct()
-	{
-		$this->id = null;
-		$this->status = new Status\UserAccountStatusDTO();
-		
-	}
-	
-	
-	public function setId(AccountEventUid $id) : void {}
-	
-	
-	public function getEvent() : ?AccountEventUid
-	{
-		return $this->id;
-	}
-	
-	
-	/** Email */
-	
-	public function getEmail() : AccountEmail
-	{
-		return $this->email;
-	}
-	
-	
-	public function setEmail(AccountEmail $email) : void
-	{
-		$this->email = $email;
-	}
-	
-	/** Статус */
-	
+    /** Email */
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    private AccountEmail $email;
 
-	public function getStatus() : Status\UserAccountStatusDTO
-	{
-		return $this->status;
-	}
-	
+    /** Дайджест Пароля */
+    private string $password;
 
-	/** Текстовый пароль */
-	
-	public function getPasswordPlain() : ?string
-	{
-		return $this->passwordPlain;
-	}
-	
-	
-	public function setPasswordPlain(?string $passwordPlain) : void
-	{
-		$this->passwordPlain = $passwordPlain;
-	}
-	
-	
-	/** Хешированный пароль */
-	
-	public function getPassword() : ?string
-	{
-		return $this->password;
-	}
-	
-	
-	public function setPasswordHash(string $password) : void
-	{
-		$this->password = $password;
-	}
-	
-	
+
+    /** Пароль */
+    #[Assert\NotBlank]
+    #[Assert\Length(
+        min: 8,
+        max: 4096
+    )]
+    private readonly string $passwordPlain;
+
+    #[Assert\Valid]
+    private Status\UserAccountStatusDTO $status;
+
+
+    public function __construct()
+    {
+        $this->id = null;
+        $this->status = new Status\UserAccountStatusDTO();
+
+    }
+
+
+    public function setId(AccountEventUid $id): void {}
+
+
+    public function getEvent(): ?AccountEventUid
+    {
+        return $this->id;
+    }
+
+
+    /** Email */
+
+    public function getEmail(): AccountEmail
+    {
+        return $this->email;
+    }
+
+
+    public function setEmail(AccountEmail $email): void
+    {
+        $this->email = $email;
+    }
+
+    /** Статус */
+
+
+    public function getStatus(): Status\UserAccountStatusDTO
+    {
+        return $this->status;
+    }
+
+
+    /** Текстовый пароль */
+
+    public function getPasswordPlain(): ?string
+    {
+        return $this->passwordPlain;
+    }
+
+
+    public function setPasswordPlain(?string $passwordPlain): void
+    {
+        $this->passwordPlain = $passwordPlain;
+    }
+
+
+    /** Хешированный пароль */
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+
+    public function setPasswordHash(string $password): void
+    {
+        $this->password = $password;
+    }
+
+
 }

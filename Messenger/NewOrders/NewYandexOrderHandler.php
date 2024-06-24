@@ -63,21 +63,14 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final class NewYandexOrderHandler
 {
     private LoggerInterface $logger;
-    private YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest;
-    private ExistsOrderNumberInterface $existsOrderNumber;
-    private YandexMarketOrderHandler $yandexMarketOrderHandler;
 
     public function __construct(
+        private readonly YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
+        private readonly ExistsOrderNumberInterface $existsOrderNumber,
+        private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
         LoggerInterface $yandexMarketOrdersLogger,
-        YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
-        ExistsOrderNumberInterface $existsOrderNumber,
-        YandexMarketOrderHandler $yandexMarketOrderHandler
-    )
-    {
-        $this->yandexMarketNewOrdersRequest = $yandexMarketNewOrdersRequest;
-        $this->existsOrderNumber = $existsOrderNumber;
+    ) {
         $this->logger = $yandexMarketOrdersLogger;
-        $this->yandexMarketOrderHandler = $yandexMarketOrderHandler;
     }
 
     public function __invoke(NewYandexOrdersMessage $message): void
@@ -89,7 +82,8 @@ final class NewYandexOrderHandler
 
         if(!$orders->valid())
         {
-            $this->logger->info('Новых заказов не найдено',
+            $this->logger->info(
+                'Новых заказов не найдено',
                 [
                     __FILE__.':'.__LINE__,
                     'profile' => (string) $message->getProfile(),
@@ -99,7 +93,8 @@ final class NewYandexOrderHandler
             return;
         }
 
-        $this->logger->notice('Получаем заказы и добавляем новые',
+        $this->logger->notice(
+            'Получаем заказы и добавляем новые',
             [
                 __FILE__.':'.__LINE__,
                 'profile' => (string) $message->getProfile(),

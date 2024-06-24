@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Api;
 
-use BaksDev\Delivery\Type\Field\DeliveryFieldUid;
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use DateInterval;
@@ -37,23 +36,29 @@ use DomainException;
  */
 final class YandexMarketNewOrdersRequest extends YandexMarket
 {
+    private int $page = 1;
+
+    private ?DateTimeImmutable $fromDate = null;
+
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
      * PROCESSING - заказ находится в обработке.
      * STARTED — заказ подтвержден, его можно начать обрабатывать
      *
-     * Лимит: 1 000 000 запросов в час
+     * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
     public function findAll(?DateInterval $interval = null)
     {
-        // заказы за последние 15 минут (планировщик на каждые 5 минут)
-        $dateTime = new DateTimeImmutable();
-
-        $newDateTime = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
+        if(!$this->fromDate)
+        {
+            // заказы за последние 5 минут (планировщик на каждую минуту)
+            $dateTime = new DateTimeImmutable();
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
+        }
 
         $response = $this->TokenHttpClient()
             ->request(
@@ -61,11 +66,11 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
                 sprintf('/campaigns/%s/orders', $this->getCompany()),
                 ['query' =>
                     [
-                        'page' => 1,
+                        'page' => $this->page,
                         'pageSize' => 50,
                         'status' => 'PROCESSING',
                         'substatus' => 'STARTED',
-                        'updatedAtFrom' => $newDateTime->format('Y-m-d\TH:i:sP')
+                        'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
                     ]
                 ],
             );

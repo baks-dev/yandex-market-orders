@@ -47,10 +47,14 @@ class YandexMarketNewOrdersRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
+        /** DBS */
+        $company = 98760670;
+        $business = 110522011;
+
         self::$Authorization = new YaMarketAuthorizationToken(
             new UserProfileUid(),
             $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
-            98760670, // 85604808, //$_SERVER['TEST_YANDEX_MARKET_COMPANY'],
+            85604808, //$_SERVER['TEST_YANDEX_MARKET_COMPANY'],
             110522011 //$_SERVER['TEST_YANDEX_MARKET_BUSINESS']
         );
     }
@@ -68,7 +72,8 @@ class YandexMarketNewOrdersRequestTest extends KernelTestCase
         /** @var ExistsOrderNumberInterface $ExistsOrderNumberInterface */
         //$ExistsOrderNumberInterface = self::getContainer()->get(ExistsOrderNumberInterface::class);
 
-        $orders = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
+        $orders = $YandexMarketNewOrdersRequest
+            ->findAll(DateInterval::createFromDateString('10 day'));
         //$orders = $YandexMarketNewOrdersRequest->findAll();
 
 

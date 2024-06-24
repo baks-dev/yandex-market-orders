@@ -96,10 +96,10 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
         return $this->delivery;
     }
 
-//    public function setDelivery(DeliveryUid $delivery): void
-//    {
-//        $this->delivery = $delivery;
-//    }
+    //    public function setDelivery(DeliveryUid $delivery): void
+    //    {
+    //        $this->delivery = $delivery;
+    //    }
 
     /** Событие способа оплаты (для расчета стоимости) */
     public function getEvent(): DeliveryEventUid
@@ -125,7 +125,7 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
 
     public function addField(Field\OrderDeliveryFieldDTO $field): void
     {
-        if (!$this->field->contains($field))
+        if(!$this->field->contains($field))
         {
             $this->field->add($field);
         }
@@ -202,8 +202,6 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
         $this->address = $address;
         return $this;
     }
-
-
 
 
 }

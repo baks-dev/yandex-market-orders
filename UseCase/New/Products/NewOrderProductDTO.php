@@ -36,7 +36,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 /** @see OrderProduct */
 final class NewOrderProductDTO implements OrderProductInterface
 {
-
     /** Артикул продукта */
     #[Assert\NotBlank]
     private string $article;

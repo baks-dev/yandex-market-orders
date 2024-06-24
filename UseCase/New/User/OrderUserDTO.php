@@ -32,141 +32,139 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class OrderUserDTO implements OrderUserInterface
 {
-	
-	/* Пользователь  */
-	
-	/** ID пользователя  */
-	#[Assert\Uuid]
-	private ?UserUid $usr = null;
-	
-	/** Новый Аккаунт */
-	private UserAccount\UserAccountDTO $userAccount;
-	
-	/* Профиль пользователя */
-	
-	/** Идентификатор События!! профиля пользователя */
-	#[Assert\Uuid]
-	private ?UserProfileEventUid $profile = null;
-	
-	/** Новый профиль пользователя */
-	private UserProfile\UserProfileDTO $userProfile;
-	
+    /* Пользователь  */
 
-	/** Способ оплаты */
-	#[Assert\Valid]
-	private Payment\OrderPaymentDTO $payment;
-	
-	/** Способ доставки */
-	#[Assert\Valid]
-	private Delivery\OrderDeliveryDTO $delivery;
+    /** ID пользователя  */
+    #[Assert\Uuid]
+    private ?UserUid $usr = null;
 
-	
-	public function __construct()
-	{
-		$this->userAccount = new UserAccount\UserAccountDTO();
-		$this->userProfile = new UserProfile\UserProfileDTO();
-		$this->payment = new Payment\OrderPaymentDTO;
-		$this->delivery = new Delivery\OrderDeliveryDTO;
+    /** Новый Аккаунт */
+    private UserAccount\UserAccountDTO $userAccount;
+
+    /* Профиль пользователя */
+
+    /** Идентификатор События!! профиля пользователя */
+    #[Assert\Uuid]
+    private ?UserProfileEventUid $profile = null;
+
+    /** Новый профиль пользователя */
+    private UserProfile\UserProfileDTO $userProfile;
+
+
+    /** Способ оплаты */
+    #[Assert\Valid]
+    private Payment\OrderPaymentDTO $payment;
+
+    /** Способ доставки */
+    #[Assert\Valid]
+    private Delivery\OrderDeliveryDTO $delivery;
+
+
+    public function __construct()
+    {
+        $this->userAccount = new UserAccount\UserAccountDTO();
+        $this->userProfile = new UserProfile\UserProfileDTO();
+        $this->payment = new Payment\OrderPaymentDTO();
+        $this->delivery = new Delivery\OrderDeliveryDTO();
 
         $this->usr = new UserUid();
-	}
-	
-	
-	/** ID пользователя */
-	public function getUsr() : ?UserUid
-	{
-		return $this->usr;
-	}
-	
-	
-	public function setUsr(?UserUid $usr) : void
-	{
-		
-		$this->usr = $usr;
-	}
-	
-	
-	/** Идентификатор События!! профиля пользователя */
-	
-	public function getProfile() : ?UserProfileEventUid
-	{
-		
-		return $this->profile;
-	}
-	
-	
-	public function setProfile(?UserProfileEventUid $profile) : void
-	{
-		$this->profile = $profile;
-	}
-	
-	
-	/** Новый Аккаунт */
-	
-	public function getUserAccount() : ?UserAccount\UserAccountDTO
-	{
-		//		if(!$this->user)
-		//		{
-		//			$this->userAccount = new UserAccount\UserAccountDTO();
-		//		}
-		
-		return $this->userAccount;
-	}
-	
-	
-	public function setUserAccount(?UserAccount\UserAccountDTO $userAccount) : void
-	{
-		$this->userAccount = $userAccount;
-	}
-	
-	
-	/** Новый профиль пользователя */
-	
-	public function getUserProfile() : ?UserProfile\UserProfileDTO
-	{
-		//		if(!$this->profile)
-		//		{
-		//			$this->userProfile = new UserProfile\UserProfileDTO();
-		//		}
-		
-		return $this->userProfile;
-	}
-	
-	
-	public function setUserProfile(?UserProfile\UserProfileDTO $userProfile) : void
-	{
-		
-		$this->userProfile = $userProfile;
-	}
-	
-	
-	/** Способ оплаты */
-	
-	public function getPayment() : Payment\OrderPaymentDTO
-	{
-		return $this->payment;
-	}
-	
-	
-	public function setPayment(Payment\OrderPaymentDTO $payment) : void
-	{
-		$this->payment = $payment;
-	}
-	
-	
-	/** Способ доставки */
-	
-	public function getDelivery() : Delivery\OrderDeliveryDTO
-	{
-		return $this->delivery;
-	}
-	
-	
-	public function setDelivery(Delivery\OrderDeliveryDTO $delivery) : void
-	{
-		$this->delivery = $delivery;
-	}
-	
-	
+    }
+
+
+    /** ID пользователя */
+    public function getUsr(): ?UserUid
+    {
+        return $this->usr;
+    }
+
+
+    public function setUsr(?UserUid $usr): void
+    {
+
+        $this->usr = $usr;
+    }
+
+
+    /** Идентификатор События!! профиля пользователя */
+
+    public function getProfile(): ?UserProfileEventUid
+    {
+
+        return $this->profile;
+    }
+
+
+    public function setProfile(?UserProfileEventUid $profile): void
+    {
+        $this->profile = $profile;
+    }
+
+
+    /** Новый Аккаунт */
+
+    public function getUserAccount(): ?UserAccount\UserAccountDTO
+    {
+        //		if(!$this->user)
+        //		{
+        //			$this->userAccount = new UserAccount\UserAccountDTO();
+        //		}
+
+        return $this->userAccount;
+    }
+
+
+    public function setUserAccount(?UserAccount\UserAccountDTO $userAccount): void
+    {
+        $this->userAccount = $userAccount;
+    }
+
+
+    /** Новый профиль пользователя */
+
+    public function getUserProfile(): ?UserProfile\UserProfileDTO
+    {
+        //		if(!$this->profile)
+        //		{
+        //			$this->userProfile = new UserProfile\UserProfileDTO();
+        //		}
+
+        return $this->userProfile;
+    }
+
+
+    public function setUserProfile(?UserProfile\UserProfileDTO $userProfile): void
+    {
+
+        $this->userProfile = $userProfile;
+    }
+
+
+    /** Способ оплаты */
+
+    public function getPayment(): Payment\OrderPaymentDTO
+    {
+        return $this->payment;
+    }
+
+
+    public function setPayment(Payment\OrderPaymentDTO $payment): void
+    {
+        $this->payment = $payment;
+    }
+
+
+    /** Способ доставки */
+
+    public function getDelivery(): Delivery\OrderDeliveryDTO
+    {
+        return $this->delivery;
+    }
+
+
+    public function setDelivery(Delivery\OrderDeliveryDTO $delivery): void
+    {
+        $this->delivery = $delivery;
+    }
+
 
 }

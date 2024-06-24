@@ -27,7 +27,6 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\NewOrders;
 
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 
-
 final class NewYandexOrdersMessage
 {
     /**

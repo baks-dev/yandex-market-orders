@@ -25,9 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\User\Payment;
 
-
 use BaksDev\Orders\Order\Entity\User\Payment\OrderPaymentInterface;
-use BaksDev\Payment\Type\Id\Choice\TypePaymentCache;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
 use Doctrine\Common\Collections\ArrayCollection;

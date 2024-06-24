@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Controller\Admin;
 
-
 use BaksDev\Core\Controller\AbstractController;
 use BaksDev\Core\Form\Search\SearchDTO;
 use BaksDev\Core\Form\Search\SearchForm;
@@ -44,8 +43,7 @@ final class IndexController extends AbstractController
         Request $request,
         //AllYaMarketInterface $allYaMarket,
         int $page = 0,
-    ): Response
-    {
+    ): Response {
 
         return new Response('Временно недоступно: '.self::class);
 

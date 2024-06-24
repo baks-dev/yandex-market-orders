@@ -65,10 +65,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         FieldByDeliveryChoiceInterface $deliveryFields,
         CurrentDeliveryEventInterface $currentDeliveryEvent,
         GeocodeAddressParser $geocodeAddressParser,
-
-
-    )
-    {
+    ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
 
         $this->profileHandler = $profileHandler;
@@ -102,12 +99,14 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         }
 
-
         /** Идентификатор свойства адреса доставки */
         $OrderDeliveryDTO = $command->getUsr()->getDelivery();
 
         /** Создаем адрес геолокации */
-        $GeocodeAddress = $this->geocodeAddressParser->getGeocode($OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude());
+        $GeocodeAddress = $this->geocodeAddressParser
+            ->getGeocode(
+                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
+            );
 
         if($GeocodeAddress)
         {
@@ -118,10 +117,8 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
-        $address_field = array_filter($fields, function($v) {
-
+        $address_field = array_filter($fields, function ($v) {
             /** @var InputField $InputField */
-
             return $v->getType()->getType() === 'address_field';
         });
 
@@ -151,9 +148,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
         {
 
             $UserProfileDTO = $OrderUserDTO->getUserProfile();
-
-            //dd($UserProfileDTO);
-
             $this->validatorCollection->add($UserProfileDTO);
 
             if($UserProfileDTO === null)
@@ -170,7 +164,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
                 /* Присваиваем новому профилю идентификатор пользователя (либо нового, либо уже созданного) */
 
                 $UserProfileDTO->getInfo()->setUsr($OrderUserDTO->getUsr());
-
                 $UserProfile = $this->profileHandler->handle($UserProfileDTO);
 
                 if(!$UserProfile instanceof UserProfile)
@@ -186,7 +179,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         $this->main = new Order();
         $this->event = new OrderEvent();
-
 
         $this->prePersist($command);
         $this->main->setNumber($command->getNumber());

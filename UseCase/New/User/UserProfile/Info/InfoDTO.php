@@ -33,46 +33,46 @@ use BaksDev\Users\User\Type\Id\UserUid;
 /** @see UserProfileInfo */
 final class InfoDTO implements UserProfileInfoInterface
 {
-	/** Пользователь, кому принадлежит профиль */
-	private readonly UserUid $usr;
-	
-	/** Ссылка на профиль пользователя */
-	private string $url;
-	
-	/** Текущий активный профиль, выбранный пользователем */
-	private bool $active = false;
-	
-	/** Статус профиля (модерация, активен, заблокирован) */
-	private UserProfileStatus $status;
-	
-	
-	public function __construct()
-	{
-		$this->status = new UserProfileStatus(UserProfileStatusModeration::class);
-		$this->url = uniqid(false, false);
-		
-	}
-	
-	/** Пользователь, кому принадлежит профиль */
+    /** Пользователь, кому принадлежит профиль */
+    private readonly UserUid $usr;
 
-	public function getUsr() : UserUid
-	{
-		return $this->usr;
-	}
-	
-	
-	public function setUsr(UserUid|User $usr) : void
-	{
-		$this->usr = $usr instanceof User ? $usr->getId() : $usr;
-	}
-	
-	
-	/** Статус профиля (модерация) */
+    /** Ссылка на профиль пользователя */
+    private string $url;
 
-	public function getStatus() : UserProfileStatus
-	{
-		return $this->status;
-	}
+    /** Текущий активный профиль, выбранный пользователем */
+    private bool $active = false;
+
+    /** Статус профиля (модерация, активен, заблокирован) */
+    private UserProfileStatus $status;
+
+
+    public function __construct()
+    {
+        $this->status = new UserProfileStatus(UserProfileStatusModeration::class);
+        $this->url = uniqid(false, false);
+
+    }
+
+    /** Пользователь, кому принадлежит профиль */
+
+    public function getUsr(): UserUid
+    {
+        return $this->usr;
+    }
+
+
+    public function setUsr(UserUid|User $usr): void
+    {
+        $this->usr = $usr instanceof User ? $usr->getId() : $usr;
+    }
+
+
+    /** Статус профиля (модерация) */
+
+    public function getStatus(): UserProfileStatus
+    {
+        return $this->status;
+    }
 
     public function setStatus(mixed $status): self
     {
@@ -80,38 +80,34 @@ final class InfoDTO implements UserProfileInfoInterface
 
         return $this;
     }
-	
-	
-	/**
-	 * @return bool
-	 */
-	public function getActive() : bool
-	{
-		return $this->active;
-	}
-	
-	
-	/* URL */
-	
-	public function getUrl(): string
-	{
-		return $this->url;
-	}
-	
-	
-	
-	
 
 
-	public function isModeration() : bool
-	{
-		return $this->status->equals(UserProfileStatusModeration::class);
-	}
-	
-	
-	public function isBlock() : bool
-	{
-		return $this->status->equals(UserProfileStatusBlock::class);
-	}
-	
+    /**
+     * @return bool
+     */
+    public function getActive(): bool
+    {
+        return $this->active;
+    }
+
+
+    /* URL */
+
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+
+    public function isModeration(): bool
+    {
+        return $this->status->equals(UserProfileStatusModeration::class);
+    }
+
+
+    public function isBlock(): bool
+    {
+        return $this->status->equals(UserProfileStatusBlock::class);
+    }
+
 }

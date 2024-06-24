@@ -25,49 +25,46 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\User\Payment\Field;
 
-
 use BaksDev\Orders\Order\Entity\User\Payment\Field\OrderPaymentFieldInterface;
 use BaksDev\Payment\Type\Field\PaymentFieldUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class OrderPaymentFieldDTO implements OrderPaymentFieldInterface
 {
-	/** Идентификатор пользовательского поля в способе оплаты */
-	#[Assert\NotBlank]
-	private PaymentFieldUid $field;
-	
-	/** Заполненное значение */
-	#[Assert\Valid]
-	private string $value;
-	
-	
-	/** Идентификатор пользовательского поля в способе оплаты */
-	
-	public function getField() : PaymentFieldUid
-	{
-		return $this->field;
-	}
-	
-	
-	
-	public function setField(PaymentFieldUid $field) : void
-	{
-		$this->field = $field;
-	}
-	
-	
-	/** Заполненное значение */
-	
-	public function getValue(): string
-	{
-		return $this->value;
-	}
+    /** Идентификатор пользовательского поля в способе оплаты */
+    #[Assert\NotBlank]
+    private PaymentFieldUid $field;
 
-	public function setValue(string $value) : void
-	{
-		$this->value = $value;
-	}
-	
-	
-	
+    /** Заполненное значение */
+    #[Assert\Valid]
+    private string $value;
+
+
+    /** Идентификатор пользовательского поля в способе оплаты */
+
+    public function getField(): PaymentFieldUid
+    {
+        return $this->field;
+    }
+
+
+    public function setField(PaymentFieldUid $field): void
+    {
+        $this->field = $field;
+    }
+
+
+    /** Заполненное значение */
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
+
+    public function setValue(string $value): void
+    {
+        $this->value = $value;
+    }
+
+
 }

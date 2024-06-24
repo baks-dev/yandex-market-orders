@@ -162,7 +162,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

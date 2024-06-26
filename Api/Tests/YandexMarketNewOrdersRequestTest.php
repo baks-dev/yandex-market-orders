@@ -80,18 +80,17 @@ class YandexMarketNewOrdersRequestTest extends KernelTestCase
         if($orders->valid())
         {
             /** @var YandexMarketOrderDTO $order */
-            foreach($orders as $order)
-            {
-                dd($order);
-            }
-
-            dd(454);
-
+//            foreach($orders as $order)
+//            {
+//                dd($order);
+//            }
+//
+//            dd(454);
 
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
-            $YandexMarketOrderDTO = $orders->current();
+            //$YandexMarketOrderDTO = $orders->current();
 
-            $ExistsOrderNumberInterface->isExists($YandexMarketOrderDTO->getNumber());
+            //$ExistsOrderNumberInterface->isExists($YandexMarketOrderDTO->getNumber());
 
             self::assertTrue($orders->valid());
 

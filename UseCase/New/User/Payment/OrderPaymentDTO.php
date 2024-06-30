@@ -44,9 +44,6 @@ final class OrderPaymentDTO implements OrderPaymentInterface
 
     public function __construct()
     {
-        /** Способ оплаты наличными при получении */
-        $this->payment = new PaymentUid(TypePaymentYandex::class);
-
         $this->field = new ArrayCollection();
     }
 

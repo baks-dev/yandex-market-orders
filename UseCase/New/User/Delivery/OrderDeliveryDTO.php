@@ -42,7 +42,7 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
 {
     /** Способ доставки */
     #[Assert\NotBlank]
-    private readonly DeliveryUid $delivery;
+    private DeliveryUid $delivery;
 
     /** Адрес клиента */
     #[Assert\NotBlank]
@@ -80,10 +80,6 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
 
     public function __construct()
     {
-
-        /** Способ доставки Yandex Market */
-        $this->delivery = new DeliveryUid(TypeDeliveryYandexMarket::class);
-
         $this->field = new ArrayCollection();
 
         $now = (new DateTimeImmutable())->setTime(0, 0, 0);
@@ -94,6 +90,11 @@ final class OrderDeliveryDTO implements OrderDeliveryInterface
     public function getDelivery(): ?DeliveryUid
     {
         return $this->delivery;
+    }
+
+    public function setDelivery(DeliveryUid $delivery): void
+    {
+        $this->delivery = $delivery;
     }
 
     //    public function setDelivery(DeliveryUid $delivery): void

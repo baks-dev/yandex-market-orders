@@ -54,10 +54,6 @@ final class UserProfileDTO implements UserProfileEventInterface
     {
         $this->value = new ArrayCollection();
         $this->info = new Info\InfoDTO();
-
-        /** Тип профиля Yandex Market */
-        $this->type = new TypeProfileUid(TypeProfileYandexMarket::class);
-
     }
 
     /* EVENT */
@@ -69,10 +65,10 @@ final class UserProfileDTO implements UserProfileEventInterface
 
     /** Тип профиля */
 
-    //    public function setType(?TypeProfileUid $type): void
-    //    {
-    //        $this->type = $type;
-    //    }
+    public function setType(?TypeProfileUid $type): void
+    {
+        $this->type = $type;
+    }
 
     public function getType(): ?TypeProfileUid
     {

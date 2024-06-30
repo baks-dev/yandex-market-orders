@@ -33,6 +33,10 @@ yandex:
             name: 'Recipient'
             desc: 'User name'
 
+          email:
+            name: 'Contact Email'
+            desc: 'Contact email for communication'
+
           phone:
             name: 'Contact phone'
             desc: 'Contact telephone number'

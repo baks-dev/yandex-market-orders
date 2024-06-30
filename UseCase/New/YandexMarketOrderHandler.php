@@ -36,22 +36,20 @@ use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
+use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
-use BaksDev\Users\Profile\UserProfile\Repository\CurrentUserProfileEvent\CurrentUserProfileEventInterface;
+use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormDTO;
+use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormInterface;
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
-use BaksDev\Yandex\Market\Products\Repository\Card\CurrentProductEvent\CurrentProductEventByArticleInterface;
+use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 final class YandexMarketOrderHandler extends AbstractHandler
 {
-    private CurrentUserProfileEventInterface $currentUserProfileEvent;
-    private UserProfileHandler $profileHandler;
-    private CurrentProductEventByArticleInterface $currentProductEventByArticle;
-    private FieldByDeliveryChoiceInterface $deliveryFields;
-    private CurrentDeliveryEventInterface $currentDeliveryEvent;
-    private GeocodeAddressParser $geocodeAddressParser;
+    private LoggerInterface $logger;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -59,22 +57,17 @@ final class YandexMarketOrderHandler extends AbstractHandler
         ValidatorCollectionInterface $validatorCollection,
         ImageUploadInterface $imageUpload,
         FileUploadInterface $fileUpload,
-        UserProfileHandler $profileHandler,
-        CurrentUserProfileEventInterface $currentUserProfileEvent,
-        CurrentProductEventByArticleInterface $currentProductEventByArticle,
-        FieldByDeliveryChoiceInterface $deliveryFields,
-        CurrentDeliveryEventInterface $currentDeliveryEvent,
-        GeocodeAddressParser $geocodeAddressParser,
+        LoggerInterface $yandexMarketOrdersLogger,
+        private readonly UserProfileHandler $profileHandler,
+        private readonly ProductConstByArticleInterface $productConstByArticle,
+        private readonly FieldByDeliveryChoiceInterface $deliveryFields,
+        private readonly CurrentDeliveryEventInterface $currentDeliveryEvent,
+        private readonly GeocodeAddressParser $geocodeAddressParser,
+        private readonly FieldValueFormInterface $fieldValue,
     ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
 
-        $this->profileHandler = $profileHandler;
-        $this->currentUserProfileEvent = $currentUserProfileEvent;
-
-        $this->currentProductEventByArticle = $currentProductEventByArticle;
-        $this->deliveryFields = $deliveryFields;
-        $this->currentDeliveryEvent = $currentDeliveryEvent;
-        $this->geocodeAddressParser = $geocodeAddressParser;
+        $this->logger = $yandexMarketOrdersLogger;
     }
 
     public function handle(YandexMarketOrderDTO $command): string|Order
@@ -85,24 +78,171 @@ final class YandexMarketOrderHandler extends AbstractHandler
          */
         foreach($command->getProduct() as $product)
         {
-            $ProductData = $this->currentProductEventByArticle->find($product->getArticle());
+            $ProductData = $this->productConstByArticle->find($product->getArticle());
 
             if(!$ProductData)
             {
+                $this->logger->critical(sprintf('Артикул товара %s не найден', $product->getArticle()));
                 return 'Артикул товара не найден';
             }
 
-            $product->setProduct($ProductData['product_event_uid']);
-            $product->setOffer($ProductData['product_offer_uid']);
-            $product->setVariation($ProductData['product_variation_uid']);
-            $product->setModification($ProductData['product_modification_uid']);
-
+            $product
+                ->setProduct($ProductData->getEvent())
+                ->setOffer($ProductData->getOffer())
+                ->setVariation($ProductData->getVariation())
+                ->setModification($ProductData->getModification());
         }
 
-        /** Идентификатор свойства адреса доставки */
+        /** Присваиваем информацию о покупателе */
+        $this->fillProfile($command);
+
+        /** Присваиваем информацию о доставке */
+        $this->fillDelivery($command);
+
+        /** Валидация DTO  */
+        $this->validatorCollection->add($command);
+
+
+        $OrderUserDTO = $command->getUsr();
+
+
+        /**
+         * Создаем профиль пользователя
+         */
+        if($OrderUserDTO->getProfile() === null)
+        {
+            $UserProfileDTO = $OrderUserDTO->getUserProfile();
+            $this->validatorCollection->add($UserProfileDTO);
+
+            if($UserProfileDTO === null)
+            {
+                return $this->validatorCollection->getErrorUniqid();
+            }
+
+            /* Присваиваем новому профилю идентификатор пользователя */
+            $UserProfileDTO->getInfo()->setUsr($OrderUserDTO->getUsr());
+            $UserProfile = $this->profileHandler->handle($UserProfileDTO);
+
+            if(!$UserProfile instanceof UserProfile)
+            {
+                return $UserProfile;
+            }
+
+            $UserProfileEvent = $UserProfile->getEvent();
+            $OrderUserDTO->setProfile($UserProfileEvent);
+        }
+
+
+        $this->main = new Order();
+        $this->main->setNumber($command->getNumber());
+
+        $this->event = new OrderEvent();
+
+        $this->prePersist($command);
+
+
+        /** Валидация всех объектов */
+        if($this->validatorCollection->isInvalid())
+        {
+            return $this->validatorCollection->getErrorUniqid();
+        }
+
+        $this->entityManager->flush();
+
+        /* Отправляем сообщение в шину */
+        $this->messageDispatch->dispatch(
+            message: new OrderMessage($this->main->getId(), $this->main->getEvent(), $command->getEvent()),
+            transport: 'orders-order'
+        );
+
+        return $this->main;
+    }
+
+
+    public function fillProfile(YandexMarketOrderDTO $command): void
+    {
+        if(empty($command->getBuyer()))
+        {
+            return;
+        }
+
+        /** Профиль пользователя  */
+        $UserProfileDTO = $command->getUsr()->getUserProfile();
+
+        if(null === $UserProfileDTO)
+        {
+            return;
+        }
+
+        /** Идентификатор типа профиля  */
+        $TypeProfileUid = $UserProfileDTO?->getType();
+
+        if(null === $TypeProfileUid)
+        {
+            return;
+        }
+
+
+        $Buyer = $command->getBuyer();
+
+        /** Определяем свойства клиента при доставке DBS */
+        $profileFields = $this->fieldValue->get($TypeProfileUid);
+
+        /** @var FieldValueFormDTO $profileField */
+        foreach($profileFields as $profileField)
+        {
+
+            if(isset($Buyer['email']) && $profileField->getType()->getType() === 'account_email')
+            {
+                /** Не добавляем подменный mail YandexMarket */
+                if($Buyer['email'] !== 'noreply-market@support.yandex.ru')
+                {
+                    $UserProfileValueDTO = new ValueDTO();
+                    $UserProfileValueDTO->setField($profileField->getField());
+                    $UserProfileValueDTO->setValue($Buyer['email']);
+                    $UserProfileDTO->addValue($UserProfileValueDTO);
+                }
+
+                continue;
+            }
+
+            if($profileField->getType()->getType() === 'contact_field')
+            {
+
+                $keys = ['lastName', 'firstName', 'middleName'];
+
+                $contactName = implode(' ', array_filter($Buyer, function ($value, $key) use ($keys) {
+                    return in_array($key, $keys);
+                }, ARRAY_FILTER_USE_BOTH));
+
+                $UserProfileValueDTO = new ValueDTO();
+                $UserProfileValueDTO->setField($profileField->getField());
+                $UserProfileValueDTO->setValue($contactName);
+                $UserProfileDTO->addValue($UserProfileValueDTO);
+
+                continue;
+            }
+
+            if(isset($Buyer['phone']) && $profileField->getType()->getType() === 'phone_field')
+            {
+                $UserProfileValueDTO = new ValueDTO();
+                $UserProfileValueDTO->setField($profileField->getField());
+                $UserProfileValueDTO->setValue($Buyer['phone']);
+                $UserProfileDTO->addValue($UserProfileValueDTO);
+
+                continue;
+            }
+
+        }
+    }
+
+
+    public function fillDelivery(YandexMarketOrderDTO $command): void
+    {
+        /* Идентификатор свойства адреса доставки */
         $OrderDeliveryDTO = $command->getUsr()->getDelivery();
 
-        /** Создаем адрес геолокации */
+        /* Создаем адрес геолокации */
         $GeocodeAddress = $this->geocodeAddressParser
             ->getGeocode(
                 $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
@@ -132,71 +272,8 @@ final class YandexMarketOrderHandler extends AbstractHandler
             $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
         }
 
+        /** Присваиваем активное событие доставки */
         $DeliveryEvent = $this->currentDeliveryEvent->get($OrderDeliveryDTO->getDelivery());
         $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
-
-
-        /** Валидация DTO  */
-        $this->validatorCollection->add($command);
-
-        $OrderUserDTO = $command->getUsr();
-
-        /**
-         * Создаем профиль пользователя если отсутствует
-         */
-        if($OrderUserDTO->getProfile() === null)
-        {
-
-            $UserProfileDTO = $OrderUserDTO->getUserProfile();
-            $this->validatorCollection->add($UserProfileDTO);
-
-            if($UserProfileDTO === null)
-            {
-                return $this->validatorCollection->getErrorUniqid();
-            }
-
-            /** Пробуем найти активный профиль пользователя */
-            $UserProfileEvent = $this->currentUserProfileEvent
-                ->findByUser($OrderUserDTO->getUsr())?->getId();
-
-            if(!$UserProfileEvent)
-            {
-                /* Присваиваем новому профилю идентификатор пользователя (либо нового, либо уже созданного) */
-
-                $UserProfileDTO->getInfo()->setUsr($OrderUserDTO->getUsr());
-                $UserProfile = $this->profileHandler->handle($UserProfileDTO);
-
-                if(!$UserProfile instanceof UserProfile)
-                {
-                    return $UserProfile;
-                }
-
-                $UserProfileEvent = $UserProfile->getEvent();
-            }
-
-            $OrderUserDTO->setProfile($UserProfileEvent);
-        }
-
-        $this->main = new Order();
-        $this->event = new OrderEvent();
-
-        $this->prePersist($command);
-        $this->main->setNumber($command->getNumber());
-
-        /** Валидация всех объектов */
-        if($this->validatorCollection->isInvalid())
-        {
-            return $this->validatorCollection->getErrorUniqid();
-        }
-
-        $this->entityManager->flush();
-
-        /* Отправляем сообщение в шину */
-        $this->messageDispatch->dispatch(
-            message: new OrderMessage($this->main->getId(), $this->main->getEvent(), $command->getEvent()),
-            transport: 'orders-order'
-        );
-
-        return $this->main;
     }
 }

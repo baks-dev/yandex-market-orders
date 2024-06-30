@@ -111,7 +111,7 @@ class UpgradeProfileTypeDbsYaMarketCommand extends Command
 
             /* Добавляем поля для заполнения */
 
-            $fields = ['name', 'phone'];
+            $fields = ['name', 'email', 'phone'];
 
             foreach($fields as $sort => $field)
             {
@@ -119,7 +119,25 @@ class UpgradeProfileTypeDbsYaMarketCommand extends Command
                 $SectionFieldDTO->setSort($sort);
                 $SectionFieldDTO->setPublic(true);
                 $SectionFieldDTO->setRequired(true);
+
                 $SectionFieldDTO->setType(new InputField('input_field'));
+
+                if($field === 'name')
+                {
+                    $SectionFieldDTO->setType(new InputField('contact_field'));
+                }
+
+                if($field === 'email')
+                {
+                    $SectionFieldDTO->setType(new InputField('account_email'));
+                    $SectionFieldDTO->setRequired(false);
+                }
+
+                if($field === 'phone')
+                {
+                    $SectionFieldDTO->setType(new InputField('phone_field'));
+                }
+
 
                 /** @var SectionFieldTransDTO $SectionFieldTrans */
                 foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)

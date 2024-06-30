@@ -83,7 +83,7 @@ final class NewOrderProductDTO implements OrderProductInterface
         return $this->product;
     }
 
-    public function setProduct(ProductEventUid|string $product): void
+    public function setProduct(ProductEventUid|string $product): self
     {
         if(isset($product) && is_string($product))
         {
@@ -91,7 +91,10 @@ final class NewOrderProductDTO implements OrderProductInterface
         }
 
         $this->product = $product;
+
+        return $this;
     }
+
 
     /** Торговое предложение */
     public function getOffer(): ?ProductOfferUid
@@ -99,7 +102,7 @@ final class NewOrderProductDTO implements OrderProductInterface
         return $this->offer;
     }
 
-    public function setOffer(ProductOfferUid|string|null $offer): void
+    public function setOffer(ProductOfferUid|string|null $offer): self
     {
         if(isset($offer) && is_string($offer))
         {
@@ -107,6 +110,8 @@ final class NewOrderProductDTO implements OrderProductInterface
         }
 
         $this->offer = $offer;
+
+        return $this;
     }
 
     /** Множественный вариант торгового предложения */
@@ -115,7 +120,7 @@ final class NewOrderProductDTO implements OrderProductInterface
         return $this->variation;
     }
 
-    public function setVariation(ProductVariationUid|string|null $variation): void
+    public function setVariation(ProductVariationUid|string|null $variation): self
     {
         if(isset($variation) && is_string($variation))
         {
@@ -124,6 +129,7 @@ final class NewOrderProductDTO implements OrderProductInterface
 
 
         $this->variation = $variation;
+        return $this;
     }
 
     /** Модификация множественного варианта торгового предложения  */
@@ -132,7 +138,7 @@ final class NewOrderProductDTO implements OrderProductInterface
         return $this->modification;
     }
 
-    public function setModification(ProductModificationUid|string|null $modification): void
+    public function setModification(ProductModificationUid|string|null $modification): self
     {
         if(isset($modification) && is_string($modification))
         {
@@ -140,6 +146,7 @@ final class NewOrderProductDTO implements OrderProductInterface
         }
 
         $this->modification = $modification;
+        return $this;
     }
 
     /** Стоимость и количество */

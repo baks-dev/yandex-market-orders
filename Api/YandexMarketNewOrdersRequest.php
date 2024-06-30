@@ -60,6 +60,7 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
             $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
         }
 
+
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
@@ -77,6 +78,7 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
 
         $content = $response->toArray(false);
 
+
         if($response->getStatusCode() !== 200)
         {
             foreach($content['errors'] as $error)
@@ -92,19 +94,30 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
-            /** Доставка YANDEX MARKET */
-            if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
+            $client = null;
+
+            // Получаем информацию о клиенте
+
+            if(isset($order['buyer']['id']))
             {
-                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-                yield new YandexMarketOrderDTO($order);
-            }
-            else
-            {
-                $this->logger->critical(
-                    sprintf('Доставка '.$order['delivery']['deliveryPartnerType']),
-                    [__FILE__.':'.__LINE__]
+                $clientResponse = $this->TokenHttpClient()->request(
+                    'GET',
+                    sprintf(
+                        '/campaigns/%s/orders/%s/buyer',
+                        $this->getCompany(),
+                        $order['id']
+                    )
                 );
+
+                if($response->getStatusCode() === 200)
+                {
+                    // Добавляем информацию о клиенте
+                    $client = $clientResponse->toArray(false)['result'];
+                }
             }
+
+            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+            yield new YandexMarketOrderDTO($order, $client);
         }
     }
 }

@@ -27,7 +27,6 @@ namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade\DBS;
 
 use BaksDev\Payment\Entity\Payment;
 use BaksDev\Payment\Repository\ExistTypePayment\ExistTypePaymentInterface;
-use BaksDev\Payment\Type\Id\Choice\TypePaymentCache;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentDTO;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentHandler;
@@ -35,7 +34,6 @@ use BaksDev\Payment\UseCase\Admin\NewEdit\Trans\PaymentTransDTO;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

@@ -27,11 +27,20 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
 use BaksDev\Core\Type\Gps\GpsLatitude;
 use BaksDev\Core\Type\Gps\GpsLongitude;
+use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
+use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
+use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -62,9 +71,16 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Ответственный */
     private ?UserProfileUid $profile = null;
 
-    public function __construct(array $order)
-    {
+    /** Комментарий к заказу */
+    private ?string $comment = null;
 
+
+    /** Информация о покупателе */
+    private ?array $buyer;
+
+
+    public function __construct(array $order, ?array $buyer = null)
+    {
         $this->number = (string) $order['id'];
         $this->created = new DateTimeImmutable($order['creationDate']);
 
@@ -76,6 +92,10 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
 
         $OrderDeliveryDTO = $this->usr->getDelivery();
+        $OrderPaymentDTO = $this->usr->getPayment();
+        $OrderProfileDTO = $this->usr->getUserProfile();
+
+
         $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
 
 
@@ -110,6 +130,44 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         $OrderDeliveryDTO->setAddress($addressClient);
 
+        // Доставка YandexMarket (DBS)
+        if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
+        {
+            /** Тип профиля FBS Yandex Market */
+            $Profile = new TypeProfileUid(TypeProfileYandexMarket::class);
+            $OrderProfileDTO?->setType($Profile);
+
+            /** Способ доставки Yandex Market (FBS Yandex Market) */
+            $Delivery = new DeliveryUid(TypeDeliveryYandexMarket::class);
+            $OrderDeliveryDTO->setDelivery($Delivery);
+
+            /** Способ оплаты FBS Yandex Market */
+            $Payment = new PaymentUid(TypePaymentYandex::class);
+            $OrderPaymentDTO->setPayment($Payment);
+
+        }
+
+        // Доставка Магазином (DBS)
+        if($order['delivery']['deliveryPartnerType'] === 'SHOP')
+        {
+            /** Тип профиля DBS Yandex Market */
+            $Profile = new TypeProfileUid(TypeProfileDbsYaMarket::class);
+            $OrderProfileDTO?->setType($Profile);
+
+            /** Способ доставки Магазином (DBS Yandex Market) */
+            $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
+            $OrderDeliveryDTO->setDelivery($Delivery);
+
+            /** Способ оплаты DBS Yandex Market  */
+            $Payment = new PaymentUid(TypePaymentDbsYaMarket::class);
+            $OrderPaymentDTO->setPayment($Payment);
+        }
+
+        /** Информация о покупателе */
+        $this->buyer = empty($buyer) ? null : $buyer;
+
+        /** Комментарий покупателя */
+        $this->comment = $order['notes'] ?? null;
 
         /** Продукция */
 
@@ -185,5 +243,20 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         return $this->usr;
     }
 
+    /**
+     * Comment
+     */
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    /**
+     * Buyer
+     */
+    public function getBuyer(): ?array
+    {
+        return $this->buyer;
+    }
 
 }

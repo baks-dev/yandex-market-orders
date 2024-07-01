@@ -45,19 +45,17 @@ use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 final class YandexMarketOrderHandler extends AbstractHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
         EntityManagerInterface $entityManager,
         MessageDispatchInterface $messageDispatch,
         ValidatorCollectionInterface $validatorCollection,
         ImageUploadInterface $imageUpload,
         FileUploadInterface $fileUpload,
-        LoggerInterface $yandexMarketOrdersLogger,
         private readonly UserProfileHandler $profileHandler,
         private readonly ProductConstByArticleInterface $productConstByArticle,
         private readonly FieldByDeliveryChoiceInterface $deliveryFields,
@@ -66,8 +64,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly FieldValueFormInterface $fieldValue,
     ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
-
-        $this->logger = $yandexMarketOrdersLogger;
     }
 
     public function handle(YandexMarketOrderDTO $command): string|Order
@@ -82,8 +78,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
             if(!$ProductData)
             {
-                $this->logger->critical(sprintf('Артикул товара %s не найден', $product->getArticle()));
-                return 'Артикул товара не найден';
+                $error = sprintf('Артикул товара %s не найден', $product->getArticle());
+                throw new InvalidArgumentException($error);
+
             }
 
             $product
@@ -98,6 +95,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         /** Присваиваем информацию о доставке */
         $this->fillDelivery($command);
+
 
         /** Валидация DTO  */
         $this->validatorCollection->add($command);
@@ -236,7 +234,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
         }
     }
 
-
     public function fillDelivery(YandexMarketOrderDTO $command): void
     {
         /* Идентификатор свойства адреса доставки */
@@ -248,12 +245,25 @@ final class YandexMarketOrderHandler extends AbstractHandler
                 $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
             );
 
-        if($GeocodeAddress)
+        /** Если адрес не найден по геолокации - пробуем определить по адресу */
+        if(empty($GeocodeAddress))
+        {
+            $GeocodeAddress = $this->geocodeAddressParser
+                ->getGeocode($OrderDeliveryDTO->getAddress());
+        }
+
+        if(!empty($GeocodeAddress))
         {
             $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
             $OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
+            $OrderDeliveryDTO->setLatitude($GeocodeAddress->getLatitude());
+            $OrderDeliveryDTO->setLongitude($GeocodeAddress->getLongitude());
         }
 
+
+        /**
+         * Определяем свойства доставки и присваиваем адрес
+         */
 
         $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
@@ -272,7 +282,10 @@ final class YandexMarketOrderHandler extends AbstractHandler
             $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
         }
 
-        /** Присваиваем активное событие доставки */
+        /**
+         * Присваиваем активное событие доставки
+         */
+
         $DeliveryEvent = $this->currentDeliveryEvent->get($OrderDeliveryDTO->getDelivery());
         $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
     }

@@ -60,7 +60,6 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
             $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
         }
 
-
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',

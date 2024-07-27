@@ -133,4 +133,29 @@ class YandexMarketOrderDBSTest extends KernelTestCase
         }
     }
 
+
+    public static function tearDownAfterClass(): void
+    {
+        /** @var EntityManagerInterface $em */
+        $em = self::getContainer()->get(EntityManagerInterface::class);
+
+        $main = $em->getRepository(Order::class)
+            ->findOneBy(['id' => OrderUid::TEST]);
+
+        if($main)
+        {
+            $em->remove($main);
+        }
+
+        $event = $em->getRepository(OrderEvent::class)
+            ->findBy(['orders' => OrderUid::TEST]);
+
+        foreach($event as $remove)
+        {
+            $em->remove($remove);
+        }
+
+        $em->flush();
+    }
+
 }

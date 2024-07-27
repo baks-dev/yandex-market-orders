@@ -107,28 +107,37 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
 
         /** Адрес доставки клиента */
-        $addressClient = $address['country'];
-        $addressClient .= isset($address['city']) ? ', '.$address['city'] : null;
 
-        if(isset($address['street']))
+        $deliveryAddress = [];
+
+        foreach($address as $key => $data)
         {
-            if(mb_strpos($address['street'], 'улица'))
-            {
-                $addressClient .= ', '.$address['street'];
+            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
+            if(
+                in_array($key, [
+                    'gps', // GPS-координаты.
+                    'postcode', // Почтовый индекс.
+                    'recipient', // Фамилия, имя и отчество получателя заказа.
+                    'subway', // Станция метро.
+                    'floor', // Этаж
+                    'phone', // Телефон получателя заказа.
+                ])
+            ) {
+                continue;
             }
-            else
+
+            $deliveryAddress[] = match ($key)
             {
-                $addressClient .= ', улица '.$address['street'];
-            }
+                //'street' => 'улица '.trim(str_replace('улица', '', $data)),
+                'house' => 'дом '.$data,
+                //'block' => 'корпус '.$data,
+                'entrance' => 'подъезд '.$data,
+                default => $data,
+            };
         }
 
-        $addressClient .= isset($address['house']) ? ' '.$address['house'] : null;
-
-        $addressClient .= isset($address['block']) ? 'к'.$address['block'] : null;
-
-        $addressClient .= isset($address['entrance']) ? ', под.'.$address['entrance'] : null;
-
-        $OrderDeliveryDTO->setAddress($addressClient);
+        $OrderDeliveryDTO->setAddress(implode(', ', $deliveryAddress));
+        //dump($OrderDeliveryDTO->getAddress());
 
         // Доставка YandexMarket (DBS)
         if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
@@ -144,7 +153,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
             /** Способ оплаты FBS Yandex Market */
             $Payment = new PaymentUid(TypePaymentYandex::class);
             $OrderPaymentDTO->setPayment($Payment);
-
         }
 
         // Доставка Магазином (DBS)
@@ -166,11 +174,43 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         /** Информация о покупателе */
         $this->buyer = empty($buyer) ? null : $buyer;
 
+        $deliveryComment = [];
+
+        foreach($address as $key => $data)
+        {
+            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
+            if(
+                !in_array($key, [
+                    //'postcode', // Почтовый индекс.
+                    'recipient', // Фамилия, имя и отчество получателя заказа.
+                    'subway', // Станция метро.
+                    'apartment', // Квартира или офис.
+                    'floor', // Этаж
+                    'phone', // Телефон получателя заказа.
+                ])
+            ) {
+                continue;
+            }
+
+            $deliveryComment[] = match ($key)
+            {
+                //'postcode' => 'инд. '.$data,
+                'recipient' => 'получатель '.$data,
+                'phone' => 'тел. '.$data,
+                'subway' => 'ст.метро '.$data,
+                'apartment' => 'кв. '.$data,
+                'floor' => 'этаж '.$data,
+                default => $data,
+            };
+        }
+
+        isset($order['notes']) ? $deliveryComment[] = $order['notes'] : false;
+
         /** Комментарий покупателя */
-        $this->comment = $order['notes'] ?? null;
+        $this->comment = implode(', ', $deliveryComment);
+        //dd($this->comment);
 
         /** Продукция */
-
         foreach($order['items'] as $item)
         {
             $NewOrderProductDTO = new Products\NewOrderProductDTO($item['offerId']);

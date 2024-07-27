@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
+use App\Kernel;
 use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
@@ -68,6 +69,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
     public function handle(YandexMarketOrderDTO $command): string|Order
     {
+
         /**
          * Получаем события продукции
          * @var Products\NewOrderProductDTO $product
@@ -90,8 +92,10 @@ final class YandexMarketOrderHandler extends AbstractHandler
                 ->setModification($ProductData->getModification());
         }
 
+
         /** Присваиваем информацию о покупателе */
         $this->fillProfile($command);
+
 
         /** Присваиваем информацию о доставке */
         $this->fillDelivery($command);
@@ -242,14 +246,19 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /* Создаем адрес геолокации */
         $GeocodeAddress = $this->geocodeAddressParser
             ->getGeocode(
-                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
+                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude(),
+                false // не вызываем flush в хендлере GeocodeAddress, держим соединение EntityManagar
             );
+
 
         /** Если адрес не найден по геолокации - пробуем определить по адресу */
         if(empty($GeocodeAddress))
         {
             $GeocodeAddress = $this->geocodeAddressParser
-                ->getGeocode($OrderDeliveryDTO->getAddress());
+                ->getGeocode(
+                    $OrderDeliveryDTO->getAddress(),
+                    false // не вызываем flush в хендлере GeocodeAddress, держим соединение EntityManagar
+                );
         }
 
         if(!empty($GeocodeAddress))

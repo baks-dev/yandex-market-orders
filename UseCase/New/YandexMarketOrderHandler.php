@@ -47,7 +47,6 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFi
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Psr\Log\LoggerInterface;
 
 final class YandexMarketOrderHandler extends AbstractHandler
 {
@@ -82,7 +81,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
             {
                 $error = sprintf('Артикул товара %s не найден', $product->getArticle());
                 throw new InvalidArgumentException($error);
-
             }
 
             $product

@@ -114,6 +114,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         {
             /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
             if(
+                empty($data) ||
                 in_array($key, [
                     'gps', // GPS-координаты.
                     'postcode', // Почтовый индекс.
@@ -122,7 +123,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -180,6 +182,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         {
             /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
             if(
+                empty($data) ||
                 !in_array($key, [
                     //'postcode', // Почтовый индекс.
                     'recipient', // Фамилия, имя и отчество получателя заказа.
@@ -188,7 +191,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -260,7 +264,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

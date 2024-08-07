@@ -244,25 +244,22 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /* Создаем адрес геолокации */
         $GeocodeAddress = $this->geocodeAddressParser
             ->getGeocode(
-                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude(),
-                false // не вызываем flush в хендлере GeocodeAddress, держим соединение EntityManagar
+                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
             );
-
 
         /** Если адрес не найден по геолокации - пробуем определить по адресу */
         if(empty($GeocodeAddress))
         {
             $GeocodeAddress = $this->geocodeAddressParser
                 ->getGeocode(
-                    $OrderDeliveryDTO->getAddress(),
-                    false // не вызываем flush в хендлере GeocodeAddress, держим соединение EntityManagar
+                    $OrderDeliveryDTO->getAddress()
                 );
         }
 
         if(!empty($GeocodeAddress))
         {
             $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
-            $OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
+            //$OrderDeliveryDTO->setGeocode($GeocodeAddress->getId());
             $OrderDeliveryDTO->setLatitude($GeocodeAddress->getLatitude());
             $OrderDeliveryDTO->setLongitude($GeocodeAddress->getLongitude());
         }

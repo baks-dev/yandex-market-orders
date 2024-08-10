@@ -141,7 +141,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $OrderDeliveryDTO->setAddress(implode(', ', $deliveryAddress));
         //dump($OrderDeliveryDTO->getAddress());
 
-        // Доставка YandexMarket (DBS)
+        // Доставка YandexMarket (FBS)
         if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
         {
             /** Тип профиля FBS Yandex Market */
@@ -191,8 +191,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            )
-            {
+            ) {
                 continue;
             }
 
@@ -264,7 +263,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

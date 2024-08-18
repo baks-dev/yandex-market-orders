@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api;
+namespace BaksDev\Yandex\Market\Orders\Api\Canceled;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -34,7 +34,7 @@ use DomainException;
 /**
  * Информация о заказах
  */
-final class YandexMarketNewOrdersRequest extends YandexMarket
+final class YaMarketCancelOrdersRequest extends YandexMarket
 {
     private int $page = 1;
 
@@ -43,8 +43,7 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * PROCESSING - заказ находится в обработке.
-     * STARTED — заказ подтвержден, его можно начать обрабатывать
+     * CANCELLED - заказ отменен.
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
@@ -68,8 +67,7 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
                     [
                         'page' => $this->page,
                         'pageSize' => 50,
-                        'status' => 'PROCESSING',
-                        'substatus' => 'STARTED',
+                        'status' => 'CANCELLED',
                         'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
                     ]
                 ],
@@ -77,12 +75,11 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
 
         $content = $response->toArray(false);
 
-
         if($response->getStatusCode() !== 200)
         {
             foreach($content['errors'] as $error)
             {
-                $this->logger->critical($error['code'].': '.$error['message'], [__FILE__.':'.__LINE__]);
+                $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
             }
 
             throw new DomainException(
@@ -93,30 +90,7 @@ final class YandexMarketNewOrdersRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
-            $client = null;
-
-            // Получаем информацию о клиенте
-
-            if(isset($order['buyer']['id']))
-            {
-                $clientResponse = $this->TokenHttpClient()->request(
-                    'GET',
-                    sprintf(
-                        '/campaigns/%s/orders/%s/buyer',
-                        $this->getCompany(),
-                        $order['id']
-                    )
-                );
-
-                if($response->getStatusCode() === 200)
-                {
-                    // Добавляем информацию о клиенте
-                    $client = $clientResponse->toArray(false)['result'];
-                }
-            }
-
-            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-            yield new YandexMarketOrderDTO($order, $client);
+            yield new YaMarketCancelOrderDTO($order['id']);
         }
     }
 }

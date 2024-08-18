@@ -23,16 +23,16 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Schedule\NewOrders;
+namespace BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
-use BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders\NewYaMarketOrdersScheduleMessage;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders\UnpaidYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final readonly class NewOrdersScheduleHandler
+final readonly class UnpaidOrdersScheduleHandler
 {
     public function __construct(
         private AllProfileYaMarketTokenInterface $allProfileToken,
@@ -40,7 +40,7 @@ final readonly class NewOrdersScheduleHandler
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
-    public function __invoke(NewOrdersScheduleMessage $message): void
+    public function __invoke(UnpaidOrdersScheduleMessage $message): void
     {
         /** Получаем активные токены авторизации профилей */
         $profiles = $this->allProfileToken
@@ -57,11 +57,10 @@ final readonly class NewOrdersScheduleHandler
                 if($User)
                 {
                     $this->messageDispatch->dispatch(
-                        message: new NewYaMarketOrdersScheduleMessage($User->getId(), $profile),
+                        message: new UnpaidYaMarketOrdersScheduleMessage($User->getId(), $profile),
                         transport: (string) $profile,
                     );
                 }
-
             }
         }
     }

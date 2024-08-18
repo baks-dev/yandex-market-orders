@@ -23,27 +23,50 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Messenger\NewOrders;
+namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid;
 
-use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
+use BaksDev\Orders\Order\Type\Event\OrderEventUid;
+use BaksDev\Orders\Order\Type\Status\OrderStatus;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use Symfony\Component\Validator\Constraints as Assert;
 
-final class NewYandexOrdersMessage
+final class UnpaidYaMarketOrderStatusDTO implements OrderEventInterface
 {
-    /**
-     * Идентификатор профиля
-     */
-    private UserProfileUid $profile;
+    /** Идентификатор события */
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
+    private OrderEventUid $id;
 
-    public function __construct(UserProfileUid $profile)
+    /** Статус заказа */
+    #[Assert\NotBlank]
+    private OrderStatus $status;
+
+
+    /** Идентификатор события */
+    public function getEvent(): OrderEventUid
     {
-        $this->profile = $profile;
+        return $this->id;
+    }
+
+    /** Статус заказа */
+    public function isStatusNew(): bool
+    {
+        return $this->status->equals(OrderStatusNew::class);
+    }
+
+    public function setUnpaidStatus(): self
+    {
+        $this->status = new OrderStatus(OrderStatusUnpaid::class);
+        return $this;
     }
 
     /**
-     * Profile
+     * Status
      */
-    public function getProfile(): UserProfileUid
+    public function getStatus(): OrderStatus
     {
-        return $this->profile;
+        return $this->status;
     }
 }

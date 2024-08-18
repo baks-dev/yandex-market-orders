@@ -30,6 +30,10 @@ use BaksDev\Core\Type\Gps\GpsLongitude;
 use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
+
+use BaksDev\Orders\Order\Type\Status\OrderStatus;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusInterface;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
@@ -55,9 +59,16 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Идентификатор заказа YandexMarket */
     private string $number;
 
+    /** Постоянная величина */
+    #[Assert\Valid]
+    private Invariable\NewOrderInvariable $invariable;
+
     /** Дата заказа */
     #[Assert\NotBlank]
     private DateTimeImmutable $created;
+
+    /** Статус заказа */
+    private OrderStatus $status;
 
 
     /** Коллекция продукции в заказе */
@@ -68,21 +79,33 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     #[Assert\Valid]
     private User\OrderUserDTO $usr;
 
-    /** Ответственный */
-    private ?UserProfileUid $profile = null;
+    /**
+     * Ответственный
+     * @deprecated Переносится в Invariable
+     */
+    private ?UserProfileUid $profile;
 
     /** Комментарий к заказу */
     private ?string $comment = null;
-
 
     /** Информация о покупателе */
     private ?array $buyer;
 
 
-    public function __construct(array $order, ?array $buyer = null)
+    public function __construct(array $order, UserProfileUid $profile, ?array $buyer = null)
     {
-        $this->number = (string) $order['id'];
+        $NewOrderInvariable = new Invariable\NewOrderInvariable();
+        $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate']));
+        $NewOrderInvariable->setProfile($profile);
+        $NewOrderInvariable->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
+        $this->invariable = $NewOrderInvariable;
+
+        /** @deprecated переносится в Invariable */
+        $this->number = 'Y-'.$order['id']; // помечаем заказ префиксом Y
         $this->created = new DateTimeImmutable($order['creationDate']);
+        $this->profile = $profile;
+
+        $this->status = new OrderStatus(OrderStatusNew::class);
 
         $this->product = new ArrayCollection();
         $this->usr = new User\OrderUserDTO();
@@ -123,8 +146,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            )
-            {
+            ) {
                 continue;
             }
 
@@ -240,6 +262,27 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         return $this->id;
     }
 
+    public function setId(?OrderEventUid $id): self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * Status
+     */
+    public function getStatus(): OrderStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(OrderStatus|OrderStatusInterface|string $status): self
+    {
+        $this->status = new OrderStatus($status);
+        return $this;
+    }
+
+
     /**
      * Number
      */
@@ -300,6 +343,22 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     public function getBuyer(): ?array
     {
         return $this->buyer;
+    }
+
+    /**
+     * Invariable
+     */
+    public function getInvariable(): Invariable\NewOrderInvariable
+    {
+        return $this->invariable;
+    }
+
+    /**
+     * Profile
+     */
+    public function getProfile(): ?UserProfileUid
+    {
+        return $this->profile;
     }
 
 }

@@ -23,59 +23,40 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Messenger\NewOrders;
+namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Order;
+use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderHandler;
-use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\OrderProductDTO;
-use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\Price\OrderPriceDTO;
-use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
-use BaksDev\Products\Product\Repository\ProductByVariation\ProductByVariationInterface;
-use BaksDev\Reference\Money\Type\Money;
-use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Wildberries\Api\Token\Orders\WildberriesOrdersNew;
-use BaksDev\Wildberries\Orders\Entity\WbOrders;
-use BaksDev\Wildberries\Orders\Repository\WbOrdersById\WbOrdersByIdInterface;
-use BaksDev\Wildberries\Orders\Type\Email\ClientEmail;
-use BaksDev\Wildberries\Orders\Type\OrderStatus\Status\WbOrderStatusNew;
-use BaksDev\Wildberries\Orders\Type\WildberriesStatus\Status\WildberriesStatusWaiting;
-use BaksDev\Wildberries\Orders\UseCase\Command\New\CreateWbOrderDTO;
-use BaksDev\Wildberries\Orders\UseCase\Command\New\CreateWbOrderHandler;
-use BaksDev\Wildberries\Products\Entity\Cards\WbProductCard;
-use BaksDev\Wildberries\Products\Entity\Cards\WbProductCardOffer;
-use BaksDev\Wildberries\Products\Entity\Cards\WbProductCardVariation;
-use BaksDev\Wildberries\Products\Messenger\WbCardNew\WbCardNewMessage;
-use BaksDev\Wildberries\Products\UseCase\Cards\NewEdit\Variation\WbProductCardVariationDTO;
-use BaksDev\Yandex\Market\Orders\Api\YandexMarketNewOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
-use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class NewYandexOrderHandler
+final class NewYaMarketOrderScheduleHandler
 {
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
-        private readonly ExistsOrderNumberInterface $existsOrderNumber,
+        private readonly YaMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {
         $this->logger = $yandexMarketOrdersLogger;
     }
 
-    public function __invoke(NewYandexOrdersMessage $message): void
+    public function __invoke(NewYaMarketOrdersScheduleMessage $message): void
     {
-        /* Получить список новых сборочных заданий */
+        /* Получаем список новых сборочных заданий */
         $orders = $this->yandexMarketNewOrdersRequest
             ->profile($message->getProfile())
             ->findAll();
@@ -85,7 +66,7 @@ final class NewYandexOrderHandler
             $this->logger->info(
                 'Новых заказов не найдено',
                 [
-                    __FILE__.':'.__LINE__,
+                    self::class.':'.__LINE__,
                     'profile' => (string) $message->getProfile(),
                 ]
             );
@@ -96,7 +77,7 @@ final class NewYandexOrderHandler
         $this->logger->notice(
             'Получаем заказы и добавляем новые',
             [
-                __FILE__.':'.__LINE__,
+                self::class.':'.__LINE__,
                 'profile' => (string) $message->getProfile(),
             ]
         );
@@ -104,14 +85,6 @@ final class NewYandexOrderHandler
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)
         {
-            if($this->existsOrderNumber->isExists($order->getNumber()))
-            {
-                continue;
-            }
-
-            /**
-             * Создаем системный заказ
-             */
             $handle = $this->yandexMarketOrderHandler->handle($order);
 
             if($handle instanceof Order)
@@ -119,24 +92,12 @@ final class NewYandexOrderHandler
                 $this->logger->info(
                     sprintf('Добавили новый заказ %s', $order->getNumber()),
                     [
-                        __FILE__.':'.__LINE__,
+                        self::class.':'.__LINE__,
                         'attr' => (string) $message->getProfile()->getAttr(),
                         'profile' => (string) $message->getProfile(),
                     ]
                 );
-
-                continue;
             }
-
-
-            $this->logger->critical(
-                sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getNumber()),
-                [
-                    __FILE__.':'.__LINE__,
-                    'attr' => (string) $message->getProfile()->getAttr(),
-                    'profile' => (string) $message->getProfile(),
-                ]
-            );
         }
     }
 }

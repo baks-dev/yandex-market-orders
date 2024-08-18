@@ -31,12 +31,14 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCollection;
+use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YandexMarketNewOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\OrderUserDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
@@ -45,11 +47,16 @@ use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @group yandex-market-orders
- * @group yandex-market-orders-fbs
+ * @group yandex-market-orders-new
  */
 #[When(env: 'test')]
 class YandexMarketOrderFBSTest extends KernelTestCase
@@ -66,9 +73,10 @@ class YandexMarketOrderFBSTest extends KernelTestCase
             $_SERVER['TEST_YANDEX_MARKET_BUSINESS']
         );
 
-        /** @var OrderStatusCollection $OrderStatusCollection */
-        $OrderStatusCollection = self::getContainer()->get(OrderStatusCollection::class);
-        $OrderStatusCollection->cases();
+        // Бросаем событие консольной комманды
+        $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
+        $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
+        $dispatcher->dispatch($event, 'console.command');
 
 
         /** @var EntityManagerInterface $em */
@@ -91,48 +99,64 @@ class YandexMarketOrderFBSTest extends KernelTestCase
         }
 
         $em->flush();
-        //$em->clear();
     }
 
     public function testUseCase(): void
     {
-
-        /** @var YandexMarketNewOrdersRequest $YandexMarketNewOrdersRequest */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(YandexMarketNewOrdersRequest::class);
+        /** @var YaMarketNewOrdersRequest $YandexMarketNewOrdersRequest */
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketNewOrdersRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
-        $orders = $YandexMarketNewOrdersRequest
+        $response = $YandexMarketNewOrdersRequest
             ->findAll(DateInterval::createFromDateString('10 day'));
 
-        if($orders->valid())
+
+        if($response->valid())
         {
+            /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
+            $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
+
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
-            $YandexMarketOrderDTO = $orders->current();
-
-            /** @var OrderUserDTO $OrderUserDTO */
-            $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
-            $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем идентификатор тестового профиля
-
-            self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileYandexMarket::TYPE));
-            self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryYandexMarket::TYPE));
-            self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentYandex::TYPE));
-
-            /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
-            $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
-
-            try
+            foreach($response as $YandexMarketOrderDTO)
             {
+                $products = $YandexMarketOrderDTO->getProduct();
+
+                /** @var NewOrderProductDTO $NewOrderProductDTO */
+                foreach($products as $NewOrderProductDTO)
+                {
+                    $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
+
+                    if($CurrentProductDTO === false)
+                    {
+                        dump('continue 2');
+                        continue 2;
+                    }
+                }
+
+                /** @var OrderUserDTO $OrderUserDTO */
+                $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
+                $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем клиенту идентификатор тестового профиля
+
+                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileYandexMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryYandexMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentYandex::TYPE));
+
+                /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
+                $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
+
                 $handle = $YandexMarketOrderHandler->handle($YandexMarketOrderDTO);
                 self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');
+
+                return;
+
             }
-            // Метод может возвращать InvalidArgumentException в случае если артикул товара не найден
-            catch(InvalidArgumentException $exception)
-            {
-            }
+
+            self::assertFalse(true, message: 'Не найдено ни одного товара для заказа FBS');
+
         }
         else
         {
-            self::assertFalse($orders->valid());
+            self::assertFalse($response->valid());
         }
     }
 

@@ -23,32 +23,24 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\UseCase\New\Tests;
+namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests;
 
-use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCollection;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
-use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
+use BaksDev\Users\Profile\UserProfile\Entity\Event\UserProfileEvent;
+use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketUnpaidOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\User\OrderUserDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -59,66 +51,55 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @group yandex-market-orders
- * @group yandex-market-orders-new
+ * @group yandex-market-orders-status
  */
 #[When(env: 'test')]
-class YandexMarketOrderDBSTest extends KernelTestCase
+class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;
 
     public static function setUpBeforeClass(): void
     {
-        /** Токен авторизации заказов FBS - доставка курьером Яндекс Маркет */
-        self::$Authorization = new YaMarketAuthorizationToken(
-            new UserProfileUid(),
-            $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
-            $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
-            $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS']
-        );
-
         // Бросаем событие консольной комманды
         $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
         $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
         $dispatcher->dispatch($event, 'console.command');
 
+        self::clearData();
 
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $main = $em->getRepository(Order::class)
-            ->findOneBy(['id' => OrderUid::TEST]);
-
-        if($main)
-        {
-            $em->remove($main);
-        }
-
-        $event = $em->getRepository(OrderEvent::class)
-            ->findBy(['orders' => OrderUid::TEST]);
-
-        foreach($event as $remove)
-        {
-            $em->remove($remove);
-        }
-
-        $em->flush();
-        //$em->clear();
+        self::$Authorization = new YaMarketAuthorizationToken(
+            new UserProfileUid(),
+            $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
+            $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
+            $_SERVER['TEST_YANDEX_MARKET_BUSINESS']
+        );
     }
+
 
     public function testUseCase(): void
     {
-        /** @var YaMarketNewOrdersRequest $YandexMarketNewOrdersRequest */
+
+        /** @var YaMarketUnpaidOrdersRequest $YandexMarketUnpaidOrdersRequest */
+        // $YandexMarketUnpaidOrdersRequest = self::getContainer()->get(YandexMarketUnpaidOrdersRequest::class);
+        // $YandexMarketUnpaidOrdersRequest->TokenHttpClient(self::$Authorization);
+        //
+        // $response = $YandexMarketUnpaidOrdersRequest->findAll(\DateInterval::createFromDateString('1 day'));
+
+
+        /**
+         * Получаем список новых заказов с целью получить хоть один существующий заказ
+         *
+         * @var YaMarketNewOrdersRequest $YandexMarketNewOrdersRequest
+         */
         $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketNewOrdersRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
-        $response = $YandexMarketNewOrdersRequest
-            ->findAll(DateInterval::createFromDateString('10 day'));
+        $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
 
         if($response->valid())
         {
             /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
             $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
-
 
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
@@ -126,37 +107,32 @@ class YandexMarketOrderDBSTest extends KernelTestCase
                 $products = $YandexMarketOrderDTO->getProduct();
 
                 /** @var NewOrderProductDTO $NewOrderProductDTO */
-                foreach($products as $NewOrderProductDTO)
+                $NewOrderProductDTO = $products->current();
+
+                $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
+
+                if($CurrentProductDTO === false)
                 {
-                    $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
-
-                    if($CurrentProductDTO === false)
-                    {
-
-                        dump('continue 2');
-                        continue 2;
-                    }
+                    continue;
                 }
 
-                /** @var OrderUserDTO $OrderUserDTO */
-                $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
-                $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем клиенту идентификатор тестового профиля
+                /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
 
-                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileDbsYaMarket::TYPE));
-                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryDbsYaMarket::TYPE));
-                self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentDbsYaMarket::TYPE));
+                /** @var UnpaidYaMarketOrderHandler $handler */
+                $handler = self::getContainer()->get(UnpaidYaMarketOrderHandler::class);
+                $handle = $handler->handle($YandexMarketOrderDTO);
 
-                /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
-                $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
+                $em = self::getContainer()->get(EntityManagerInterface::class);
+                $OrderEvent = $em->getRepository(OrderEvent::class)->find($handle->getEvent());
 
-                $handle = $YandexMarketOrderHandler->handle($YandexMarketOrderDTO);
-                self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');
+                self::assertNotNull($OrderEvent);
+                self::assertTrue($OrderEvent->getStatus()->equals(OrderStatusUnpaid::class));
 
                 return;
-
             }
 
-            self::assertFalse(true, message: 'Не найдено ни одного товара для заказа DBS');
+            echo PHP_EOL.'Не найдено продукции для теста '.self::class.':'.__LINE__.PHP_EOL;
+
         }
         else
         {
@@ -164,14 +140,18 @@ class YandexMarketOrderDBSTest extends KernelTestCase
         }
     }
 
+    //    public static function tearDownAfterClass(): void
+    //    {
+    //        self::clearTestData();
+    //    }
 
-    public static function tearDownAfterClass(): void
+    public static function clearData(): void
     {
         /** @var EntityManagerInterface $em */
         $em = self::getContainer()->get(EntityManagerInterface::class);
 
         $main = $em->getRepository(Order::class)
-            ->findOneBy(['id' => OrderUid::TEST]);
+            ->find(OrderUid::TEST);
 
         if($main)
         {
@@ -186,7 +166,22 @@ class YandexMarketOrderDBSTest extends KernelTestCase
             $em->remove($remove);
         }
 
+        $profile = $em->getRepository(UserProfile::class)
+            ->find(UserProfileUid::TEST);
+
+        if($profile)
+        {
+            $em->remove($profile);
+        }
+
+        $eventProfile = $em->getRepository(UserProfileEvent::class)
+            ->findBy(['profile' => UserProfileUid::TEST]);
+
+        foreach($eventProfile as $remove)
+        {
+            $em->remove($remove);
+        }
+
         $em->flush();
     }
-
 }

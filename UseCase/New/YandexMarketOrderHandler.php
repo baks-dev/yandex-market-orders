@@ -36,7 +36,10 @@ use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
+use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
+use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
+use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
@@ -45,6 +48,8 @@ use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormIn
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
@@ -62,12 +67,22 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly CurrentDeliveryEventInterface $currentDeliveryEvent,
         private readonly GeocodeAddressParser $geocodeAddressParser,
         private readonly FieldValueFormInterface $fieldValue,
+        private readonly ExistsOrderNumberInterface $existsOrderNumber,
+        private readonly NewYaMarketOrderStatusHandler $newYaMarketOrderStatusHandler
     ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
     }
 
     public function handle(YandexMarketOrderDTO $command): string|Order
     {
+
+        $isExists = $this->existsOrderNumber->isExists($command->getNumber());
+
+        if($isExists)
+        {
+            /** Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть в Новый */
+            return $this->newYaMarketOrderStatusHandler->handle($command);
+        }
 
         /**
          * Получаем события продукции
@@ -98,10 +113,8 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /** Присваиваем информацию о доставке */
         $this->fillDelivery($command);
 
-
         /** Валидация DTO  */
         $this->validatorCollection->add($command);
-
 
         $OrderUserDTO = $command->getUsr();
 

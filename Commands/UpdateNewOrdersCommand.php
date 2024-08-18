@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YandexMarketNewOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
@@ -51,7 +51,7 @@ class UpdateNewOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly YandexMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
+        private readonly YaMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
         private readonly ExistsOrderNumberInterface $existsOrderNumber,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
     ) {

@@ -23,24 +23,22 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Schedule\NewOrders;
+namespace BaksDev\Yandex\Market\Orders\Schedule\CancelOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
-use BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders\NewYaMarketOrdersScheduleMessage;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders\CancelYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final readonly class NewOrdersScheduleHandler
+final readonly class CancelOrdersScheduleHandler
 {
     public function __construct(
         private AllProfileYaMarketTokenInterface $allProfileToken,
-        private UserByUserProfileInterface $userByUserProfile,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
-    public function __invoke(NewOrdersScheduleMessage $message): void
+    public function __invoke(CancelOrdersScheduleMessage $message): void
     {
         /** Получаем активные токены авторизации профилей */
         $profiles = $this->allProfileToken
@@ -51,17 +49,10 @@ final readonly class NewOrdersScheduleHandler
         {
             foreach($profiles as $profile)
             {
-                /** Получаем идентификатор пользователя */
-                $User = $this->userByUserProfile->withProfile($profile)->findUser();
-
-                if($User)
-                {
-                    $this->messageDispatch->dispatch(
-                        message: new NewYaMarketOrdersScheduleMessage($User->getId(), $profile),
-                        transport: (string) $profile,
-                    );
-                }
-
+                $this->messageDispatch->dispatch(
+                    message: new CancelYaMarketOrdersScheduleMessage($profile),
+                    transport: (string) $profile,
+                );
             }
         }
     }

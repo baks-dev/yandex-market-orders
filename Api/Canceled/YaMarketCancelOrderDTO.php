@@ -30,7 +30,7 @@ final readonly class YaMarketCancelOrderDTO
     /** Идентификатор заказа YandexMarket */
     private string $number;
 
-    public function __construct(string $number)
+    public function __construct(string|int $number)
     {
         $this->number = 'Y-'.$number; // помечаем заказ префиксом Y
     }

@@ -52,7 +52,6 @@ class UpdateNewOrdersCommand extends Command
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly YaMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
-        private readonly ExistsOrderNumberInterface $existsOrderNumber,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
     ) {
         parent::__construct();
@@ -138,14 +137,8 @@ class UpdateNewOrdersCommand extends Command
             /** @var YandexMarketOrderDTO $order */
             foreach($orders as $order)
             {
-                if($this->existsOrderNumber->isExists($order->getNumber()))
-                {
-                    $this->io->text('Заказ #%s уже добавлен в систему');
-                    continue;
-                }
-
                 /**
-                 * Создаем системный заказ
+                 * Обновляем неоплаченный системный заказ, либо создаем новый
                  */
                 $handle = $this->yandexMarketOrderHandler->handle($order);
 

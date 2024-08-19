@@ -132,8 +132,7 @@ class UpdateCancelOrdersCommand extends Command
     {
         $this->io->note(sprintf('Отменяем заказы профиля %s', $profile->getAttr()));
 
-        //$orders = $this->yandexMarketCancelOrdersRequest
-        $orders = $this->yandexMarketNewOrdersRequest
+        $orders = $this->yandexMarketCancelOrdersRequest
             ->profile($profile)
             ->findAll(DateInterval::createFromDateString('1 day'));
 
@@ -147,12 +146,9 @@ class UpdateCancelOrdersCommand extends Command
                  */
                 $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $profile);
 
-                dd($handle);
-                dd($order->getNumber());
-
                 if($handle instanceof Order)
                 {
-                    $this->io->info(sprintf('Добавили новый заказ %s', $order->getNumber()));
+                    $this->io->info(sprintf('Отменили заказ %s', $order->getNumber()));
                     continue;
                 }
 

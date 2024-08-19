@@ -361,4 +361,10 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         return $this->profile;
     }
 
+    public function resetProfile(): self
+    {
+        $this->profile = null;
+        return $this;
+    }
+
 }

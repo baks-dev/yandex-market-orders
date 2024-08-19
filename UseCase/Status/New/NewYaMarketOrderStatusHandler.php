@@ -63,7 +63,7 @@ final class NewYaMarketOrderStatusHandler
 
         if(false === $NewYaMarketOrderStatusDTO->isStatusUnpaid())
         {
-            return 'Статус заказа не является NEW «Новый»';
+            return 'Заказ уже добавлен, но его статус не является Unpaid «Не оплачен»';
         }
 
         /**

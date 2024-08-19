@@ -84,6 +84,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
             return $this->newYaMarketOrderStatusHandler->handle($command);
         }
 
+        /** Сбрасываем профиль */
+        $command->resetProfile();
+
         /**
          * Получаем события продукции
          * @var Products\NewOrderProductDTO $product

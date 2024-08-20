@@ -57,6 +57,10 @@ final class NewYaMarketOrderStatusHandler
         }
 
 
+        /**
+         * При изменении статуса в NEW «Новый» будет сброс ограничения по профилю
+         * @see NewOrderInvariable
+         */
         $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO();
         $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
 

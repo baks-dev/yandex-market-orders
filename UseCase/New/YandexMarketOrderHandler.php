@@ -45,6 +45,7 @@ use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormDTO;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormInterface;
+use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
@@ -68,7 +69,8 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly GeocodeAddressParser $geocodeAddressParser,
         private readonly FieldValueFormInterface $fieldValue,
         private readonly ExistsOrderNumberInterface $existsOrderNumber,
-        private readonly NewYaMarketOrderStatusHandler $newYaMarketOrderStatusHandler
+        private readonly NewYaMarketOrderStatusHandler $newYaMarketOrderStatusHandler,
+        private readonly UserByUserProfileInterface $userByUserProfile,
     ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
     }
@@ -80,12 +82,32 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         if($isExists)
         {
-            /** Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть в Новый */
+            /** Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый» */
             return $this->newYaMarketOrderStatusHandler->handle($command);
         }
 
-        /** Сбрасываем профиль */
+        /**
+         * Сбрасываем профиль и присваиваем ограничение по идентификатору пользователя
+         */
+
+        $NewOrderInvariable = $command->getInvariable();
+
+        $User = $this->userByUserProfile
+            ->forProfile($NewOrderInvariable->getProfile())
+            ->findUser();
+
+        if($User === false)
+        {
+            return 'Пользователь по профилю не найден';
+        }
+
+        $NewOrderInvariable
+            ->setUsr($User->getId())
+            ->resetProfile();
+
+        /** @deprecated переносится в Invariable */
         $command->resetProfile();
+
 
         /**
          * Получаем события продукции

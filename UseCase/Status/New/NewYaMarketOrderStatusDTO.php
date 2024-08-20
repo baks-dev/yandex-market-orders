@@ -32,6 +32,7 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/** @see OrderEvent $var */
 final class NewYaMarketOrderStatusDTO implements OrderEventInterface
 {
     /** Идентификатор события */

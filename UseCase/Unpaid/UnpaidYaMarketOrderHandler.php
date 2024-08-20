@@ -68,7 +68,7 @@ final class UnpaidYaMarketOrderHandler
         $NewOrderInvariable = $command->getInvariable();
 
         $User = $this->userByUserProfile
-            ->withProfile($NewOrderInvariable->getProfile())
+            ->forProfile($NewOrderInvariable->getProfile())
             ->findUser();
 
         if($User === false)
@@ -82,10 +82,9 @@ final class UnpaidYaMarketOrderHandler
             return 'Пользователь по профилю не найден';
         }
 
-
         $NewOrderInvariable->setUsr($User->getId());
-
         $handle = $this->yandexMarketOrderHandler->handle($command);
+
 
         /**
          * Если был создан заказ - переводим в статус «не оплачено»

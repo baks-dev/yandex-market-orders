@@ -52,7 +52,7 @@ final readonly class NewOrdersScheduleHandler
             foreach($profiles as $profile)
             {
                 /** Получаем идентификатор пользователя */
-                $User = $this->userByUserProfile->withProfile($profile)->findUser();
+                $User = $this->userByUserProfile->forProfile($profile)->findUser();
 
                 if($User)
                 {

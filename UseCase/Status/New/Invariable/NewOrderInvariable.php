@@ -26,8 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\New\Invariable;
 
 use BaksDev\Orders\Order\Entity\Invariable\OrderInvariableInterface;
-use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
-use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderInvariable */
@@ -52,12 +51,4 @@ final class NewOrderInvariable implements OrderInvariableInterface
     {
         return $this->profile;
     }
-
-    //    /**
-    //     * При изменении статуса заказа YaMarket на NEW, в существующем объекте сущности должен быть присвоен профиль
-    //     */
-    //    public function isGrantedProfile(): bool
-    //    {
-    //        return $this->profile !== null;
-    //    }
 }

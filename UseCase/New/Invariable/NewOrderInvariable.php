@@ -49,6 +49,8 @@ final class NewOrderInvariable implements OrderInvariableInterface
     /**
      * ID пользователя ответственного
      */
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
     private ?UserUid $usr = null;
 
 
@@ -104,6 +106,13 @@ final class NewOrderInvariable implements OrderInvariableInterface
         $this->profile = $profile;
         return $this;
     }
+
+    public function resetProfile(): self
+    {
+        $this->profile = null;
+        return $this;
+    }
+
 
     /**
      * Number

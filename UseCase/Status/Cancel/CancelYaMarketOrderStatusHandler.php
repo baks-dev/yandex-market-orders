@@ -28,6 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\UseCase\Admin\Canceled\OrderCanceledDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
@@ -43,8 +44,10 @@ final class CancelYaMarketOrderStatusHandler
     ) {}
 
 
-    public function handle(YandexMarketOrderDTO|YaMarketCancelOrderDTO $command, UserProfileUid $profile): string|Order
-    {
+    public function handle(
+        YandexMarketOrderDTO|YaMarketCancelOrderDTO $command,
+        UserProfileUid $profile
+    ): string|false|Order {
         $OrderEvent = $this->currentOrderNumber->getCurrentOrderEvent($command->getNumber());
 
         /**
@@ -65,7 +68,12 @@ final class CancelYaMarketOrderStatusHandler
 
         if($EditOrderDTO->getStatus()->equals(OrderStatusCanceled::class))
         {
-            return 'Заказ уже отменен';
+            return false;
+        }
+
+        if($EditOrderDTO->getStatus()->equals(OrderStatusCompleted::class))
+        {
+            return 'Заказ уже выполнен в системе';
         }
 
         /**

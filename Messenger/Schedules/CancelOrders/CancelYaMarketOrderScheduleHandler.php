@@ -94,6 +94,18 @@ final class CancelYaMarketOrderScheduleHandler
                     ]
                 );
             }
+
+            if($handle !== false)
+            {
+                $this->logger->critical(
+                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $order->getNumber(), $handle),
+                    [
+                        self::class.':'.__LINE__,
+                        'attr' => (string) $message->getProfile()->getAttr(),
+                        'profile' => (string) $message->getProfile(),
+                    ]
+                );
+            }
         }
     }
 }

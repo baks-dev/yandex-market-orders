@@ -40,7 +40,6 @@ final class UnpaidYaMarketOrderScheduleHandler
 
     public function __construct(
         private readonly YaMarketUnpaidOrdersRequest $yandexMarketUnpaidOrdersRequest,
-        private readonly ExistsOrderNumberInterface $existsOrderNumber,
         private readonly UnpaidYaMarketOrderHandler $unpaidYandexMarketHandler,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {

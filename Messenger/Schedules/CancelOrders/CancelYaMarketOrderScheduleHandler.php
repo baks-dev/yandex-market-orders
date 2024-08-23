@@ -93,6 +93,8 @@ final class CancelYaMarketOrderScheduleHandler
                         'profile' => (string) $message->getProfile(),
                     ]
                 );
+
+                continue;
             }
 
             if($handle !== false)

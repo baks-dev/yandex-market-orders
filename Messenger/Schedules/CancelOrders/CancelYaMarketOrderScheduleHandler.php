@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
-use BaksDev\Orders\Order\UseCase\Admin\Canceled\OrderCanceledDTO;
+use BaksDev\Orders\Order\UseCase\Admin\Canceled\CanceledOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrdersRequest;

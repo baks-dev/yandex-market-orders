@@ -44,11 +44,19 @@ final class NewOrderInvariable implements OrderInvariableInterface
     }
 
     /**
-     * При изменении статуса заказа YaMarket на NEW - всегда сбрасываем ограничение по профилю
-     * (действует ограничение по пользователю)
+     * При изменении статуса заказа YaMarket на NEW - всегда сбрасываем ограничение по профилю,
+     * действует ограничение только по пользователю
      */
     public function getProfile(): null
     {
         return $this->profile;
+    }
+
+    /**
+     *  Идентификатор пользователя остается неизменным
+     */
+    public function getUsr(): ?UserUid
+    {
+        return null;
     }
 }

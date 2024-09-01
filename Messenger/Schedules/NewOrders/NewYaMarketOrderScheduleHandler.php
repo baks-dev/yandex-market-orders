@@ -63,24 +63,11 @@ final class NewYaMarketOrderScheduleHandler
 
         if(!$orders->valid())
         {
-            $this->logger->info(
-                'Новых заказов не найдено',
-                [
-                    self::class.':'.__LINE__,
-                    'profile' => (string) $message->getProfile(),
-                ]
-            );
-
+            $this->logger->info('Новых заказов не найдено', ['profile' => (string) $message->getProfile()]);
             return;
         }
 
-        $this->logger->notice(
-            'Получаем заказы и добавляем новые',
-            [
-                self::class.':'.__LINE__,
-                'profile' => (string) $message->getProfile(),
-            ]
-        );
+        $this->logger->notice('Получаем заказы и добавляем новые:');
 
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)

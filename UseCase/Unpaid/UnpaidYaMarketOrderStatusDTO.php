@@ -30,8 +30,12 @@ use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\User\Entity\User;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/** @see OrderEvent */
 final class UnpaidYaMarketOrderStatusDTO implements OrderEventInterface
 {
     /** Идентификатор события */
@@ -42,6 +46,19 @@ final class UnpaidYaMarketOrderStatusDTO implements OrderEventInterface
     /** Статус заказа */
     #[Assert\NotBlank]
     private OrderStatus $status;
+
+    /** Постоянная величина */
+    #[Assert\Valid]
+    private readonly Invariable\UnpaidOrderInvariable $invariable;
+
+    public function __construct(User|UserUid $user, UserProfileUid $profile)
+    {
+        $user = $user instanceof User ? $user->getId() : $user;
+
+        $this->invariable = new Invariable\UnpaidOrderInvariable();
+        $this->invariable->setUsr($user);
+        $this->invariable->setProfile($profile);
+    }
 
 
     /** Идентификатор события */
@@ -69,4 +86,14 @@ final class UnpaidYaMarketOrderStatusDTO implements OrderEventInterface
     {
         return $this->status;
     }
+
+    /**
+     * Invariable
+     */
+    public function getInvariable(): Invariable\UnpaidOrderInvariable
+    {
+        return $this->invariable;
+    }
+
+
 }

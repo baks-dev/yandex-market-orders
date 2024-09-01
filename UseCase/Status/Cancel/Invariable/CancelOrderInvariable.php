@@ -33,29 +33,39 @@ use ReflectionProperty;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderInvariable */
-final class CancelOrderInvariable implements OrderInvariableInterface
+final readonly class CancelOrderInvariable implements OrderInvariableInterface
 {
     /**
      * ID профиля ответственного
      */
     #[Assert\NotBlank]
-    private readonly UserProfileUid $profile;
+    #[Assert\Uuid]
+    private ?UserProfileUid $profile;
 
-    public function getProfile(): UserProfileUid
+    /**
+     * Profile
+     */
+    public function getProfile(): ?UserProfileUid
     {
         return $this->profile;
     }
 
-    public function setProfileCancel(?UserProfileUid $profile): self
+    public function setProfile(?UserProfileUid $profile): self
     {
-        if(
-            $profile instanceof UserProfileUid &&
-            false === (new ReflectionProperty(self::class, 'profile'))->isInitialized($this)
-        ) {
+        if(!(new ReflectionProperty(self::class, 'profile'))->isInitialized($this))
+        {
             $this->profile = $profile;
         }
 
-
         return $this;
     }
+
+    /**
+     * Идентификатор пользователя остается неизменным
+     */
+    public function getUsr(): ?UserUid
+    {
+        return null;
+    }
+
 }

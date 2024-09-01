@@ -66,9 +66,10 @@ final class UnpaidYaMarketOrderHandler
          */
 
         $NewOrderInvariable = $command->getInvariable();
+        $UserProfileUid = $NewOrderInvariable->getProfile();
 
         $User = $this->userByUserProfile
-            ->forProfile($NewOrderInvariable->getProfile())
+            ->forProfile($UserProfileUid)
             ->findUser();
 
         if($User === false)
@@ -92,6 +93,7 @@ final class UnpaidYaMarketOrderHandler
 
         if($handle instanceof Order)
         {
+
             $OrderEvent = $this
                 ->currentOrderEvent
                 ->order($handle->getId())
@@ -106,8 +108,16 @@ final class UnpaidYaMarketOrderHandler
                 return '';
             }
 
-            /** Обновляем статус «Не оплачено» */
-            $UnpaidOrderStatusDTO = new UnpaidYaMarketOrderStatusDTO();
+            /**
+             * Обновляем статус «Не оплачено»
+             *
+             * В статус «Не оплачено» может перевестись только новый заказ,
+             * у которого ограничение только по идентификатору пользователя,
+             * присваиваем профиль по транспорту, для ограничения и по профилю
+             *
+             */
+
+            $UnpaidOrderStatusDTO = new UnpaidYaMarketOrderStatusDTO($User, $UserProfileUid);
             $OrderEvent->getDto($UnpaidOrderStatusDTO);
 
             if($UnpaidOrderStatusDTO->isStatusNew())

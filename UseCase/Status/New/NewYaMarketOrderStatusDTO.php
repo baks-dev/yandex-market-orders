@@ -30,6 +30,8 @@ use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Users\User\Entity\User;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent $var */
@@ -55,10 +57,12 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
     #[Assert\IsNull]
     private readonly null $profile;
 
-    public function __construct()
+    public function __construct(/*User|UserUid $user*/)
     {
         $this->profile = null;
+
         $this->invariable = new Invariable\NewOrderInvariable();
+        //$this->invariable->setUsr($user);
     }
 
     /** Идентификатор события */

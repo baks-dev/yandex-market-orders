@@ -100,9 +100,11 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $NewOrderInvariable->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
         $this->invariable = $NewOrderInvariable;
 
+
         /** @deprecated переносится в Invariable */
         $this->number = 'Y-'.$order['id']; // помечаем заказ префиксом Y
         $this->created = new DateTimeImmutable($order['creationDate']);
+
         $this->profile = $profile;
 
         $this->status = new OrderStatus(OrderStatusNew::class);
@@ -361,9 +363,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         return $this->profile;
     }
 
-    public function resetProfile(): self
+    public function resetProfile(?UserProfileUid $profile = null): self
     {
-        $this->profile = null;
+        $this->profile = $profile;
         return $this;
     }
 

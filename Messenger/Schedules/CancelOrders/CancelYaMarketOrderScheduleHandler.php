@@ -59,24 +59,11 @@ final class CancelYaMarketOrderScheduleHandler
 
         if(!$orders->valid())
         {
-            $this->logger->info(
-                'Отмененных заказов не найдено',
-                [
-                    self::class.':'.__LINE__,
-                    'profile' => (string) $message->getProfile(),
-                ]
-            );
-
+            $this->logger->info('Отмененных заказов не найдено', ['profile' => (string) $message->getProfile()]);
             return;
         }
 
-        $this->logger->notice(
-            'Получаем отмененные заказы',
-            [
-                self::class.':'.__LINE__,
-                'profile' => (string) $message->getProfile(),
-            ]
-        );
+        $this->logger->notice('Получаем отмененные заказы:');
 
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)

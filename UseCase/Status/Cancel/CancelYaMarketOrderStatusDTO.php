@@ -31,6 +31,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\User\Entity\User;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -65,6 +67,7 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
 
     public function __construct(UserProfile|UserProfileUid|string $profile)
     {
+
         if(is_string($profile))
         {
             $profile = new UserProfileUid($profile);
@@ -77,8 +80,9 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
 
         $this->profile = $profile;
 
+
         $this->invariable = new Invariable\CancelOrderInvariable();
-        $this->invariable->setProfileCancel($profile);
+        $this->invariable->setProfile($profile);
 
         $this->status = new OrderStatus(OrderStatusCanceled::class);
 

@@ -32,6 +32,7 @@ use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\User\Type\Id\UserUid;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests\NewYaMarketOrderStatusTest;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest;
@@ -60,7 +61,9 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 
         self::assertNotNull($OrderEvent);
 
-        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO(new UserProfileUid(UserProfileUid::TEST));
+        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO(
+            new UserProfileUid(UserProfileUid::TEST)
+        );
         $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
 
         self::assertNotNull($CancelYaMarketOrderStatusDTO->getEvent());

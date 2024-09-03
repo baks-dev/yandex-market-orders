@@ -25,14 +25,18 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel;
 
+use BaksDev\Core\Deduplicator\Deduplicator;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
+use BaksDev\Products\Stocks\UseCase\Admin\Warehouse\WarehouseProductStockDTO;
+use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
+use BaksDev\Yandex\Market\Orders\Repository\ProductStocksByOrder\ProductStocksCompleteByOrderInterface;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 
 final class CancelYaMarketOrderStatusHandler
@@ -40,6 +44,9 @@ final class CancelYaMarketOrderStatusHandler
     public function __construct(
         private readonly OrderStatusHandler $orderStatusHandler,
         private readonly CurrentOrderNumberInterface $currentOrderNumber,
+        private readonly ProductStocksCompleteByOrderInterface $productStocksCompleteByOrder,
+        private readonly UserByUserProfileInterface $userByUserProfile,
+        private readonly Deduplicator $deduplicator,
     ) {}
 
 
@@ -71,8 +78,51 @@ final class CancelYaMarketOrderStatusHandler
             return false;
         }
 
+        $Deduplicator = $this->deduplicator
+            ->namespace('orders-order')
+            ->deduplication([
+                $command->getNumber(),
+                OrderStatusCanceled::STATUS,
+                md5(self::class)
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            return false;
+        }
+
+
         if($EditOrderDTO->getStatus()->equals(OrderStatusCompleted::class))
         {
+            /** Получаем заявку по идентификатору заказа  */
+
+            $OrderUid = $EditOrderDTO->getOrder();
+
+            $ProductStocks = $this->productStocksCompleteByOrder
+                ->forOrder($OrderUid)
+                ->find();
+
+            if($ProductStocks)
+            {
+                $User = $this->userByUserProfile
+                    ->forProfile($profile)
+                    ->findUser();
+
+                if($User)
+                {
+                    $WarehouseProductStockDTO = new WarehouseProductStockDTO($User);
+                    $ProductStocks->getDto($WarehouseProductStockDTO);
+                    $WarehouseProductStockDTO->setComment(
+                        sprintf('Возврат продукции при отмене заказа YaMarket #%s', $command->getNumber())
+                    );
+
+                    $Deduplicator->save();
+                    return 'Добавили возврат продукции при отмене заказа';
+                }
+            }
+
+
+            $Deduplicator->save();
             return 'Заказ уже выполнен в системе';
         }
 
@@ -84,8 +134,14 @@ final class CancelYaMarketOrderStatusHandler
         $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
         $CancelYaMarketOrderStatusDTO->setComment('Отмена пользователем Yandex Market');
 
-        return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
+        $handle = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
 
+        if($handle instanceof Order)
+        {
+            $Deduplicator->save();
+
+        }
+
+        return $handle;
     }
-
 }

@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
 
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
@@ -34,6 +35,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
+use DateInterval;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -45,6 +47,7 @@ final class CancelYaMarketOrderScheduleHandler
     public function __construct(
         private readonly YaMarketCancelOrdersRequest $yandexMarketCancelOrdersRequest,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {
         $this->logger = $yandexMarketOrdersLogger;
@@ -52,7 +55,7 @@ final class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
-        /* Получить список неоплаченных заказов */
+        /* Получить список заказов для отмены */
         $orders = $this->yandexMarketCancelOrdersRequest
             ->profile($message->getProfile())
             ->findAll();
@@ -68,6 +71,16 @@ final class CancelYaMarketOrderScheduleHandler
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)
         {
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter(DateInterval::createFromDateString('1 day'))
+                ->deduplication([$order->getNumber(), md5(self::class)]);
+
+            if($Deduplicator->isExecuted())
+            {
+                continue;
+            }
+
             $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $message->getProfile());
 
             if($handle instanceof Order)
@@ -95,6 +108,9 @@ final class CancelYaMarketOrderScheduleHandler
                     ]
                 );
             }
+
+
+            $Deduplicator->save();
         }
     }
 }

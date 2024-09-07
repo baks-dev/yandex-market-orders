@@ -63,6 +63,7 @@ final class ProductStocksCompleteByOrderRepository implements ProductStocksCompl
      */
     public function find(): ProductStockEvent|false
     {
+
         if($this->order === false)
         {
             throw new InvalidArgumentException('Не передан обязательный параметр order через вызов метода forOrder');
@@ -72,32 +73,30 @@ final class ProductStocksCompleteByOrderRepository implements ProductStocksCompl
 
         $orm->select('event');
 
-        $orm->from(ProductStockOrder::class, 'ord');
+        $orm
+            ->from(ProductStockOrder::class, 'ord')
+            ->where('ord.ord = :ord')
+            ->setParameter('ord', $this->order, OrderUid::TYPE);
 
         $orm->join(
             ProductStock::class,
             'stock',
             'WITH',
-            '
-                stock.event = ord.event AND 
-                stock.status = :status
-            ',
-        )
-            ->setParameter(
-                'status',
-                ProductStockStatusCompleted::class,
-                ProductStockStatus::TYPE
-            );
+            'stock.event = ord.event',
+        );
 
         $orm->join(
             ProductStockEvent::class,
             'event',
             'WITH',
-            'event.id = stock.event'
+            'event.id = stock.event
+             AND event.status = :status
+            '
+        )->setParameter(
+            'status',
+            ProductStockStatusCompleted::class,
+            ProductStockStatus::TYPE
         );
-
-        $orm->where('ord.ord = :ord');
-        $orm->setParameter('ord', $this->order, OrderUid::TYPE);
 
         return $orm->getOneOrNullResult() ?: false;
     }

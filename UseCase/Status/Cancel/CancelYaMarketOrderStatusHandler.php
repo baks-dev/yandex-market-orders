@@ -32,7 +32,9 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
+use BaksDev\Products\Stocks\Entity\ProductStock;
 use BaksDev\Products\Stocks\UseCase\Admin\Warehouse\WarehouseProductStockDTO;
+use BaksDev\Products\Stocks\UseCase\Admin\Warehouse\WarehouseProductStockHandler;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
@@ -47,6 +49,7 @@ final class CancelYaMarketOrderStatusHandler
         private readonly ProductStocksCompleteByOrderInterface $productStocksCompleteByOrder,
         private readonly UserByUserProfileInterface $userByUserProfile,
         private readonly Deduplicator $deduplicator,
+        private readonly WarehouseProductStockHandler $warehouseProductStockHandler,
     ) {}
 
 
@@ -98,6 +101,12 @@ final class CancelYaMarketOrderStatusHandler
 
             $OrderUid = $EditOrderDTO->getOrder();
 
+            if(!$OrderUid)
+            {
+                return sprintf('Заказ %s уже выполнен в системе, идентификатор системного заказа не найден', $command->getNumber());
+            }
+
+
             $ProductStocks = $this->productStocksCompleteByOrder
                 ->forOrder($OrderUid)
                 ->find();
@@ -116,8 +125,16 @@ final class CancelYaMarketOrderStatusHandler
                         sprintf('Возврат продукции при отмене заказа YaMarket #%s', $command->getNumber())
                     );
 
+                    $handle = $this->warehouseProductStockHandler->handle($WarehouseProductStockDTO);
+
                     $Deduplicator->save();
-                    return 'Добавили возврат продукции при отмене заказа';
+
+                    if($handle instanceof ProductStock)
+                    {
+                        return 'Добавили возврат продукции при отмене выполненного заказа';
+                    }
+
+                    return sprintf('%s: Ошибка возврата заказа %s на склад', $handle, $command->getNumber());
                 }
             }
 

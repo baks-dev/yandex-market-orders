@@ -96,8 +96,8 @@ final class UnpaidYaMarketOrderHandler
 
             $OrderEvent = $this
                 ->currentOrderEvent
-                ->order($handle->getId())
-                ->getCurrentOrderEvent();
+                ->forOrder($handle->getId())
+                ->find();
 
             if($OrderEvent === null)
             {

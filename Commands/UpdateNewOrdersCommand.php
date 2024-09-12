@@ -57,11 +57,6 @@ class UpdateNewOrdersCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this->addArgument('argument', InputArgument::OPTIONAL, 'Описание аргумента');
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);

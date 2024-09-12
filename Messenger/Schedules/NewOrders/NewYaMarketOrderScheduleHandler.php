@@ -38,6 +38,8 @@ use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
+use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
+use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -49,6 +51,7 @@ final class NewYaMarketOrderScheduleHandler
     public function __construct(
         private readonly YaMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {
         $this->logger = $yandexMarketOrdersLogger;
@@ -56,19 +59,43 @@ final class NewYaMarketOrderScheduleHandler
 
     public function __invoke(NewYaMarketOrdersScheduleMessage $message): void
     {
-        /* Получаем список новых сборочных заданий */
+        /**
+         * Получаем список НОВЫХ сборочных заданий по основному идентификатору компании
+         */
+
         $orders = $this->yandexMarketNewOrdersRequest
             ->profile($message->getProfile())
             ->findAll();
 
-        if(!$orders->valid())
+        if($orders->valid())
         {
-            $this->logger->info('Новых заказов не найдено', ['profile' => (string) $message->getProfile()]);
-            return;
+            $this->ordersCreate($orders);
         }
 
-        $this->logger->notice('Получаем заказы и добавляем новые:');
+        /**
+         * Получаем заказы по дополнительным идентификаторам
+         */
 
+        $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
+
+        if($extra !== false)
+        {
+            foreach($extra as $company)
+            {
+                $orders = $this->yandexMarketNewOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
+
+                if($orders->valid())
+                {
+                    $this->ordersCreate($orders);
+                }
+            }
+        }
+    }
+
+    private function ordersCreate(Generator $orders): void
+    {
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)
         {
@@ -78,11 +105,7 @@ final class NewYaMarketOrderScheduleHandler
             {
                 $this->logger->info(
                     sprintf('Добавили новый заказ %s', $order->getNumber()),
-                    [
-                        self::class.':'.__LINE__,
-                        'attr' => (string) $message->getProfile()->getAttr(),
-                        'profile' => (string) $message->getProfile(),
-                    ]
+                    [self::class.':'.__LINE__]
                 );
             }
         }

@@ -32,10 +32,13 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\UseCase\Admin\Canceled\CanceledOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
+use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use DateInterval;
+use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -47,6 +50,7 @@ final class CancelYaMarketOrderScheduleHandler
     public function __construct(
         private readonly YaMarketCancelOrdersRequest $yandexMarketCancelOrdersRequest,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {
@@ -55,19 +59,45 @@ final class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
-        /* Получить список заказов для отмены */
+        /**
+         * Получаем список ОТМЕНЕННЫЙ сборочных заданий по основному идентификатору компании
+         */
+
         $orders = $this->yandexMarketCancelOrdersRequest
             ->profile($message->getProfile())
             ->findAll();
 
-        if(!$orders->valid())
+        if($orders->valid())
         {
-            $this->logger->info('Отмененных заказов не найдено', ['profile' => (string) $message->getProfile()]);
-            return;
+            $this->ordersCancel($orders, $message->getProfile());
         }
 
-        $this->logger->notice('Получаем отмененные заказы:');
 
+        /**
+         * Получаем заказы по дополнительным идентификаторам
+         */
+
+        $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
+
+        if($extra !== false)
+        {
+            foreach($extra as $company)
+            {
+                $orders = $this->yandexMarketCancelOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
+
+                if($orders->valid())
+                {
+                    $this->ordersCancel($orders, $message->getProfile());
+                }
+            }
+        }
+    }
+
+
+    private function ordersCancel(Generator $orders, UserProfileUid $profile): void
+    {
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)
         {
@@ -81,7 +111,7 @@ final class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $message->getProfile());
+            $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $profile);
 
             if($handle instanceof Order)
             {
@@ -89,8 +119,8 @@ final class CancelYaMarketOrderScheduleHandler
                     sprintf('Отменили заказ %s', $order->getNumber()),
                     [
                         self::class.':'.__LINE__,
-                        'attr' => (string) $message->getProfile()->getAttr(),
-                        'profile' => (string) $message->getProfile(),
+                        'attr' => (string) $profile->getAttr(),
+                        'profile' => (string) $profile,
                     ]
                 );
 
@@ -103,12 +133,11 @@ final class CancelYaMarketOrderScheduleHandler
                     sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $order->getNumber(), $handle),
                     [
                         self::class.':'.__LINE__,
-                        'attr' => (string) $message->getProfile()->getAttr(),
-                        'profile' => (string) $message->getProfile(),
+                        'attr' => (string) $profile->getAttr(),
+                        'profile' => (string) $profile,
                     ]
                 );
             }
-
 
             $Deduplicator->save();
         }

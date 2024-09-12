@@ -27,9 +27,12 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders;
 
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\YaMarketUnpaidOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
+use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -41,6 +44,7 @@ final class UnpaidYaMarketOrderScheduleHandler
     public function __construct(
         private readonly YaMarketUnpaidOrdersRequest $yandexMarketUnpaidOrdersRequest,
         private readonly UnpaidYaMarketOrderHandler $unpaidYandexMarketHandler,
+        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,
     ) {
         $this->logger = $yandexMarketOrdersLogger;
@@ -48,23 +52,49 @@ final class UnpaidYaMarketOrderScheduleHandler
 
     public function __invoke(UnpaidYaMarketOrdersScheduleMessage $message): void
     {
-        /* Получить список неоплаченных заказов */
+
+        /**
+         * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
+         */
         $orders = $this->yandexMarketUnpaidOrdersRequest
             ->profile($message->getProfile())
             ->findAll();
 
-        if(!$orders->valid())
+        if($orders->valid())
         {
-            $this->logger->info('Неоплаченных заказов не найдено', ['profile' => (string) $message->getProfile()]);
-            return;
+            $this->ordersUnpaid($orders, $message->getProfile());
+
         }
 
-        $this->logger->notice('Получаем ожидающие оплату заказы:');
+        /**
+         * Получаем заказы по дополнительным идентификаторам
+         */
 
+        $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
+
+        if($extra !== false)
+        {
+            foreach($extra as $company)
+            {
+                $orders = $this->yandexMarketUnpaidOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
+
+                if($orders->valid())
+                {
+                    $this->ordersUnpaid($orders, $message->getProfile());
+                }
+            }
+        }
+    }
+
+
+    private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
+    {
         /** @var YandexMarketOrderDTO $order */
         foreach($orders as $order)
         {
-            $order->resetProfile($message->getProfile());
+            $order->resetProfile($profile);
 
             $handle = $this->unpaidYandexMarketHandler->handle($order);
 
@@ -74,8 +104,8 @@ final class UnpaidYaMarketOrderScheduleHandler
                     sprintf('Создали неоплаченный заказ %s', $order->getNumber()),
                     [
                         self::class.':'.__LINE__,
-                        'attr' => (string) $message->getProfile()->getAttr(),
-                        'profile' => (string) $message->getProfile(),
+                        'attr' => (string) $profile->getAttr(),
+                        'profile' => (string) $profile,
                     ]
                 );
             }

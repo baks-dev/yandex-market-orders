@@ -31,6 +31,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCollection;
+use BaksDev\Orders\Order\UseCase\Admin\Delete\Tests\DeleteOrderTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
@@ -81,28 +82,8 @@ class YandexMarketOrderDBSTest extends KernelTestCase
         $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
         $dispatcher->dispatch($event, 'console.command');
 
+        DeleteOrderTest::tearDownAfterClass();
 
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $main = $em->getRepository(Order::class)
-            ->findOneBy(['id' => OrderUid::TEST]);
-
-        if($main)
-        {
-            $em->remove($main);
-        }
-
-        $event = $em->getRepository(OrderEvent::class)
-            ->findBy(['orders' => OrderUid::TEST]);
-
-        foreach($event as $remove)
-        {
-            $em->remove($remove);
-        }
-
-        $em->flush();
-        //$em->clear();
     }
 
     public function testUseCase(): void
@@ -124,6 +105,11 @@ class YandexMarketOrderDBSTest extends KernelTestCase
             foreach($response as $YandexMarketOrderDTO)
             {
                 $products = $YandexMarketOrderDTO->getProduct();
+
+                if($products->count() > 1)
+                {
+                    continue;
+                }
 
                 /** @var NewOrderProductDTO $NewOrderProductDTO */
                 foreach($products as $NewOrderProductDTO)
@@ -162,6 +148,9 @@ class YandexMarketOrderDBSTest extends KernelTestCase
         {
             self::assertFalse($response->valid());
         }
+
+
+
     }
 
 

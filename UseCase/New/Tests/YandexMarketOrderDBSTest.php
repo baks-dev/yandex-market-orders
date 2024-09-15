@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\Tests;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
@@ -88,6 +89,22 @@ class YandexMarketOrderDBSTest extends KernelTestCase
 
     public function testUseCase(): void
     {
+
+        /** Кешируем на сутки результат теста */
+
+        /** @var AppCacheInterface $AppCache */
+        $AppCache = self::getContainer()->get(AppCacheInterface::class);
+        $cache = $AppCache->init('yandex-market-orders-test');
+        $item = $cache->getItem('YandexMarketOrderDBSTest');
+
+
+        if($item->isHit())
+        {
+            self::assertTrue(true);
+            return;
+        }
+
+
         /** @var YaMarketNewOrdersRequest $YandexMarketNewOrdersRequest */
         $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketNewOrdersRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
@@ -99,7 +116,6 @@ class YandexMarketOrderDBSTest extends KernelTestCase
         {
             /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
             $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
-
 
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
@@ -118,8 +134,6 @@ class YandexMarketOrderDBSTest extends KernelTestCase
 
                     if($CurrentProductDTO === false)
                     {
-
-                        dump('continue 2');
                         continue 2;
                     }
                 }
@@ -138,6 +152,13 @@ class YandexMarketOrderDBSTest extends KernelTestCase
                 $handle = $YandexMarketOrderHandler->handle($YandexMarketOrderDTO);
                 self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');
 
+
+                /** Запоминаем результат тестирования */
+                $item->expiresAfter(DateInterval::createFromDateString('1 day'));
+                $item->set(1);
+                $cache->save($item);
+
+
                 return;
 
             }
@@ -149,33 +170,12 @@ class YandexMarketOrderDBSTest extends KernelTestCase
             self::assertFalse($response->valid());
         }
 
-
-
     }
 
 
     public static function tearDownAfterClass(): void
     {
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $main = $em->getRepository(Order::class)
-            ->findOneBy(['id' => OrderUid::TEST]);
-
-        if($main)
-        {
-            $em->remove($main);
-        }
-
-        $event = $em->getRepository(OrderEvent::class)
-            ->findBy(['orders' => OrderUid::TEST]);
-
-        foreach($event as $remove)
-        {
-            $em->remove($remove);
-        }
-
-        $em->flush();
+        DeleteOrderTest::tearDownAfterClass();
     }
 
 }

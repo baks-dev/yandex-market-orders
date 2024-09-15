@@ -35,33 +35,51 @@ class BaksDevYandexMarketOrdersBundle extends AbstractBundle
 
     public const PATH = __DIR__.DIRECTORY_SEPARATOR;
 
-    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
-    {
-        $services = $container->services()
-            ->defaults()
-            ->autowire()
-            ->autoconfigure();
+    //    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+    //    {
+    //        $services = $container->services()
+    //            ->defaults()
+    //            ->autowire()
+    //            ->autoconfigure();
+    //
+    //        $services->load(self::NAMESPACE, self::PATH)
+    //            ->exclude([
+    //                self::PATH.'{Entity,Resources,Type}',
+    //                self::PATH.'**'.DIRECTORY_SEPARATOR.'*Message.php',
+    //                self::PATH.'**'.DIRECTORY_SEPARATOR.'*DTO.php',
+    //            ]);
+    //
+    //        $services->load(
+    //            self::NAMESPACE.'Type\DeliveryType\\',
+    //            self::PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'DeliveryType'])
+    //        );
+    //
+    //        $services->load(
+    //            self::NAMESPACE.'Type\ProfileType\\',
+    //            self::PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'ProfileType'])
+    //        );
+    //
+    //        $services->load(
+    //            self::NAMESPACE.'Type\PaymentType\\',
+    //            self::PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'PaymentType'])
+    //        );
+    //    }
 
-        $services->load(self::NAMESPACE, self::PATH)
-            ->exclude([
-                self::PATH.'{Entity,Resources,Type}',
-                self::PATH.'**/*Message.php',
-                self::PATH.'**/*DTO.php',
-            ]);
 
-        $services->load(
-            self::NAMESPACE.'Type\DeliveryType\\',
-            self::PATH.'Type/DeliveryType'
-        );
-
-        $services->load(
-            self::NAMESPACE.'Type\ProfileType\\',
-            self::PATH.'Type/ProfileType'
-        );
-
-        $services->load(
-            self::NAMESPACE.'Type\PaymentType\\',
-            self::PATH.'Type/PaymentType'
-        );
-    }
+    //    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    //    {
+    //        $path = self::PATH.implode(DIRECTORY_SEPARATOR, ['Resources', 'config']);
+    //
+    //        $configs = new \RegexIterator(new \DirectoryIterator($path), '/\.php$/');
+    //
+    //        foreach($configs as $config)
+    //        {
+    //            if($config->isDot() || $config->isDir())
+    //            {
+    //                continue;
+    //            }
+    //
+    //            $container->import($config->getPathname());
+    //        }
+    //    }
 }

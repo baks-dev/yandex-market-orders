@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\Tests;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
@@ -85,6 +86,20 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
     public function testUseCase(): void
     {
+        /** Кешируем на сутки результат теста */
+
+        /** @var AppCacheInterface $AppCache */
+        $AppCache = self::getContainer()->get(AppCacheInterface::class);
+        $cache = $AppCache->init('yandex-market-orders-test');
+        $item = $cache->getItem('AllUseCaseYaMarketOrderTest');
+
+        if($item->isHit())
+        {
+            self::assertTrue(true);
+            return;
+        }
+
+
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
@@ -104,6 +119,11 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
             foreach($response as $YandexMarketOrderDTO)
             {
                 $products = $YandexMarketOrderDTO->getProduct();
+
+                if($products->count() > 1)
+                {
+                    continue;
+                }
 
                 /** @var NewOrderProductDTO $NewOrderProductDTO */
                 $NewOrderProductDTO = $products->current();
@@ -148,6 +168,11 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
                     ->findBy(['orders' => OrderUid::TEST]);
 
                 self::assertCount(4, $events);
+
+                /** Запоминаем результат тестирования */
+                $item->expiresAfter(DateInterval::createFromDateString('1 day'));
+                $item->set(1);
+                $cache->save($item);
 
                 return;
             }

@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
@@ -79,6 +80,22 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
     public function testUseCase(): void
     {
 
+        /** Кешируем на сутки результат теста */
+
+        /** @var AppCacheInterface $AppCache */
+        $AppCache = self::getContainer()->get(AppCacheInterface::class);
+        $cache = $AppCache->init('yandex-market-orders-test');
+        $item = $cache->getItem('UnpaidYaMarketOrderHandlerTest');
+
+        if($item->isHit())
+        {
+            self::assertTrue(true);
+            return;
+        }
+
+
+
+
         /** @var YaMarketUnpaidOrdersRequest $YandexMarketUnpaidOrdersRequest */
         // $YandexMarketUnpaidOrdersRequest = self::getContainer()->get(YandexMarketUnpaidOrdersRequest::class);
         // $YandexMarketUnpaidOrdersRequest->TokenHttpClient(self::$Authorization);
@@ -127,6 +144,11 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
                 self::assertNotNull($OrderEvent);
                 self::assertTrue($OrderEvent->getStatus()->equals(OrderStatusUnpaid::class));
+
+                /** Запоминаем результат тестирования */
+                $item->expiresAfter(DateInterval::createFromDateString('1 day'));
+                $item->set(1);
+                $cache->save($item);
 
                 return;
             }

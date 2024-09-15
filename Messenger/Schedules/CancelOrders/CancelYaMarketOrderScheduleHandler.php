@@ -60,7 +60,7 @@ final class CancelYaMarketOrderScheduleHandler
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
         /**
-         * Получаем список ОТМЕНЕННЫЙ сборочных заданий по основному идентификатору компании
+         * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
          */
 
         $orders = $this->yandexMarketCancelOrdersRequest

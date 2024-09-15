@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\Tests;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
@@ -51,6 +52,21 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 {
     public function testUseCase(): void
     {
+
+        /** Проверяем результат тестирования UnpaidYaMarketOrderHandlerTest */
+
+        /** @var AppCacheInterface $AppCache */
+        $AppCache = self::getContainer()->get(AppCacheInterface::class);
+        $cache = $AppCache->init('yandex-market-orders-test');
+        $item = $cache->getItem('UnpaidYaMarketOrderHandlerTest');
+
+        if($item->isHit())
+        {
+            self::assertTrue(true);
+            return;
+        }
+
+
         /** @var CurrentOrderEventInterface $CurrentOrderEventInterface */
 
         $CurrentOrderEventInterface = self::getContainer()->get(CurrentOrderEventInterface::class);

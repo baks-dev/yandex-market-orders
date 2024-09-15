@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests;
 
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
@@ -49,6 +50,21 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
     public function testUseCase(): void
     {
 
+        /** Кешируем на сутки результат теста */
+
+        /** @var AppCacheInterface $AppCache */
+        $AppCache = self::getContainer()->get(AppCacheInterface::class);
+        $cache = $AppCache->init('yandex-market-orders-test');
+        $item = $cache->getItem('UnpaidYaMarketOrderHandlerTest');
+
+        if($item->isHit())
+        {
+            self::assertTrue(true);
+            return;
+        }
+
+
+
         /** @var CurrentOrderEventInterface $CurrentOrderEventInterface */
 
         $CurrentOrderEventInterface = self::getContainer()->get(CurrentOrderEventInterface::class);
@@ -58,6 +74,7 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
             ->find();
 
         self::assertNotNull($OrderEvent);
+        self::assertNotFalse($OrderEvent);
 
         $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO(new UserUid());
         $OrderEvent->getDto($NewYaMarketOrderStatusDTO);

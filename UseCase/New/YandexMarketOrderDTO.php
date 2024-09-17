@@ -34,6 +34,7 @@ use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
@@ -107,7 +108,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         $this->profile = $profile;
 
-        $this->status = new OrderStatus(OrderStatusNew::class);
+
+        $this->status = new OrderStatus(($order['status'] === 'CANCELLED' ? OrderStatusCanceled::class : OrderStatusNew::class));
+        
 
         $this->product = new ArrayCollection();
         $this->usr = new User\OrderUserDTO();
@@ -148,7 +151,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -215,7 +219,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -308,7 +313,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

@@ -40,16 +40,18 @@ use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
 use BaksDev\Yandex\Market\Orders\Repository\ProductStocksByOrder\ProductStocksCompleteByOrderInterface;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use DateInterval;
+use DateTimeImmutable;
 
-final class CancelYaMarketOrderStatusHandler
+final readonly class CancelYaMarketOrderStatusHandler
 {
     public function __construct(
-        private readonly OrderStatusHandler $orderStatusHandler,
-        private readonly CurrentOrderNumberInterface $currentOrderNumber,
-        private readonly ProductStocksCompleteByOrderInterface $productStocksCompleteByOrder,
-        private readonly UserByUserProfileInterface $userByUserProfile,
-        private readonly Deduplicator $deduplicator,
-        private readonly WarehouseProductStockHandler $warehouseProductStockHandler,
+        private OrderStatusHandler $orderStatusHandler,
+        private CurrentOrderNumberInterface $currentOrderNumber,
+        private ProductStocksCompleteByOrderInterface $productStocksCompleteByOrder,
+        private UserByUserProfileInterface $userByUserProfile,
+        private Deduplicator $deduplicator,
+        private WarehouseProductStockHandler $warehouseProductStockHandler,
     ) {}
 
 
@@ -81,6 +83,7 @@ final class CancelYaMarketOrderStatusHandler
             return false;
         }
 
+
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')
             ->deduplication([
@@ -103,9 +106,8 @@ final class CancelYaMarketOrderStatusHandler
 
             if(!$OrderUid)
             {
-                return sprintf('Заказ %s уже выполнен в системе, идентификатор системного заказа не найден', $command->getNumber());
+                return sprintf('Заказ #%s уже выполнен в системе, но идентификатор системного заказа не найден', $command->getNumber());
             }
-
 
             $ProductStocks = $this->productStocksCompleteByOrder
                 ->forOrder($OrderUid)
@@ -143,6 +145,24 @@ final class CancelYaMarketOrderStatusHandler
             return 'Заказ уже выполнен в системе';
         }
 
+
+        /**
+         * Если заказ не выполнен, и дата доставки заказа не на завтрашний день - отменяем
+         */
+
+        $OrderUserDTO = $EditOrderDTO->getUsr();
+        $OrderDeliveryDTO = $OrderUserDTO?->getDelivery();
+        $deliveryDate = $OrderDeliveryDTO->getDeliveryDate(); // дата доставки
+
+        $now = (new DateTimeImmutable())->setTime(0, 0, 0);
+        $packageDate = $now->add(new DateInterval('P1D')); // дата сборки на завтра
+
+        /** Если дата доставки на завтра, либо уже в доставке сегодня - не отменяем заказ, ожидаем возврата */
+        if($deliveryDate <= $packageDate)
+        {
+            return 'Ожидается возврат заказа находящийся на сборке либо в доставке';
+        }
+
         /**
          * Если заказ существует и его статус не CANCELED «Статус отменен» - обновляем
          */
@@ -156,7 +176,6 @@ final class CancelYaMarketOrderStatusHandler
         if($handle instanceof Order)
         {
             $Deduplicator->save();
-
         }
 
         return $handle;

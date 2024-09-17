@@ -57,6 +57,7 @@ final class CancelYaMarketOrderScheduleHandler
         $this->logger = $yandexMarketOrdersLogger;
     }
 
+
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
         /**
@@ -71,7 +72,6 @@ final class CancelYaMarketOrderScheduleHandler
         {
             $this->ordersCancel($orders, $message->getProfile());
         }
-
 
         /**
          * Получаем заказы по дополнительным идентификаторам
@@ -98,25 +98,26 @@ final class CancelYaMarketOrderScheduleHandler
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var YandexMarketOrderDTO $order */
-        foreach($orders as $order)
+        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+        foreach($orders as $YandexMarketOrderDTO)
         {
+            /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
                 ->expiresAfter(DateInterval::createFromDateString('1 day'))
-                ->deduplication([$order->getNumber(), md5(self::class)]);
+                ->deduplication([$YandexMarketOrderDTO->getNumber(), md5(self::class)]);
 
             if($Deduplicator->isExecuted())
             {
                 continue;
             }
 
-            $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $profile);
+            $handle = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $profile);
 
             if($handle instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Отменили заказ %s', $order->getNumber()),
+                    sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
@@ -130,7 +131,7 @@ final class CancelYaMarketOrderScheduleHandler
             if($handle !== false)
             {
                 $this->logger->critical(
-                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $order->getNumber(), $handle),
+                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getNumber(), $handle),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

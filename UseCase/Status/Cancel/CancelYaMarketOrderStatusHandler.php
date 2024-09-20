@@ -30,6 +30,8 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusPackage;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Stocks\Entity\ProductStock;
@@ -147,20 +149,22 @@ final readonly class CancelYaMarketOrderStatusHandler
 
 
         /**
-         * Если заказ не выполнен, и дата доставки заказа не на завтрашний день - отменяем
+         * Если заказ на упаковке - проверяем дату доставки
          */
-
-        $OrderUserDTO = $EditOrderDTO->getUsr();
-        $OrderDeliveryDTO = $OrderUserDTO?->getDelivery();
-        $deliveryDate = $OrderDeliveryDTO->getDeliveryDate(); // дата доставки
-
-        $now = (new DateTimeImmutable())->setTime(0, 0, 0);
-        $packageDate = $now->add(new DateInterval('P1D')); // дата сборки на завтра
-
-        /** Если дата доставки на завтра, либо уже в доставке сегодня - не отменяем заказ, ожидаем возврата */
-        if($deliveryDate <= $packageDate)
+        if($EditOrderDTO->getStatus()->equals(OrderStatusUnpaid::class) === false)
         {
-            return 'Ожидается возврат заказа находящийся на сборке либо в доставке';
+            $OrderUserDTO = $EditOrderDTO->getUsr();
+            $OrderDeliveryDTO = $OrderUserDTO?->getDelivery();
+            $deliveryDate = $OrderDeliveryDTO->getDeliveryDate(); // дата доставки
+
+            $now = (new DateTimeImmutable())->setTime(0, 0, 0);
+            $packageDate = $now->add(new DateInterval('P1D')); // дата сборки на завтра
+
+            /** Если дата доставки на завтра, либо уже в доставке сегодня - не отменяем заказ, ожидаем возврата */
+            if($deliveryDate <= $packageDate)
+            {
+                return 'Ожидается возврат заказа находящийся на сборке либо в доставке';
+            }
         }
 
         /**

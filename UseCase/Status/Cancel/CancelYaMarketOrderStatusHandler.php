@@ -32,6 +32,7 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusPackage;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Stocks\Entity\ProductStock;
@@ -149,10 +150,13 @@ final readonly class CancelYaMarketOrderStatusHandler
 
 
         /**
-         * Если заказ на упаковке - проверяем дату доставки
+         * Если заказ не является «Новый» либо «Не оплачен» - проверяем дату доставки
+         * и отменяем только в случае если дата доставки не старше завтрашнего дня
          */
-        if($EditOrderDTO->getStatus()->equals(OrderStatusUnpaid::class) === false)
-        {
+        if(
+            $EditOrderDTO->getStatus()->equals(OrderStatusNew::class) === false &&
+            $EditOrderDTO->getStatus()->equals(OrderStatusUnpaid::class) === false
+        ) {
             $OrderUserDTO = $EditOrderDTO->getUsr();
             $OrderDeliveryDTO = $OrderUserDTO?->getDelivery();
             $deliveryDate = $OrderDeliveryDTO->getDeliveryDate(); // дата доставки

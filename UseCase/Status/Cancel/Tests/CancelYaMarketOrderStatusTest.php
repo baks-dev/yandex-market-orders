@@ -31,8 +31,10 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
+use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Users\User\Type\Id\UserUid;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests\NewYaMarketOrderStatusTest;
@@ -110,7 +112,8 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 
     public static function tearDownAfterClass(): void
     {
-        UnpaidYaMarketOrderHandlerTest::clearData();
+        OrderNewTest::setUpBeforeClass();
+        NewUserProfileHandlerTest::setUpBeforeClass();
     }
 
 }

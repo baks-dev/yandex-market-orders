@@ -94,6 +94,4 @@ final class UnpaidYaMarketOrderStatusDTO implements OrderEventInterface
     {
         return $this->invariable;
     }
-
-
 }

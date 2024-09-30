@@ -32,9 +32,11 @@ use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface
 use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
 use BaksDev\Yandex\Market\Orders\Api\YaMarketUnpaidOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
@@ -69,12 +71,9 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-        // Бросаем событие консольной комманды
-        $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
-        $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
-        $dispatcher->dispatch($event, 'console.command');
+        OrderNewTest::setUpBeforeClass();
 
-        UnpaidYaMarketOrderHandlerTest::clearData();
+        NewUserProfileHandlerTest::setUpBeforeClass();
 
         self::$Authorization = new YaMarketAuthorizationToken(
             new UserProfileUid(),
@@ -194,7 +193,10 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
     public static function tearDownAfterClass(): void
     {
-        UnpaidYaMarketOrderHandlerTest::clearData();
+        OrderNewTest::setUpBeforeClass();
+
+        NewUserProfileHandlerTest::setUpBeforeClass();
+
     }
 
 }

@@ -50,19 +50,14 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
     #[Assert\NotBlank]
     private OrderStatus $status;
 
-    /**
-     * Ответственный
-     * @deprecated Значение переносится в Invariable
-     */
+    /** Профиль ответственного */
     #[Assert\IsNull]
     private readonly null $profile;
 
-    public function __construct(/*User|UserUid $user*/)
+    public function __construct()
     {
         $this->profile = null;
-
         $this->invariable = new Invariable\NewOrderInvariable();
-        //$this->invariable->setUsr($user);
     }
 
     /** Идентификатор события */
@@ -91,19 +86,11 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
         return $this->status;
     }
 
-    /**
-     * @deprecated переносится в Invariable
-     * Профиль пользователя при оплаченном статусе - NULL
-     */
     public function getProfile(): null
     {
-        /** @deprecated */
         return $this->profile;
     }
 
-    /**
-     * Invariable
-     */
     public function getInvariable(): Invariable\NewOrderInvariable
     {
         return $this->invariable;

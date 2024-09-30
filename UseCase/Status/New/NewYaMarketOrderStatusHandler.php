@@ -29,7 +29,6 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
-use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 
 final readonly class NewYaMarketOrderStatusHandler
@@ -37,11 +36,12 @@ final readonly class NewYaMarketOrderStatusHandler
     public function __construct(
         private ExistsOrderNumberInterface $existsOrderNumber,
         private CurrentOrderNumberInterface $currentOrderNumber,
-        private UserByUserProfileInterface $userByUserProfile,
         private OrderStatusHandler $orderStatusHandler,
     ) {}
 
-    /** Метод возвращает статус неоплаченного заказа в статус NEW */
+    /**
+     * Метод возвращает статус неоплаченного заказа ГТЗФ в статус NEW
+     */
     public function handle(YandexMarketOrderDTO $command): string|Order
     {
         $isExists = $this->existsOrderNumber->isExists($command->getNumber());
@@ -58,19 +58,7 @@ final readonly class NewYaMarketOrderStatusHandler
             return 'Заказ не найден';
         }
 
-
-        /**
-         * При изменении статуса в NEW «Новый» будет сброс ограничения по профилю
-         * @see OrderInvariable
-         */
-
-        //        $UserProfileUid = $command->getInvariable()->getProfile();
-        //        $User = $this->userByUserProfile
-        //            ->forProfile($UserProfileUid)
-        //            ->findUser();
-
-        $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO(/*$User*/);
-
+        $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO();
         $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
 
 

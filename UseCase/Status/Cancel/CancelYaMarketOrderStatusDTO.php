@@ -31,9 +31,6 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Users\User\Entity\User;
-use BaksDev\Users\User\Type\Id\UserUid;
-use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent */
@@ -45,20 +42,16 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     private OrderEventUid $id;
 
     /** Постоянная величина */
-    #[Assert\Valid]
-    private readonly Invariable\CancelOrderInvariable $invariable;
+    //#[Assert\Valid]
+    //private readonly Invariable\CancelOrderInvariable $invariable;
 
-    /**
-     * Ответственный
-     * @deprecated Значение переносится в Invariable
-     */
+    /** Ответственный */
     #[Assert\NotBlank]
     private readonly UserProfileUid $profile;
 
     /** Статус заказа */
     #[Assert\NotBlank]
     private readonly OrderStatus $status;
-
 
     /** Комментарий к заказу */
     #[Assert\NotBlank]
@@ -81,8 +74,8 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
         $this->profile = $profile;
 
 
-        $this->invariable = new Invariable\CancelOrderInvariable();
-        $this->invariable->setProfile($profile);
+        //$this->invariable = new Invariable\CancelOrderInvariable();
+        //$this->invariable->setProfile($profile);
 
         $this->status = new OrderStatus(OrderStatusCanceled::class);
 

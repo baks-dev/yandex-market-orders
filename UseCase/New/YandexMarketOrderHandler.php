@@ -36,10 +36,8 @@ use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
-use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
-use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
@@ -49,7 +47,6 @@ use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserPro
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
@@ -87,7 +84,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         }
 
         /**
-         * Сбрасываем профиль и присваиваем ограничение по идентификатору пользователя
+         * Присваиваем заказу идентификатор пользователя
          */
 
         $NewOrderInvariable = $command->getInvariable();
@@ -101,12 +98,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
             return 'Пользователь по профилю не найден';
         }
 
-        $NewOrderInvariable
-            ->setUsr($User->getId())
-            ->resetProfile();
-
-        /** @deprecated переносится в Invariable */
-        $command->resetProfile();
+        $NewOrderInvariable->setUsr($User->getId());
 
 
         /**

@@ -33,6 +33,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Entity\Products\OrderProduct;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\ExistOrderEventByStatus\ExistOrderEventByStatusInterface;
+use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\OrderProductDTO;
@@ -55,11 +56,11 @@ final class CancelByOrderCompleted
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
         private readonly DeduplicatorInterface $deduplicator,
         private readonly YaMarketOrdersInfoRequest $yaMarketOrdersInfoRequest,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private readonly OrderEventInterface $orderEventRepository,
         LoggerInterface $ordersOrderLogger,
     ) {
         $this->logger = $ordersOrderLogger;
@@ -85,10 +86,8 @@ final class CancelByOrderCompleted
             return;
         }
 
-        $OrderEvent = $this->entityManager
-            ->getRepository(OrderEvent::class)
-            ->find($message->getEvent());
 
+        $OrderEvent = $this->orderEventRepository->find($message->getEvent());
 
         if(!$OrderEvent)
         {
@@ -97,7 +96,6 @@ final class CancelByOrderCompleted
 
         $EditOrderDTO = new EditOrderDTO();
         $OrderEvent->getDto($EditOrderDTO);
-        $this->entityManager->clear();
 
         /**
          * Если статус заказа не Completed «Выполнен» - завершаем обработчик
@@ -127,7 +125,7 @@ final class CancelByOrderCompleted
          * Получаем информацию о заказе и проверяем что заказ не отменен
          */
 
-        $UserProfileUid = $EditOrderDTO->getProfile();
+        $UserProfileUid = $EditOrderInvariableDTO->getProfile();
 
         if(is_null($UserProfileUid))
         {
@@ -135,7 +133,7 @@ final class CancelByOrderCompleted
         }
 
         $YandexMarketOrderDTO = $this->yaMarketOrdersInfoRequest
-            ->profile($EditOrderDTO->getProfile())
+            ->profile($UserProfileUid)
             ->find($EditOrderInvariableDTO->getNumber());
 
         /**

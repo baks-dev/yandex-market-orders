@@ -80,11 +80,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     #[Assert\Valid]
     private User\OrderUserDTO $usr;
 
-    /**
-     * Ответственный
-     * @deprecated Переносится в Invariable
-     */
-    private ?UserProfileUid $profile;
+    /** Ответственный */
+    private ?UserProfileUid $profile = null;
 
     /** Комментарий к заказу */
     private ?string $comment = null;
@@ -95,6 +92,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function __construct(array $order, UserProfileUid $profile, ?array $buyer = null)
     {
+
+        /** Постоянная величина */
         $NewOrderInvariable = new Invariable\NewOrderInvariable();
         $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate']));
         $NewOrderInvariable->setProfile($profile);
@@ -106,11 +105,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $this->number = 'Y-'.$order['id']; // помечаем заказ префиксом Y
         $this->created = new DateTimeImmutable($order['creationDate']);
 
-        $this->profile = $profile;
-
 
         $this->status = new OrderStatus(($order['status'] === 'CANCELLED' ? OrderStatusCanceled::class : OrderStatusNew::class));
-        
+
 
         $this->product = new ArrayCollection();
         $this->usr = new User\OrderUserDTO();
@@ -151,8 +148,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            )
-            {
+            ) {
                 continue;
             }
 
@@ -219,8 +215,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            )
-            {
+            ) {
                 continue;
             }
 
@@ -313,7 +308,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

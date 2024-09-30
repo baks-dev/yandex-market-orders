@@ -93,13 +93,12 @@ final class UnpaidYaMarketOrderHandler
 
         if($handle instanceof Order)
         {
-
             $OrderEvent = $this
                 ->currentOrderEvent
                 ->forOrder($handle->getId())
                 ->find();
 
-            if($OrderEvent === null)
+            if($OrderEvent === false)
             {
                 $this->logger->critical(
                     sprintf('Не смогли получить «Новый» заказ %s для перевода в статус «Не оплачено»', $handle->getNumber())

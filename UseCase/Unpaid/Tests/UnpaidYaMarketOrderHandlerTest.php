@@ -27,15 +27,12 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
-use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
-use BaksDev\Users\Profile\UserProfile\Entity\Event\UserProfileEvent;
-use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketUnpaidOrdersRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
@@ -43,12 +40,7 @@ use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Attribute\When;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @group yandex-market-orders
@@ -61,12 +53,9 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-        // Бросаем событие консольной комманды
-        $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
-        $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
-        $dispatcher->dispatch($event, 'console.command');
+        OrderNewTest::setUpBeforeClass();
 
-        self::clearData();
+        NewUserProfileHandlerTest::setUpBeforeClass();
 
         self::$Authorization = new YaMarketAuthorizationToken(
             new UserProfileUid(),
@@ -93,16 +82,6 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
             return;
         }
 
-
-
-
-        /** @var YaMarketUnpaidOrdersRequest $YandexMarketUnpaidOrdersRequest */
-        // $YandexMarketUnpaidOrdersRequest = self::getContainer()->get(YandexMarketUnpaidOrdersRequest::class);
-        // $YandexMarketUnpaidOrdersRequest->TokenHttpClient(self::$Authorization);
-        //
-        // $response = $YandexMarketUnpaidOrdersRequest->findAll(\DateInterval::createFromDateString('1 day'));
-
-
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
@@ -122,6 +101,11 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
             foreach($response as $YandexMarketOrderDTO)
             {
                 $products = $YandexMarketOrderDTO->getProduct();
+
+                if($products->count() > 1)
+                {
+                    continue;
+                }
 
                 /** @var NewOrderProductDTO $NewOrderProductDTO */
                 $NewOrderProductDTO = $products->current();
@@ -160,50 +144,5 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         {
             self::assertFalse($response->valid());
         }
-    }
-
-    //    public static function tearDownAfterClass(): void
-    //    {
-    //        self::clearTestData();
-    //    }
-
-    public static function clearData(): void
-    {
-        /** @var EntityManagerInterface $em */
-        $em = self::getContainer()->get(EntityManagerInterface::class);
-
-        $main = $em->getRepository(Order::class)
-            ->find(OrderUid::TEST);
-
-        if($main)
-        {
-            $em->remove($main);
-        }
-
-        $event = $em->getRepository(OrderEvent::class)
-            ->findBy(['orders' => OrderUid::TEST]);
-
-        foreach($event as $remove)
-        {
-            $em->remove($remove);
-        }
-
-        $profile = $em->getRepository(UserProfile::class)
-            ->find(UserProfileUid::TEST);
-
-        if($profile)
-        {
-            $em->remove($profile);
-        }
-
-        $eventProfile = $em->getRepository(UserProfileEvent::class)
-            ->findBy(['profile' => UserProfileUid::TEST]);
-
-        foreach($eventProfile as $remove)
-        {
-            $em->remove($remove);
-        }
-
-        $em->flush();
     }
 }

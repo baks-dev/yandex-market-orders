@@ -34,7 +34,7 @@ use DomainException;
 /**
  * Информация о заказах
  */
-final class YaMarketNewOrdersRequest extends YandexMarket
+final class YaMarketOrdersGetUnpaidRequest extends YandexMarket
 {
     private int $page = 1;
 
@@ -43,8 +43,7 @@ final class YaMarketNewOrdersRequest extends YandexMarket
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * PROCESSING - заказ находится в обработке.
-     * STARTED — заказ подтвержден, его можно начать обрабатывать
+     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
@@ -55,7 +54,7 @@ final class YaMarketNewOrdersRequest extends YandexMarket
     {
         if(!$this->fromDate)
         {
-            // Новые заказы за последние 5 минут (планировщик на каждую минуту)
+            // заказы за последние 5 минут (планировщик на каждую минуту)
             $dateTime = new DateTimeImmutable();
             $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
         }
@@ -68,8 +67,7 @@ final class YaMarketNewOrdersRequest extends YandexMarket
                     [
                         'page' => $this->page,
                         'pageSize' => 50,
-                        'status' => 'PROCESSING',
-                        'substatus' => 'STARTED',
+                        'status' => 'UNPAID',
                         'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
                     ]
                 ],

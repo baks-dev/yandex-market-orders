@@ -32,9 +32,9 @@ use DateTimeImmutable;
 use DomainException;
 
 /**
- * Информация о заказе
+ * Информация о заказах
  */
-final class YaMarketOrdersInfoRequest extends YandexMarket
+final class YaMarketOrdersGetNewRequest extends YandexMarket
 {
     private int $page = 1;
 
@@ -43,19 +43,37 @@ final class YaMarketOrdersInfoRequest extends YandexMarket
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
+     * PROCESSING - заказ находится в обработке.
+     * STARTED — заказ подтвержден, его можно начать обрабатывать
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function find(int|string $order)
+    public function findAll(?DateInterval $interval = null)
     {
-        $order = str_replace('Y-', '', (string) $order);
+        if(!$this->fromDate)
+        {
+            // Новые заказы за последние 5 минут (планировщик на каждую минуту)
+            $dateTime = new DateTimeImmutable();
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
+        }
 
         $response = $this->TokenHttpClient()
-            ->request('GET', sprintf('/campaigns/%s/orders/%s', $this->getCompany(), $order));
+            ->request(
+                'GET',
+                sprintf('/campaigns/%s/orders', $this->getCompany()),
+                ['query' =>
+                    [
+                        'page' => $this->page,
+                        'pageSize' => 50,
+                        'status' => 'PROCESSING',
+                        'substatus' => 'STARTED',
+                        'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
+                    ]
+                ],
+            );
 
         $content = $response->toArray(false);
 
@@ -73,37 +91,32 @@ final class YaMarketOrdersInfoRequest extends YandexMarket
             );
         }
 
-        if(false === isset($content['order']))
+        foreach($content['orders'] as $order)
         {
-            return false;
-        }
+            $client = null;
 
-        $order = $content['order'];
+            // Получаем информацию о клиенте
 
-        $client = null;
-
-        // Получаем информацию о клиенте
-
-        if(isset($order['buyer']['id']))
-        {
-            $clientResponse = $this->TokenHttpClient()->request(
-                'GET',
-                sprintf(
-                    '/campaigns/%s/orders/%s/buyer',
-                    $this->getCompany(),
-                    $order['id']
-                )
-            );
-
-            if($response->getStatusCode() === 200)
+            if(isset($order['buyer']['id']))
             {
-                // Добавляем информацию о клиенте
-                $client = $clientResponse->toArray(false)['result'];
+                $clientResponse = $this->TokenHttpClient()->request(
+                    'GET',
+                    sprintf(
+                        '/campaigns/%s/orders/%s/buyer',
+                        $this->getCompany(),
+                        $order['id']
+                    )
+                );
+
+                if($response->getStatusCode() === 200)
+                {
+                    // Добавляем информацию о клиенте
+                    $client = $clientResponse->toArray(false)['result'];
+                }
             }
+
+            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+            yield new YandexMarketOrderDTO($order, $this->getProfile(), $client);
         }
-
-        /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
-        return new YandexMarketOrderDTO($order, $this->getProfile(), $client);
-
     }
 }

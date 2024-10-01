@@ -33,7 +33,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Canceled\CanceledOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketOrdersGetCancelRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -48,7 +48,7 @@ final class CancelYaMarketOrderScheduleHandler
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YaMarketCancelOrdersRequest $yandexMarketCancelOrdersRequest,
+        private readonly YaMarketOrdersGetCancelRequest $yandexMarketCancelOrdersRequest,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly DeduplicatorInterface $deduplicator,

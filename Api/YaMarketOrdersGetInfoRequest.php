@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api\Canceled;
+namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -32,48 +32,29 @@ use DateTimeImmutable;
 use DomainException;
 
 /**
- * Информация о заказах
+ * Информация о заказе
  */
-final class YaMarketCancelOrdersRequest extends YandexMarket
+final class YaMarketOrdersGetInfoRequest extends YandexMarket
 {
-    private int $page = 1;
-
-    private ?DateTimeImmutable $fromDate = null;
-
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * CANCELLED - заказ отменен.
+     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function findAll(?DateInterval $interval = null)
+    public function find(int|string $order): YandexMarketOrderDTO|false
     {
-        if(!$this->fromDate)
-        {
-            // заказы за последние 5 минут (планировщик на каждую минуту)
-            $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
-        }
+        $order = str_replace('Y-', '', (string) $order);
 
         $response = $this->TokenHttpClient()
-            ->request(
-                'GET',
-                sprintf('/campaigns/%s/orders', $this->getCompany()),
-                ['query' =>
-                    [
-                        'page' => $this->page,
-                        'pageSize' => 50,
-                        'status' => 'CANCELLED',
-                        'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
-                    ]
-                ],
-            );
+            ->request('GET', sprintf('/campaigns/%s/orders/%s', $this->getCompany(), $order));
 
         $content = $response->toArray(false);
+
 
         if($response->getStatusCode() !== 200)
         {
@@ -82,15 +63,40 @@ final class YaMarketCancelOrdersRequest extends YandexMarket
                 $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
             }
 
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
-            );
+            return false;
         }
 
-        foreach($content['orders'] as $order)
+        if(false === isset($content['order']))
         {
-            yield new YaMarketCancelOrderDTO($order['id']);
+            return false;
         }
+
+        $order = $content['order'];
+
+        $client = null;
+
+        // Получаем информацию о клиенте
+
+        if(isset($order['buyer']['id']))
+        {
+            $clientResponse = $this->TokenHttpClient()->request(
+                'GET',
+                sprintf(
+                    '/campaigns/%s/orders/%s/buyer',
+                    $this->getCompany(),
+                    $order['id']
+                )
+            );
+
+            if($response->getStatusCode() === 200)
+            {
+                // Добавляем информацию о клиенте
+                $client = $clientResponse->toArray(false)['result'];
+            }
+        }
+
+        /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
+        return new YandexMarketOrderDTO($order, $this->getProfile(), $client);
+
     }
 }

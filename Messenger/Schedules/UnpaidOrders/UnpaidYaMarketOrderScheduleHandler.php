@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketUnpaidOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -42,7 +42,7 @@ final class UnpaidYaMarketOrderScheduleHandler
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YaMarketUnpaidOrdersRequest $yandexMarketUnpaidOrdersRequest,
+        private readonly YaMarketOrdersGetUnpaidRequest $yandexMarketUnpaidOrdersRequest,
         private readonly UnpaidYaMarketOrderHandler $unpaidYandexMarketHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,

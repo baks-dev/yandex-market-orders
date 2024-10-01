@@ -43,7 +43,7 @@ use BaksDev\Products\Product\Repository\CurrentQuantity\CurrentQuantityByEventIn
 use BaksDev\Products\Product\Repository\CurrentQuantity\Modification\CurrentQuantityByModificationInterface;
 use BaksDev\Products\Product\Repository\CurrentQuantity\Offer\CurrentQuantityByOfferInterface;
 use BaksDev\Products\Product\Repository\CurrentQuantity\Variation\CurrentQuantityByVariationInterface;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersInfoRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetInfoRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,7 +57,7 @@ final class CancelByOrderCompleted
 
     public function __construct(
         private readonly DeduplicatorInterface $deduplicator,
-        private readonly YaMarketOrdersInfoRequest $yaMarketOrdersInfoRequest,
+        private readonly YaMarketOrdersGetInfoRequest $yaMarketOrdersInfoRequest,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
         private readonly OrderEventInterface $orderEventRepository,

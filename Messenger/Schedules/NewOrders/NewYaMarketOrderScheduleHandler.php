@@ -34,7 +34,7 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderHandler;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
@@ -49,7 +49,7 @@ final class NewYaMarketOrderScheduleHandler
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YaMarketNewOrdersRequest $yandexMarketNewOrdersRequest,
+        private readonly YaMarketOrdersGetNewRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,

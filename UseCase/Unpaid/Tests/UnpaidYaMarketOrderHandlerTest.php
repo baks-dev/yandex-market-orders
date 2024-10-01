@@ -32,7 +32,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketNewOrdersRequest;
+use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
@@ -85,9 +85,9 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var YaMarketNewOrdersRequest $YandexMarketNewOrdersRequest
+         * @var YaMarketOrdersGetNewRequest $YandexMarketNewOrdersRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketNewOrdersRequest::class);
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketOrdersGetNewRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
         $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));

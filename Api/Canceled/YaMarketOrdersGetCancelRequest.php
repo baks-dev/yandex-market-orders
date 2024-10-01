@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api;
+namespace BaksDev\Yandex\Market\Orders\Api\Canceled;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -34,7 +34,7 @@ use DomainException;
 /**
  * Информация о заказах
  */
-final class YaMarketUnpaidOrdersRequest extends YandexMarket
+final class YaMarketOrdersGetCancelRequest extends YandexMarket
 {
     private int $page = 1;
 
@@ -43,7 +43,7 @@ final class YaMarketUnpaidOrdersRequest extends YandexMarket
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
+     * CANCELLED - заказ отменен.
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
@@ -67,14 +67,13 @@ final class YaMarketUnpaidOrdersRequest extends YandexMarket
                     [
                         'page' => $this->page,
                         'pageSize' => 50,
-                        'status' => 'UNPAID',
+                        'status' => 'CANCELLED',
                         'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
                     ]
                 ],
             );
 
         $content = $response->toArray(false);
-
 
         if($response->getStatusCode() !== 200)
         {
@@ -91,30 +90,7 @@ final class YaMarketUnpaidOrdersRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
-            $client = null;
-
-            // Получаем информацию о клиенте
-
-            if(isset($order['buyer']['id']))
-            {
-                $clientResponse = $this->TokenHttpClient()->request(
-                    'GET',
-                    sprintf(
-                        '/campaigns/%s/orders/%s/buyer',
-                        $this->getCompany(),
-                        $order['id']
-                    )
-                );
-
-                if($response->getStatusCode() === 200)
-                {
-                    // Добавляем информацию о клиенте
-                    $client = $clientResponse->toArray(false)['result'];
-                }
-            }
-
-            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-            yield new YandexMarketOrderDTO($order, $this->getProfile(), $client);
+            yield new YaMarketCancelOrderDTO($order['id']);
         }
     }
 }

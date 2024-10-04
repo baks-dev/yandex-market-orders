@@ -42,10 +42,6 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
     #[Assert\Uuid]
     private OrderEventUid $id;
 
-    /** Постоянная величина */
-    #[Assert\Valid]
-    private Invariable\NewOrderInvariable $invariable;
-
     /** Статус заказа */
     #[Assert\NotBlank]
     private OrderStatus $status;
@@ -57,7 +53,6 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
     public function __construct()
     {
         $this->profile = null;
-        $this->invariable = new Invariable\NewOrderInvariable();
     }
 
     /** Идентификатор события */
@@ -90,10 +85,4 @@ final class NewYaMarketOrderStatusDTO implements OrderEventInterface
     {
         return $this->profile;
     }
-
-    public function getInvariable(): Invariable\NewOrderInvariable
-    {
-        return $this->invariable;
-    }
-
 }

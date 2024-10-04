@@ -76,7 +76,7 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
         self::assertNotNull($OrderEvent);
         self::assertNotFalse($OrderEvent);
 
-        $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO(new UserUid());
+        $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO();
         $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
 
         self::assertNotNull($NewYaMarketOrderStatusDTO->getEvent());
@@ -84,10 +84,6 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
 
         $NewYaMarketOrderStatusDTO->setOrderStatusNew();
         self::assertTrue($NewYaMarketOrderStatusDTO->getStatus()->equals(OrderStatusNew::class));
-
-        $NewOrderInvariable = $NewYaMarketOrderStatusDTO->getInvariable();
-        self::assertNull($NewOrderInvariable->getProfile());
-
 
         /** @var OrderStatusHandler $OrderStatusHandler */
         $OrderStatusHandler = self::getContainer()->get(OrderStatusHandler::class);

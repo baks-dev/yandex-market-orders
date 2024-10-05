@@ -93,12 +93,16 @@ final class UpdateYandexOrderProcessing
             return;
         }
 
+        if(empty($OrderEvent->getOrderNumber()))
+        {
+            return;
+        }
+
         /** Проверяем, что номер заказа начинается с Y- (YandexMarket) */
         if(false === str_starts_with($OrderEvent->getOrderNumber(), 'Y-'))
         {
             return;
         }
-
 
         $EditOrderDTO = new EditOrderDTO();
         $OrderEvent->getDto($EditOrderDTO);

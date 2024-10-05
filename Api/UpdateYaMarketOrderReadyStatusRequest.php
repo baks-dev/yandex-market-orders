@@ -36,18 +36,12 @@ use DomainException;
  */
 final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
 {
-    private int $page = 1;
-
-    private ?DateTimeImmutable $fromDate = null;
-
     /**
-     * Возвращает информацию о 50 последних заказах со статусом:
-     *
-     * CANCELLED - заказ отменен.
+     * Изменение статуса одного заказа «Принят в обработку»
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
-     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/updateOrderStatus
      *
      */
     public function update(int|string $order): bool
@@ -61,7 +55,7 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
 
         $response = $this->TokenHttpClient()
             ->request(
-                'GET',
+                'PUT',
                 sprintf('/campaigns/%s/orders/%s/status', $this->getCompany(), $order),
                 ['json' =>
                     [

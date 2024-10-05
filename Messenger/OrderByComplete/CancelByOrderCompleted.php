@@ -34,6 +34,7 @@ use BaksDev\Orders\Order\Entity\Products\OrderProduct;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\ExistOrderEventByStatus\ExistOrderEventByStatusInterface;
 use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\OrderProductDTO;
@@ -69,7 +70,7 @@ final class CancelByOrderCompleted
 
     /**
      * Делаем проверку выполненного заказа на отмену в YandexMarket
-     * Если заказ выполнен и его статус
+     * Если системный заказ Completed «Выполнен» а Яндекс заказ Canceled «Отменен» - создаем возврат
      */
     public function __invoke(OrderMessage $message): void
     {
@@ -78,34 +79,33 @@ final class CancelByOrderCompleted
             ->namespace('orders-order')
             ->deduplication([
                 $message->getId(),
-                md5(self::class)
+                OrderStatusCompleted::STATUS,
+                self::class
             ]);
 
-        if($Deduplicator->isExecuted())
+        if($Deduplicator->isExecuted() === true)
         {
             return;
         }
 
-
         $OrderEvent = $this->orderEventRepository->find($message->getEvent());
 
-        if(!$OrderEvent)
+        if(false === $OrderEvent)
+        {
+            return;
+        }
+
+        /**
+         * Если статус заказа не Completed «Выполнен» - завершаем обработчик
+         * создаем заявку на возврат только при выполненном заказе
+         */
+        if(false === $OrderEvent->isStatusEquals(OrderStatusCompleted::class))
         {
             return;
         }
 
         $EditOrderDTO = new EditOrderDTO();
         $OrderEvent->getDto($EditOrderDTO);
-
-        /**
-         * Если статус заказа не Completed «Выполнен» - завершаем обработчик
-         * создаем заявку на возврат только при выполненном заказе
-         */
-        if(false === $EditOrderDTO->getStatus()->equals(OrderStatusCompleted::class))
-        {
-            return;
-        }
-
         $OrderUserDTO = $EditOrderDTO->getUsr();
 
         if(!$OrderUserDTO)
@@ -137,7 +137,7 @@ final class CancelByOrderCompleted
             ->find($EditOrderInvariableDTO->getNumber());
 
         /**
-         * Если заказ не найден - пробуем найти по дополнительным идентификаторам
+         * Если заказ в Яндексе не найден - пробуем найти по дополнительным идентификаторам
          */
 
         if($YandexMarketOrderDTO === false)
@@ -174,10 +174,9 @@ final class CancelByOrderCompleted
         }
 
 
-        /** Если заказ отменен - создаем заявку на возврат */
-        if($YandexMarketOrderDTO->getStatus()->equals(OrderStatusCompleted::class))
+        /** Если заказ Яндекс отменен, а системный заказ Выполнен - создаем заявку на возврат */
+        if(true === $YandexMarketOrderDTO->getStatusEquals(OrderStatusCanceled::class))
         {
-
             $handle = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $UserProfileUid);
 
             if($handle instanceof Order)
@@ -202,7 +201,6 @@ final class CancelByOrderCompleted
                 );
             }
         }
-
 
         $Deduplicator->save();
     }

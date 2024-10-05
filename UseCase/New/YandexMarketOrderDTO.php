@@ -278,6 +278,11 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         return $this->status;
     }
 
+    public function getStatusEquals(mixed $status): bool
+    {
+        return $this->status->equals($status);
+    }
+
     public function setStatus(OrderStatus|OrderStatusInterface|string $status): self
     {
         $this->status = new OrderStatus($status);

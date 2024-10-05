@@ -63,6 +63,19 @@ final readonly class CancelYaMarketOrderStatusHandler
         UserProfileUid $profile
     ): Order|string|false {
 
+        $Deduplicator = $this->deduplicator
+            ->namespace('orders-order')
+            ->deduplication([
+                $command->getNumber(),
+                OrderStatusCanceled::STATUS,
+                self::class
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            return false;
+        }
+
         $OrderEvent = $this->currentOrderNumber->getCurrentOrderEvent($command->getNumber());
 
         /**
@@ -74,32 +87,17 @@ final readonly class CancelYaMarketOrderStatusHandler
             return 'Заказа для отмены не найдено';
         }
 
-        $EditOrderDTO = new EditOrderDTO();
-        $OrderEvent->getDto($EditOrderDTO);
-
         /**
          * Пропускаем, если заказ существует и его статус уже является CANCELED «Статус отменен»
          */
 
-        if($EditOrderDTO->getStatus()->equals(OrderStatusCanceled::class))
+        if(true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class))
         {
             return false;
         }
 
-
-        $Deduplicator = $this->deduplicator
-            ->namespace('orders-order')
-            ->deduplication([
-                $command->getNumber(),
-                OrderStatusCanceled::STATUS,
-                md5(self::class)
-            ]);
-
-        if($Deduplicator->isExecuted())
-        {
-            return false;
-        }
-
+        $EditOrderDTO = new EditOrderDTO();
+        $OrderEvent->getDto($EditOrderDTO);
 
         if($EditOrderDTO->getStatus()->equals(OrderStatusCompleted::class))
         {

@@ -105,7 +105,10 @@ final class CancelYaMarketOrderScheduleHandler
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
                 ->expiresAfter(DateInterval::createFromDateString('1 day'))
-                ->deduplication([$YandexMarketOrderDTO->getNumber(), md5(self::class)]);
+                ->deduplication([
+                    $YandexMarketOrderDTO->getNumber(),
+                    self::class
+                ]);
 
             if($Deduplicator->isExecuted())
             {

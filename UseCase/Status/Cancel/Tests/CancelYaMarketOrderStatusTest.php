@@ -75,7 +75,7 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 
         $OrderEvent = $CurrentOrderEventInterface
             ->forOrder(OrderUid::TEST)
-            ->find();
+            ->execute();
 
         self::assertNotNull($OrderEvent);
 

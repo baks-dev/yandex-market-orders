@@ -32,10 +32,10 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,9 +85,9 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var YaMarketOrdersGetNewRequest $YandexMarketNewOrdersRequest
+         * @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketOrdersGetNewRequest::class);
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersNewRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
         $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
@@ -119,8 +119,8 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
                 /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
 
-                /** @var UnpaidYaMarketOrderHandler $handler */
-                $handler = self::getContainer()->get(UnpaidYaMarketOrderHandler::class);
+                /** @var UnpaidYaMarketOrderStatusHandler $handler */
+                $handler = self::getContainer()->get(UnpaidYaMarketOrderStatusHandler::class);
                 $handle = $handler->handle($YandexMarketOrderDTO);
 
                 $em = self::getContainer()->get(EntityManagerInterface::class);

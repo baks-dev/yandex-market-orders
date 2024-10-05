@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetInfoRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -54,8 +54,8 @@ class YaMarketOrdersInfoRequestTest extends KernelTestCase
 
     public function testUseCase(): void
     {
-        /** @var YaMarketOrdersGetInfoRequest $YaMarketOrdersInfoRequest */
-        $YaMarketOrdersInfoRequest = self::getContainer()->get(YaMarketOrdersGetInfoRequest::class);
+        /** @var GetYaMarketOrderInfoRequest $YaMarketOrdersInfoRequest */
+        $YaMarketOrdersInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         //        $YaMarketOrdersInfoRequest->TokenHttpClient(self::$Authorization);
         //        $data = $YaMarketOrdersInfoRequest->find('546806377');
         //        dd($data->getStatus()->equals(OrderStatusCanceled::class));

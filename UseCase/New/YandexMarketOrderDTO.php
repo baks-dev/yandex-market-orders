@@ -28,6 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 use BaksDev\Core\Type\Gps\GpsLatitude;
 use BaksDev\Core\Type\Gps\GpsLongitude;
 use BaksDev\Delivery\Type\Id\DeliveryUid;
+use BaksDev\DeliveryTransport\Type\OrderStatus\OrderStatusDelivery;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 
@@ -35,6 +36,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
@@ -71,7 +74,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Статус заказа */
     private OrderStatus $status;
 
-
     /** Коллекция продукции в заказе */
     #[Assert\Valid]
     private ArrayCollection $product;
@@ -106,7 +108,17 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $this->created = new DateTimeImmutable($order['creationDate']);
 
 
-        $this->status = new OrderStatus(($order['status'] === 'CANCELLED' ? OrderStatusCanceled::class : OrderStatusNew::class));
+        /** Определяем статус заказа */
+        $yandexStatus = match ($order['status'])
+        {
+            'CANCELLED' => OrderStatusCanceled::class, // заказ отменен
+            'DELIVERY', 'PICKUP' => OrderStatusDelivery::class, // заказ передан в службу доставки
+            'DELIVERED' => OrderStatusCompleted::class, // заказ получен покупателем
+            'UNPAID' => OrderStatusUnpaid::class, // заказ оформлен, но еще не оплачен
+            default => OrderStatusNew::class,
+        };
+
+        $this->status = new OrderStatus($yandexStatus);
 
 
         $this->product = new ArrayCollection();

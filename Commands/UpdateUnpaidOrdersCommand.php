@@ -28,11 +28,11 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetUnpaidRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
-use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -53,8 +53,8 @@ class UpdateUnpaidOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly YaMarketOrdersGetUnpaidRequest $yandexMarketUnpaidOrdersRequest,
-        private readonly UnpaidYaMarketOrderHandler $unpaidYaMarketOrderHandler,
+        private readonly GetYaMarketOrdersUnpaidRequest $yandexMarketUnpaidOrdersRequest,
+        private readonly UnpaidYaMarketOrderStatusHandler $unpaidYaMarketOrderHandler,
     ) {
         parent::__construct();
     }

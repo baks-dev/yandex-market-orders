@@ -27,17 +27,17 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders;
 
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
+use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderHandler;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Generator;
 use Psr\Log\LoggerInterface;
@@ -49,7 +49,7 @@ final class NewYaMarketOrderScheduleHandler
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YaMarketOrdersGetNewRequest $yandexMarketNewOrdersRequest,
+        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,

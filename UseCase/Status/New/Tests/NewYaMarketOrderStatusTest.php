@@ -30,9 +30,10 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\User\Type\Id\UserUid;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
@@ -71,16 +72,18 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
 
         $OrderEvent = $CurrentOrderEventInterface
             ->forOrder(OrderUid::TEST)
-            ->find();
+            ->execute();
+
+        self::assertTrue($OrderEvent->isStatusEquals(OrderStatusUnpaid::class));
+
 
         self::assertNotNull($OrderEvent);
         self::assertNotFalse($OrderEvent);
 
-        $NewYaMarketOrderStatusDTO = new NewYaMarketOrderStatusDTO();
+        $NewYaMarketOrderStatusDTO = new ToggleUnpaidToNewYaMarketOrderDTO();
         $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
 
         self::assertNotNull($NewYaMarketOrderStatusDTO->getEvent());
-        self::assertTrue($NewYaMarketOrderStatusDTO->isStatusUnpaid());
 
         $NewYaMarketOrderStatusDTO->setOrderStatusNew();
         self::assertTrue($NewYaMarketOrderStatusDTO->getStatus()->equals(OrderStatusNew::class));

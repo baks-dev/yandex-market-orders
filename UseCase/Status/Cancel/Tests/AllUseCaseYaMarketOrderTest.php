@@ -37,16 +37,16 @@ use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetUnpaidRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests\NewYaMarketOrderStatusTest;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest;
-use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
@@ -102,9 +102,9 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var YaMarketOrdersGetNewRequest $YandexMarketNewOrdersRequest
+         * @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketOrdersGetNewRequest::class);
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersNewRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
         $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
@@ -136,9 +136,9 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
                 /**
                  * Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен»
-                 * @var UnpaidYaMarketOrderHandler $handler
+                 * @var UnpaidYaMarketOrderStatusHandler $handler
                  */
-                $handler = self::getContainer()->get(UnpaidYaMarketOrderHandler::class);
+                $handler = self::getContainer()->get(UnpaidYaMarketOrderStatusHandler::class);
                 $handle = $handler->handle($YandexMarketOrderDTO);
 
                 self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');
@@ -146,9 +146,9 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
                 /**
                  * Обновляем заказ на Новый после оплаты
-                 * @var NewYaMarketOrderStatusHandler $handler
+                 * @var ToggleUnpaidToNewYaMarketOrderHandler $handler
                  */
-                $handler = self::getContainer()->get(NewYaMarketOrderStatusHandler::class);
+                $handler = self::getContainer()->get(ToggleUnpaidToNewYaMarketOrderHandler::class);
                 $handle = $handler->handle($YandexMarketOrderDTO);
                 self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');
 

@@ -38,6 +38,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
@@ -47,7 +48,7 @@ use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserPro
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\OrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\ValueDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\NewYaMarketOrderStatusHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
@@ -66,7 +67,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly GeocodeAddressParser $geocodeAddressParser,
         private readonly FieldValueFormInterface $fieldValue,
         private readonly ExistsOrderNumberInterface $existsOrderNumber,
-        private readonly NewYaMarketOrderStatusHandler $newYaMarketOrderStatusHandler,
+        private readonly ToggleUnpaidToNewYaMarketOrderHandler $newYaMarketOrderStatusHandler,
         private readonly UserByUserProfileInterface $userByUserProfile,
     ) {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
@@ -74,12 +75,19 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
     public function handle(YandexMarketOrderDTO $command): string|Order
     {
+        if(false === $command->getStatusEquals(OrderStatusNew::class))
+        {
+            return 'Заказ не является в статусе New «Новый»';
+        }
 
         $isExists = $this->existsOrderNumber->isExists($command->getNumber());
 
         if($isExists)
         {
-            /** Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый» */
+            /**
+             * Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый»
+             * в сервисе проверит, что заказ в статусе Unpaid
+             */
             return $this->newYaMarketOrderStatusHandler->handle($command);
         }
 

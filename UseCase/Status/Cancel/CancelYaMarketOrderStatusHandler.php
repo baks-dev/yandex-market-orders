@@ -27,12 +27,11 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel;
 
 use BaksDev\Core\Deduplicator\Deduplicator;
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
+use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusPackage;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Products\Stocks\Entity\ProductStock;
@@ -50,7 +49,7 @@ final readonly class CancelYaMarketOrderStatusHandler
 {
     public function __construct(
         private OrderStatusHandler $orderStatusHandler,
-        private CurrentOrderNumberInterface $currentOrderNumber,
+        private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
         private ProductStocksCompleteByOrderInterface $productStocksCompleteByOrder,
         private UserByUserProfileInterface $userByUserProfile,
         private Deduplicator $deduplicator,
@@ -76,13 +75,9 @@ final readonly class CancelYaMarketOrderStatusHandler
             return false;
         }
 
-        $OrderEvent = $this->currentOrderNumber->getCurrentOrderEvent($command->getNumber());
+        $OrderEvent = $this->currentOrderEventByNumber->find($command->getNumber());
 
-        /**
-         * Если заказа не существует
-         */
-
-        if(!$OrderEvent)
+        if(false === $OrderEvent)
         {
             return 'Заказа для отмены не найдено';
         }
@@ -93,6 +88,7 @@ final readonly class CancelYaMarketOrderStatusHandler
 
         if(true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class))
         {
+            $Deduplicator->save();
             return false;
         }
 

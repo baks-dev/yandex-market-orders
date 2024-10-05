@@ -33,7 +33,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Delete\Tests\DeleteOrderTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\YaMarketOrdersGetNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
@@ -96,8 +96,8 @@ class YandexMarketOrderFBSTest extends KernelTestCase
         }
 
 
-        /** @var YaMarketOrdersGetNewRequest $YandexMarketNewOrdersRequest */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(YaMarketOrdersGetNewRequest::class);
+        /** @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest */
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersNewRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
         $response = $YandexMarketNewOrdersRequest

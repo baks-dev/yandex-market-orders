@@ -27,13 +27,13 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderNumberInterface;
+use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\UseCase\Admin\Canceled\CanceledOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketOrdersGetCancelRequest;
+use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -48,7 +48,7 @@ final class CancelYaMarketOrderScheduleHandler
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly YaMarketOrdersGetCancelRequest $yandexMarketCancelOrdersRequest,
+        private readonly GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly DeduplicatorInterface $deduplicator,

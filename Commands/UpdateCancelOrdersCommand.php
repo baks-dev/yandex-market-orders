@@ -55,8 +55,6 @@ class UpdateCancelOrdersCommand extends Command
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
         private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
-
-        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
     ) {
         parent::__construct();
     }

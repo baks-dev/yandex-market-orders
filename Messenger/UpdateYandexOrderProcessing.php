@@ -39,6 +39,7 @@ use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
@@ -47,6 +48,7 @@ final class UpdateYandexOrderProcessing
     private LoggerInterface $logger;
 
     public function __construct(
+        #[Autowire(env: 'APP_ENV')] private readonly string $environment,
         private readonly DeduplicatorInterface $deduplicator,
         private readonly GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
@@ -63,6 +65,11 @@ final class UpdateYandexOrderProcessing
      */
     public function __invoke(OrderMessage $message): void
     {
+        if($this->environment !== 'prod')
+        {
+            return;
+        }
+
         /** Дедубликатор по идентификатору заказа */
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')

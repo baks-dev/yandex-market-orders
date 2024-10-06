@@ -102,12 +102,12 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest
+         * @var GetYaMarketOrdersUnpaidRequest $GetYaMarketOrdersUnpaidRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersNewRequest::class);
-        $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
+        $GetYaMarketOrdersUnpaidRequest = self::getContainer()->get(GetYaMarketOrdersUnpaidRequest::class);
+        $GetYaMarketOrdersUnpaidRequest->TokenHttpClient(self::$Authorization);
 
-        $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
+        $response = $GetYaMarketOrdersUnpaidRequest->findAll(DateInterval::createFromDateString('10 day'));
 
         if($response->valid())
         {

@@ -33,6 +33,7 @@ use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByAr
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
@@ -87,7 +88,7 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
          *
          * @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersNewRequest::class);
+        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersUnpaidRequest::class);
         $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
 
         $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
@@ -116,6 +117,8 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
                 {
                     continue;
                 }
+
+
 
                 /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
 

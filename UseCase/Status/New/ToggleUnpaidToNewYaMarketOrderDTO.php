@@ -29,9 +29,6 @@ use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
-use BaksDev\Users\User\Entity\User;
-use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent $var */
@@ -50,8 +47,13 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
     #[Assert\IsNull]
     private readonly null $profile;
 
+    /** Пользователь */
+    #[Assert\Valid]
+    private User\OrderUserDTO $usr;
+
     public function __construct()
     {
+        $this->usr = new User\OrderUserDTO();
         $this->profile = null;
     }
 
@@ -79,4 +81,10 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
     {
         return $this->profile;
     }
+
+    public function getUsr(): User\OrderUserDTO
+    {
+        return $this->usr;
+    }
+
 }

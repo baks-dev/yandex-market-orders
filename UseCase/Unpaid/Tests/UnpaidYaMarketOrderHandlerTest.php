@@ -26,16 +26,18 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests;
 
 use BaksDev\Core\Cache\AppCacheInterface;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersWithStatusRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
@@ -54,15 +56,16 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
+        /** Удаляем тестовый заказ */
         OrderNewTest::setUpBeforeClass();
 
         NewUserProfileHandlerTest::setUpBeforeClass();
 
         self::$Authorization = new YaMarketAuthorizationToken(
             new UserProfileUid(),
-            $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
-            $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
-            $_SERVER['TEST_YANDEX_MARKET_BUSINESS']
+            $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
+            $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
+            $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS']
         );
     }
 
@@ -80,23 +83,30 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         if($item->isHit())
         {
             self::assertTrue(true);
-            return;
+            //return;
         }
+
+        /** @var MessageDispatchInterface $MessageDispatch */
+        $MessageDispatch = self::getContainer()->get(MessageDispatchInterface::class);
+        $MessageDispatch->falseDispatch();
 
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var GetYaMarketOrdersNewRequest $YandexMarketNewOrdersRequest
+         * @var GetYaMarketOrdersWithStatusRequest $GetYaMarketOrdersWithStatusRequest
          */
-        $YandexMarketNewOrdersRequest = self::getContainer()->get(GetYaMarketOrdersUnpaidRequest::class);
-        $YandexMarketNewOrdersRequest->TokenHttpClient(self::$Authorization);
+        $GetYaMarketOrdersWithStatusRequest = self::getContainer()->get(GetYaMarketOrdersWithStatusRequest::class);
+        $GetYaMarketOrdersWithStatusRequest->TokenHttpClient(self::$Authorization);
 
-        $response = $YandexMarketNewOrdersRequest->findAll(DateInterval::createFromDateString('10 day'));
+        $response = $GetYaMarketOrdersWithStatusRequest
+            ->withNew()
+            ->findAll(DateInterval::createFromDateString('10 day'));
 
         if($response->valid())
         {
             /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
             $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
+
 
             /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
@@ -113,6 +123,7 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
                 $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
 
+
                 if($CurrentProductDTO === false)
                 {
                     continue;
@@ -120,7 +131,11 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
 
 
+
                 /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
+
+                /* Принудительно указываем статус UNPAID */
+                $YandexMarketOrderDTO->setStatus(OrderStatusUnpaid::class);
 
                 /** @var UnpaidYaMarketOrderStatusHandler $handler */
                 $handler = self::getContainer()->get(UnpaidYaMarketOrderStatusHandler::class);
@@ -131,6 +146,19 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
                 self::assertNotNull($OrderEvent);
                 self::assertTrue($OrderEvent->getStatus()->equals(OrderStatusUnpaid::class));
+
+
+                /** Возвращаем неоплаченный заказ в статус НОВЫЙ после оплаты */
+                $YandexMarketOrderDTO->setStatus(OrderStatusNew::class);
+
+                /** @var ToggleUnpaidToNewYaMarketOrderHandler $toggle */
+                $toggle = self::getContainer()->get(ToggleUnpaidToNewYaMarketOrderHandler::class);
+                $handle = $toggle->handle($YandexMarketOrderDTO);
+
+
+                dd($handle);
+
+
 
                 /** Запоминаем результат тестирования */
                 $item->expiresAfter(DateInterval::createFromDateString('1 day'));
@@ -147,5 +175,11 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         {
             self::assertFalse($response->valid());
         }
+    }
+
+    private static function convert($size)
+    {
+        $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
+        return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2).' '.$unit[$i];
     }
 }

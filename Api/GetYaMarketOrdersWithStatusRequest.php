@@ -31,20 +31,99 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DomainException;
+use InvalidArgumentException;
 
 /**
  * Информация о заказах
  */
-final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
+final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
 {
     private int $page = 1;
 
     private ?DateTimeImmutable $fromDate = null;
 
+
+    private string|false $status = false;
+
+    private string|false $substatus = false;
+
+    /**
+     * Заказ оформлен, но еще не оплачен
+     */
+    public function withUnpaid(): self
+    {
+        if($this->status !== false)
+        {
+            throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
+        }
+
+        $this->status = 'UNPAID';
+        return $this;
+    }
+
+    /**
+     * Заказ подтвержден, его можно начать обрабатывать
+     */
+    public function withNew(?string $substatus = null): self
+    {
+        if($this->status !== false)
+        {
+            throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
+        }
+
+        if($substatus)
+        {
+            if(
+                false === in_array($substatus, [
+                    'STARTED', // — заказ подтвержден, его можно начать обрабатывать.
+                    'READY_TO_SHIP', // — заказ собран и готов к отправке.
+                    'SHIPPED', // — заказ передан службе доставки.
+                ])
+            )
+            {
+                throw new InvalidArgumentException('Invalid Argument $substatus (STARTED||READY_TO_SHIP||SHIPPED)');
+            }
+
+            $this->substatus = $substatus;
+        }
+
+        $this->status = 'PROCESSING';
+        return $this;
+    }
+
+    /**
+     * Заказ отменен
+     */
+    public function withCancel(): self
+    {
+        if($this->status !== false)
+        {
+            throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
+        }
+
+        $this->status = 'CANCELLED';
+        return $this;
+    }
+
+    /**
+     * Заказ получен покупателем
+     */
+    public function withCompleted(): self
+    {
+        if($this->status !== false)
+        {
+            throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
+        }
+
+        $this->status = 'DELIVERED';
+        return $this;
+    }
+
     /**
      * Возвращает информацию о 50 последних заказах со статусом:
      *
-     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
+     * PROCESSING - заказ находится в обработке.
+     * STARTED — заказ подтвержден, его можно начать обрабатывать
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
@@ -53,9 +132,14 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
      */
     public function findAll(?DateInterval $interval = null)
     {
+        if($this->status === false)
+        {
+            throw new InvalidArgumentException('Invalid Argument $status');
+        }
+
         if(!$this->fromDate)
         {
-            // заказы за последние 5 минут (планировщик на каждую минуту)
+            // Новые заказы за последние 5 минут (планировщик на каждую минуту)
             $dateTime = new DateTimeImmutable();
             $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
 
@@ -69,18 +153,23 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
             }
         }
 
+        $query['page'] = $this->page;
+        $query['pageSize'] = 50;
+        $query['status'] = $this->status;
+
+        $query['updatedAtFrom'] = $this->fromDate->format(DateTimeInterface::W3C);
+
+        if($this->substatus)
+        {
+            $query['substatus'] = $this->substatus;
+        }
+
+        // get_orders_with_status
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
                 sprintf('/campaigns/%s/orders', $this->getCompany()),
-                ['query' =>
-                    [
-                        'page' => $this->page,
-                        'pageSize' => 50,
-                        'status' => 'UNPAID',
-                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
-                    ]
-                ],
+                ['query' => $query],
             );
 
         $content = $response->toArray(false);

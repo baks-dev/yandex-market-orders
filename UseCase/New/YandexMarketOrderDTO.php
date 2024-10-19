@@ -27,16 +27,16 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
 use BaksDev\Core\Type\Gps\GpsLatitude;
 use BaksDev\Core\Type\Gps\GpsLongitude;
+use BaksDev\Delivery\Type\Id\Choice\TypeDeliveryPickup;
 use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\DeliveryTransport\Type\OrderStatus\OrderStatusDelivery;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
-
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Reference\Currency\Type\Currency;
@@ -94,7 +94,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function __construct(array $order, UserProfileUid $profile, ?array $buyer = null)
     {
-
         /** Постоянная величина */
         $NewOrderInvariable = new Invariable\NewOrderInvariable();
         $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate']));
@@ -160,7 +159,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -180,8 +180,10 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         // Доставка YandexMarket (FBS)
         if($order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET')
         {
+
             /** Тип профиля FBS Yandex Market */
             $Profile = new TypeProfileUid(TypeProfileYandexMarket::class);
+
             $OrderProfileDTO?->setType($Profile);
 
             /** Способ доставки Yandex Market (FBS Yandex Market) */
@@ -200,9 +202,20 @@ final class YandexMarketOrderDTO implements OrderEventInterface
             $Profile = new TypeProfileUid(TypeProfileDbsYaMarket::class);
             $OrderProfileDTO?->setType($Profile);
 
-            /** Способ доставки Магазином (DBS Yandex Market) */
-            $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
+            /** Доставка - Самовывоз */
+            if($order['delivery']['type'] === 'PICKUP')
+            {
+                /** Способ доставки Самовывоз */
+                $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
+            }
+            else
+            {
+                /** Способ доставки Магазином (DBS Yandex Market) */
+                $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
+            }
+
             $OrderDeliveryDTO->setDelivery($Delivery);
+
 
             /** Способ оплаты DBS Yandex Market  */
             $Payment = new PaymentUid(TypePaymentDbsYaMarket::class);
@@ -227,7 +240,8 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                     'floor', // Этаж
                     'phone', // Телефон получателя заказа.
                 ])
-            ) {
+            )
+            {
                 continue;
             }
 
@@ -325,7 +339,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     public function addProduct(Products\NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function (Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 

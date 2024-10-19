@@ -32,7 +32,6 @@ use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
-use BaksDev\Users\User\Type\Id\UserUid;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -49,8 +48,6 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 class NewYaMarketOrderStatusTest extends KernelTestCase
 {
 
-
-
     public function testUseCase(): void
     {
 
@@ -65,7 +62,7 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
 
         if($item->isHit())
         {
-            return;
+            //return;
         }
 
         /** @var CurrentOrderEventInterface $CurrentOrderEventInterface */

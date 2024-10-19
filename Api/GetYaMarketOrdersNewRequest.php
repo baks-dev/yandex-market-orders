@@ -29,6 +29,7 @@ use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use DateInterval;
 use DateTimeImmutable;
+use DateTimeInterface;
 use DomainException;
 
 /**
@@ -57,7 +58,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
         {
             // Новые заказы за последние 5 минут (планировщик на каждую минуту)
             $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('5 minutes'));
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
 
             /** В 3 часа ночи получаем заказы за сутки */
             $currentHour = $dateTime->format('H');
@@ -79,7 +80,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         'pageSize' => 50,
                         'status' => 'PROCESSING',
                         'substatus' => 'STARTED',
-                        'updatedAtFrom' => $this->fromDate->format('Y-m-d\TH:i:sP')
+                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
                     ]
                 ],
             );

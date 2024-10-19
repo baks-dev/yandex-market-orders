@@ -26,16 +26,14 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Commands;
 
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersWithStatusRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -51,9 +49,10 @@ class UpdateNewOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
+        private readonly GetYaMarketOrdersWithStatusRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
@@ -125,6 +124,7 @@ class UpdateNewOrdersCommand extends Command
 
         $orders = $this->yandexMarketNewOrdersRequest
             ->profile($profile)
+            ->withNew('STARTED')
             ->findAll(DateInterval::createFromDateString('1 day'));
 
         if($orders->valid())

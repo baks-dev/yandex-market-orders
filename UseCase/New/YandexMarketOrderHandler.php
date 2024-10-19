@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
 use App\Kernel;
+use BaksDev\Contacts\Region\Repository\PickupByGeolocation\PickupByGeolocationInterface;
 use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
@@ -69,7 +70,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly ExistsOrderNumberInterface $existsOrderNumber,
         private readonly ToggleUnpaidToNewYaMarketOrderHandler $newYaMarketOrderStatusHandler,
         private readonly UserByUserProfileInterface $userByUserProfile,
-    ) {
+        private readonly PickupByGeolocationInterface $pickupByGeolocation,
+    )
+    {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
     }
 
@@ -90,6 +93,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
              */
             return $this->newYaMarketOrderStatusHandler->handle($command);
         }
+
 
         /**
          * Присваиваем заказу идентификатор пользователя
@@ -170,14 +174,14 @@ final class YandexMarketOrderHandler extends AbstractHandler
             $OrderUserDTO->setProfile($UserProfileEvent);
         }
 
+        /** Сохраняем */
 
-        $this->main = new Order();
-        $this->main->setNumber($command->getNumber());
+        $Order = new Order();
+        $Order->setNumber($command->getNumber());
 
-        $this->event = new OrderEvent();
-
-        $this->prePersist($command);
-
+        $this
+            ->setCommand($command)
+            ->preEventPersistOrUpdate($Order, OrderEvent::class);
 
         /** Валидация всех объектов */
         if($this->validatorCollection->isInvalid())
@@ -185,7 +189,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
             return $this->validatorCollection->getErrorUniqid();
         }
 
-        $this->entityManager->flush();
+        $this->flush();
 
         /* Отправляем сообщение в шину */
         $this->messageDispatch->dispatch(
@@ -249,7 +253,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
                 $keys = ['lastName', 'firstName', 'middleName'];
 
-                $contactName = implode(' ', array_filter($Buyer, function ($value, $key) use ($keys) {
+                $contactName = implode(' ', array_filter($Buyer, function($value, $key) use ($keys) {
                     return in_array($key, $keys);
                 }, ARRAY_FILTER_USE_BOTH));
 
@@ -309,7 +313,10 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
-        $address_field = array_filter($fields, function ($v) {
+
+        /** Указываем адрес доставки */
+
+        $address_field = array_filter($fields, function($v) {
             /** @var InputField $InputField */
             return $v->getType()->getType() === 'address_field';
         });
@@ -321,6 +328,34 @@ final class YandexMarketOrderHandler extends AbstractHandler
             $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
             $OrderDeliveryFieldDTO->setField($address_field);
             $OrderDeliveryFieldDTO->setValue($OrderDeliveryDTO->getAddress());
+            $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
+        }
+
+        /** При самовывозе указываем ПВЗ */
+
+        $contacts_region = array_filter($fields, function($v) {
+            /** @var InputField $InputField */
+            return $v->getType()->getType() === 'contacts_region_type';
+        });
+
+        $contacts_field = current($contacts_region);
+
+        if($contacts_field)
+        {
+            $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
+            $OrderDeliveryFieldDTO->setField($contacts_field);
+
+            /** Определяем по геолокации ПВЗ */
+            $PickupByGeolocationDTO = $this->pickupByGeolocation
+                ->latitude($OrderDeliveryDTO->getLatitude())
+                ->longitude($OrderDeliveryDTO->getLongitude())
+                ->execute();
+
+            if($PickupByGeolocationDTO)
+            {
+                $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
+            }
+
             $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
         }
 

@@ -26,17 +26,12 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
-use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -55,7 +50,8 @@ final class UpdateYandexOrderProcessing
         private readonly OrderEventInterface $orderEventRepository,
         private readonly UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
         LoggerInterface $ordersOrderLogger,
-    ) {
+    )
+    {
         $this->logger = $ordersOrderLogger;
     }
 
@@ -91,15 +87,6 @@ final class UpdateYandexOrderProcessing
             return;
         }
 
-        /**
-         * Если статус заказа не Completed «Выполнен» - завершаем обработчик
-         * создаем заявку на возврат только при выполненном заказе
-         */
-        if(false === $OrderEvent->isStatusEquals(OrderStatusNew::class))
-        {
-            return;
-        }
-
         if(empty($OrderEvent->getOrderNumber()))
         {
             return;
@@ -107,6 +94,15 @@ final class UpdateYandexOrderProcessing
 
         /** Проверяем, что номер заказа начинается с Y- (YandexMarket) */
         if(false === str_starts_with($OrderEvent->getOrderNumber(), 'Y-'))
+        {
+            return;
+        }
+
+        /**
+         * Если статус заказа не Completed «Выполнен» - завершаем обработчик
+         * создаем заявку на возврат только при выполненном заказе
+         */
+        if(false === $OrderEvent->isStatusEquals(OrderStatusNew::class))
         {
             return;
         }

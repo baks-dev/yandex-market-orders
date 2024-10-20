@@ -83,7 +83,7 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         if($item->isHit())
         {
             self::assertTrue(true);
-            //return;
+            return;
         }
 
         /** @var MessageDispatchInterface $MessageDispatch */
@@ -154,11 +154,6 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
                 /** @var ToggleUnpaidToNewYaMarketOrderHandler $toggle */
                 $toggle = self::getContainer()->get(ToggleUnpaidToNewYaMarketOrderHandler::class);
                 $handle = $toggle->handle($YandexMarketOrderDTO);
-
-
-                dd($handle);
-
-
 
                 /** Запоминаем результат тестирования */
                 $item->expiresAfter(DateInterval::createFromDateString('1 day'));

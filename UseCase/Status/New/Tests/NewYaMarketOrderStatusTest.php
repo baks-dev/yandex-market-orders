@@ -78,8 +78,8 @@ class NewYaMarketOrderStatusTest extends KernelTestCase
             return;
         }
 
-        self::assertTrue($OrderEvent->isStatusEquals(OrderStatusUnpaid::class));
-
+        /** Тест UnpaidYaMarketOrderHandlerTest переводит заказа в статус NEW */
+        self::assertTrue($OrderEvent->isStatusEquals(OrderStatusNew::class));
 
         self::assertNotNull($OrderEvent);
         self::assertNotFalse($OrderEvent);

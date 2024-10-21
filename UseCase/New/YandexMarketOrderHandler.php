@@ -32,6 +32,7 @@ use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Core\Validator\ValidatorCollectionInterface;
 use BaksDev\Delivery\Repository\CurrentDeliveryEvent\CurrentDeliveryEventInterface;
+use BaksDev\Field\Pack\Phone\Type\PhoneField;
 use BaksDev\Files\Resources\Upload\File\FileUploadInterface;
 use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
@@ -267,9 +268,11 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
             if(isset($Buyer['phone']) && $profileField->getType()->getType() === 'phone_field')
             {
+                $phone = PhoneField::formater($Buyer['phone']);
+
                 $UserProfileValueDTO = new ValueDTO();
                 $UserProfileValueDTO->setField($profileField->getField());
-                $UserProfileValueDTO->setValue($Buyer['phone']);
+                $UserProfileValueDTO->setValue($phone);
                 $UserProfileDTO->addValue($UserProfileValueDTO);
 
                 continue;

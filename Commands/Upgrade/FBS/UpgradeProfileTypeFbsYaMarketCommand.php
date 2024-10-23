@@ -156,5 +156,4 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
     {
         return 99;
     }
-
 }

@@ -32,10 +32,12 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DomainException;
 use InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(public: true)]
 final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
 {
     private int $page = 1;

@@ -69,7 +69,7 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
         {
             foreach($content['errors'] as $error)
             {
-                $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
+                $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
             }
 
             return false;

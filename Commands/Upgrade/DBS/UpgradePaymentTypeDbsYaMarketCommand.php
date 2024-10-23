@@ -51,7 +51,8 @@ class UpgradePaymentTypeDbsYaMarketCommand extends Command
         private readonly ExistTypePaymentInterface $existTypePayment,
         private readonly PaymentHandler $paymentHandler,
         private readonly TranslatorInterface $translator,
-    ) {
+    )
+    {
         parent::__construct();
     }
 

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,43 @@
  *  THE SOFTWARE.
  */
 
-use BaksDev\Yandex\Market\Orders\BaksDevYandexMarketOrdersBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+declare(strict_types=1);
 
-return function(RoutingConfigurator $routes) {
+namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders;
 
-    $MODULE = BaksDevYandexMarketOrdersBundle::PATH;
+use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 
-    $routes->import(
-        $MODULE.'Controller',
-        'attribute',
-        false,
-        $MODULE.implode(DIRECTORY_SEPARATOR, ['Controller', '**', '*Test.php'])
-    )
-        ->prefix(\BaksDev\Core\Type\Locale\Locale::routes())
-        ->namePrefix('yandex-market-orders:');
-};
+final class DeliveryYaMarketOrdersScheduleMessage
+{
+    /**
+     * Идентификатор профиля
+     */
+    private UserProfileUid $profile;
+
+
+    public function __construct(UserProfile|UserProfileUid|string $profile)
+    {
+
+        if($profile instanceof UserProfile)
+        {
+            $profile = $profile->getId();
+        }
+
+        if(is_string($profile))
+        {
+            $profile = new UserProfileUid($profile);
+        }
+
+        $this->profile = $profile;
+    }
+
+    /**
+     * Profile
+     */
+    public function getProfile(): UserProfileUid
+    {
+        return $this->profile;
+    }
+
+}

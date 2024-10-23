@@ -51,16 +51,10 @@ final readonly class UnpaidOrdersScheduleHandler
         {
             foreach($profiles as $profile)
             {
-                /** Получаем идентификатор пользователя */
-                $User = $this->userByUserProfile->forProfile($profile)->findUser();
-
-                if($User)
-                {
-                    $this->messageDispatch->dispatch(
-                        message: new UnpaidYaMarketOrdersScheduleMessage($User->getId(), $profile),
-                        transport: (string) $profile,
-                    );
-                }
+                $this->messageDispatch->dispatch(
+                    message: new UnpaidYaMarketOrdersScheduleMessage($profile),
+                    transport: (string) $profile,
+                );
             }
         }
     }

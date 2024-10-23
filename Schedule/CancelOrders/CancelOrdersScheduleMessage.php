@@ -25,4 +25,4 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Schedule\CancelOrders;
 
-final class CancelOrdersScheduleMessage {}
+final class CancelOrdersScheduleMessage { }

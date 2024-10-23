@@ -4,18 +4,18 @@
 {% set usecase = random() %}
 
 <button class="btn btn-link btn-sm d-flex align-items-center"
-		id="usecase-{{ usecase }}"
-		data-bs-container="body"
-		data-bs-toggle="popover"
-		data-bs-placement="right"
-		data-bs-trigger="click"
+        id="usecase-{{ usecase }}"
+        data-bs-container="body"
+        data-bs-toggle="popover"
+        data-bs-placement="right"
+        data-bs-trigger="click"
 >
-	<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-			fill="currentColor" class="text-muted"
-			viewBox="0 0 16 16">
-		<path fill-rule="evenodd"
-				d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
-	</svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+         fill="currentColor" class="text-muted"
+         viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+              d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+    </svg>
 </button>
 
 
@@ -23,36 +23,33 @@
 {#
 <label>
 	<input class="form-check-input ms-3 p-2" type="checkbox"
-			#}
+#}
 {# onchange=checkedItem(); #}{#
-
-			value="{{ item.event }}">
+value="{{ item.event }}">
 </label>
 #}
 
 
 <div id="usecase-{{ usecase }}-content" class="d-none">
-	<ul class="leader list-group list-group-flush ">
+    <ul class="leader list-group list-group-flush ">
 
 
-		{#{% if constant('BaksDev\\Manufacture\\Part\\Entity\\ManufacturePart::TABLE') is defined and (is_granted('ROLE_MANUFACTURE_PART_NEW') or is_granted('ROLE_ADMIN')) %}
+        {# {% if constant('BaksDev\\Manufacture\\Part\\Entity\\ManufacturePart::TABLE') is defined and (is_granted('ROLE_MANUFACTURE_PART_NEW') or is_granted('ROLE_ADMIN')) %}
 
 			<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-
-				#}{#<a href="{{ path('users-table:admin.action.delete', { id: item.event }) }}"
+        #}{# <a href="{{ path('users-table:admin.action.delete', { id: item.event }) }}"
 				   class="text-decoration-none text-dark w-100 modal-link disabled"
 				   data-bs-toggle="modal"
 				   data-bs-target="#modal"
 				   title="{{ 'btn.delete'|trans({}, 'core.btn') }}">
 					Добавить партию производства
-				</a>#}{#
-
-				<a href="#}{#{{ path('manufacture-part:admin.newedit.new', {
+				</a> #}{#
+        <a href=" #}{# {{ path('manufacture-part:admin.newedit.new', {
 					product: item.event,
 					offer: item.product_offer_id,
 					variation: item.product_variation_id,
 					modification: item.product_modification_id
-				}) }}#}{#"
+				}) }} #}{# "
 				   class="text-decoration-none text-dark w-100 modal-link disabled"
 				   title="Добавить партию производства"
 				   data-bs-toggle="modal"
@@ -62,11 +59,11 @@
 				</a>
 			</li>
 
-		{% endif %}#}
+		{% endif %} #}
 
-		
-		{# Редактировать #}
-		{#{% if  is_granted(ROLE~'_EDIT') or is_granted('ROLE_ADMIN') %}
+
+        {# Редактировать #}
+        {# {% if  is_granted(ROLE~'_EDIT') or is_granted('ROLE_ADMIN') %}
 			
 			<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
 				<a href="{{ path('products-product:admin.newedit.edit', {id: item.event }) }}"
@@ -76,82 +73,81 @@
 				</a>
 			</li>
 			
-		{% endif %}#}
+		{% endif %} #}
 
 
 
 
-		{# Удалить #}
-		{% if  is_granted(ROLE~'_DELETE') or is_granted('ROLE_ADMIN') %}
-			
-				<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-					<a href="{#{{ path('products-product:admin.delete', { id: item.event }) }}#}"
-							class="text-decoration-none text-dark w-100 modal-link disabled"
-							data-bs-toggle="modal"
-							data-bs-target="#modal"
-							title="{{ 'btn.delete'|trans({}, 'core.btn') }}">
-						{{ 'btn.delete'|trans({}, 'core.btn') }}
-					</a>
-				</li>
-			
-		{% endif %}
+        {# Удалить #}
+        {% if  is_granted(ROLE~'_DELETE') or is_granted('ROLE_ADMIN') %}
 
-		{# Обновить с Wildberries #}
-		{% if is_granted(ROLE~'_UPDATE') or is_granted('ROLE_ADMIN') %}
+            <li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
+                <a href="{# {{ path('products-product:admin.delete', { id: item.event }) }} #}"
+                   class="text-decoration-none text-dark w-100 modal-link disabled"
+                   data-bs-toggle="modal"
+                   data-bs-target="#modal"
+                   title="{{ 'btn.delete'|trans({}, 'core.btn') }}">
+                    {{ 'btn.delete'|trans({}, 'core.btn') }}
+                </a>
+            </li>
 
-				<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-					<a href="{{ path('wildberries-products:admin.card.update', { id: item.card_id }) }}"
-							class="text-decoration-none text-dark w-100 modal-link disabled"
-							data-bs-toggle="modal"
-							data-bs-target="#modal"
-							title="{{ 'btn.update'|trans({}, 'core.btn') }}">
-						Обновить с Wildberries
-					</a>
-				</li>
-		{% endif %}
+        {% endif %}
 
+        {# Обновить с Wildberries #}
+        {% if is_granted(ROLE~'_UPDATE') or is_granted('ROLE_ADMIN') %}
 
-
-		{# Переименовать #}
-		{% if is_granted('ROLE_PRODUCT_RENAME') or is_granted('ROLE_ADMIN') %}
-
-			<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-				<a href="{{ path('products-product:admin.rename', { id: item.product_event }) }}"
-				   class="text-decoration-none text-dark w-100 modal-link disabled"
-				   data-bs-toggle="modal"
-				   data-bs-target="#modal"
-				   title="{{ 'btn.rename'|trans({}, 'core.btn') }}">
-					{{ 'btn.rename'|trans({}, 'core.btn') }}
-				</a>
-			</li>
-
-		{% endif %}
-
-
-		<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-			<a href="https://seller.wildberries.ru/new-goods/goods/new-product-card?vendorCode={{ item.product_article }}"
-			   class="text-decoration-none text-dark w-100"
-			   title="Редактировать карточку WB"
-			   target="_wb"
-			>
-				Редактировать карточку WB
-			</a>
-		</li>
-
-
-		<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-			<a href="https://www.wildberries.ru/catalog/{{ item.nomenclature }}/detail.aspx"
-			   class="text-decoration-none text-dark w-100"
-			   title="На страницу товара WB"
-			   target="_wb"
-			>
-				На страницу товара WB
-			</a>
-		</li>
+            <li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
+                <a href="{{ path('wildberries-products:admin.card.update', { id: item.card_id }) }}"
+                   class="text-decoration-none text-dark w-100 modal-link disabled"
+                   data-bs-toggle="modal"
+                   data-bs-target="#modal"
+                   title="{{ 'btn.update'|trans({}, 'core.btn') }}">
+                    Обновить с Wildberries
+                </a>
+            </li>
+        {% endif %}
 
 
 
-	</ul>
+        {# Переименовать #}
+        {% if is_granted('ROLE_PRODUCT_RENAME') or is_granted('ROLE_ADMIN') %}
+
+            <li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
+                <a href="{{ path('products-product:admin.rename', { id: item.product_event }) }}"
+                   class="text-decoration-none text-dark w-100 modal-link disabled"
+                   data-bs-toggle="modal"
+                   data-bs-target="#modal"
+                   title="{{ 'btn.rename'|trans({}, 'core.btn') }}">
+                    {{ 'btn.rename'|trans({}, 'core.btn') }}
+                </a>
+            </li>
+
+        {% endif %}
+
+
+        <li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
+            <a href="https://seller.wildberries.ru/new-goods/goods/new-product-card?vendorCode={{ item.product_article }}"
+               class="text-decoration-none text-dark w-100"
+               title="Редактировать карточку WB"
+               target="_wb"
+            >
+                Редактировать карточку WB
+            </a>
+        </li>
+
+
+        <li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
+            <a href="https://www.wildberries.ru/catalog/{{ item.nomenclature }}/detail.aspx"
+               class="text-decoration-none text-dark w-100"
+               title="На страницу товара WB"
+               target="_wb"
+            >
+                На страницу товара WB
+            </a>
+        </li>
+
+
+    </ul>
 </div>
 
 

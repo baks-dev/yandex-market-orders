@@ -27,7 +27,6 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\New\User\Payment;
 
 use BaksDev\Orders\Order\Entity\User\Payment\OrderPaymentInterface;
 use BaksDev\Payment\Type\Id\PaymentUid;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 

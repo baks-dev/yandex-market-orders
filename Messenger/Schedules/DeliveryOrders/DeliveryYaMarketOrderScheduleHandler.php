@@ -23,14 +23,14 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
+namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
-use BaksDev\Orders\Order\Entity\Order;
+use BaksDev\Products\Stocks\Entity\ProductStock;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
+use BaksDev\Yandex\Market\Orders\Api\Completed\GetYaMarketOrdersCompletedRequest;
+use BaksDev\Yandex\Market\Orders\Api\Completed\YaMarketCompletedOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\Completed\CompletedYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use DateInterval;
 use Generator;
@@ -38,13 +38,13 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class CancelYaMarketOrderScheduleHandler
+final class DeliveryYaMarketOrderScheduleHandler
 {
     private LoggerInterface $logger;
 
     public function __construct(
-        private readonly GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
-        private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private readonly GetYaMarketOrdersCompletedRequest $GetYaMarketOrdersCompletedRequest,
+        private readonly CompletedYaMarketOrderStatusHandler $CompletedYaMarketOrderStatusHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $yandexMarketOrdersLogger,
@@ -54,19 +54,23 @@ final class CancelYaMarketOrderScheduleHandler
     }
 
 
-    public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
+    /**
+     * Получаем заказы в доставке и применяем статус Completed
+     * (заказ считается доставленным, если передан в службу доставки)
+     */
+    public function __invoke(DeliveryYaMarketOrdersScheduleMessage $message): void
     {
         /**
-         * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
+         * Получаем список ПЕРЕДАННЫХ службе доставки сборочных заданий по основному идентификатору компании
          */
 
-        $orders = $this->yandexMarketCancelOrdersRequest
+        $orders = $this->GetYaMarketOrdersCompletedRequest
             ->profile($message->getProfile())
             ->findAll();
 
         if($orders->valid())
         {
-            $this->ordersCancel($orders, $message->getProfile());
+            $this->ordersComplete($orders, $message->getProfile());
         }
 
         /**
@@ -82,7 +86,7 @@ final class CancelYaMarketOrderScheduleHandler
 
         foreach($extra as $company)
         {
-            $orders = $this->yandexMarketCancelOrdersRequest
+            $orders = $this->GetYaMarketOrdersCompletedRequest
                 ->setExtraCompany($company['company'])
                 ->findAll();
 
@@ -91,23 +95,22 @@ final class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $this->ordersCancel($orders, $message->getProfile());
+            $this->ordersComplete($orders, $message->getProfile());
         }
-
     }
 
 
-    private function ordersCancel(Generator $orders, UserProfileUid $profile): void
+    private function ordersComplete(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
-        foreach($orders as $YandexMarketOrderDTO)
+        /** @var YaMarketCompletedOrderDTO $YaMarketCompletedOrderDTO */
+        foreach($orders as $YaMarketCompletedOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
                 ->expiresAfter(DateInterval::createFromDateString('1 day'))
                 ->deduplication([
-                    $YandexMarketOrderDTO->getNumber(),
+                    $YaMarketCompletedOrderDTO->getNumber(),
                     self::class
                 ]);
 
@@ -116,12 +119,12 @@ final class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $handle = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $profile);
+            $handle = $this->CompletedYaMarketOrderStatusHandler->handle($YaMarketCompletedOrderDTO, $profile);
 
-            if($handle instanceof Order)
+            if($handle instanceof ProductStock)
             {
                 $this->logger->info(
-                    sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getNumber()),
+                    sprintf('Выполнили складскую заявку %s (доставлен в ПВЗ)', $YaMarketCompletedOrderDTO->getNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
@@ -135,7 +138,7 @@ final class CancelYaMarketOrderScheduleHandler
             if($handle !== false)
             {
                 $this->logger->critical(
-                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getNumber(), $handle),
+                    sprintf('yandex-market-orders: Ошибка при отметке о выполнении складской заявки %s (%s)', $YaMarketCompletedOrderDTO->getNumber(), $handle),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

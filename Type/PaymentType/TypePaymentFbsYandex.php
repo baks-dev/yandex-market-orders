@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,40 @@
  *  THE SOFTWARE.
  */
 
-use BaksDev\Yandex\Market\Orders\BaksDevYandexMarketOrdersBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+declare(strict_types=1);
 
-return function(RoutingConfigurator $routes) {
+namespace BaksDev\Yandex\Market\Orders\Type\PaymentType;
 
-    $MODULE = BaksDevYandexMarketOrdersBundle::PATH;
+use BaksDev\Payment\Type\Id\Choice\Collection\TypePaymentInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-    $routes->import(
-        $MODULE.'Controller',
-        'attribute',
-        false,
-        $MODULE.implode(DIRECTORY_SEPARATOR, ['Controller', '**', '*Test.php'])
-    )
-        ->prefix(\BaksDev\Core\Type\Locale\Locale::routes())
-        ->namePrefix('yandex-market-orders:');
-};
+#[AutoconfigureTag('baks.payment.type')]
+final class TypePaymentFbsYandex implements TypePaymentInterface
+{
+    /**
+     * Yandex
+     */
+    public const string TYPE = '18f4915d-d6f9-7678-91fb-6e53d039aa2f';
+
+    public function __toString(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Возвращает значение (value) */
+    public function getValue(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Сортировка */
+    public static function priority(): int
+    {
+        return 420;
+    }
+
+    public static function equals(mixed $uid): bool
+    {
+        return self::TYPE === (string) $uid;
+    }
+}

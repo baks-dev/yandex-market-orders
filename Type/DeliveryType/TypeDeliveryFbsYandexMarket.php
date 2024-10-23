@@ -29,10 +29,10 @@ use BaksDev\Delivery\Type\Id\Choice\Collection\TypeDeliveryInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('baks.delivery.type')]
-final class TypeDeliveryYandexMarket implements TypeDeliveryInterface
+final class TypeDeliveryFbsYandexMarket implements TypeDeliveryInterface
 {
     /** Yandex Market */
-    public const TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
+    public const string TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
 
     public function __toString(): string
     {

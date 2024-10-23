@@ -34,7 +34,7 @@ final class TypePaymentDbsYaMarket implements TypePaymentInterface
     /**
      * Yandex
      */
-    public const TYPE = '5282628e-12b1-706d-996a-03e7e3328466';
+    public const string TYPE = '5282628e-12b1-706d-996a-03e7e3328466';
 
     /** Сортировка */
     public static function priority(): int

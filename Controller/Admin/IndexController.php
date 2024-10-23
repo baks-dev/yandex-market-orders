@@ -43,7 +43,8 @@ final class IndexController extends AbstractController
         Request $request,
         //AllYaMarketInterface $allYaMarket,
         int $page = 0,
-    ): Response {
+    ): Response
+    {
 
         return new Response('Временно недоступно: '.self::class);
 

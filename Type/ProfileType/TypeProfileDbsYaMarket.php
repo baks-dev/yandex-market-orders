@@ -34,7 +34,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('baks.users.profile.type')]
 final class TypeProfileDbsYaMarket implements TypeProfileInterface
 {
-    public const TYPE = 'b11d5991-68dc-7b65-998d-4d6a1d870c8a';
+    public const string TYPE = 'b11d5991-68dc-7b65-998d-4d6a1d870c8a';
 
     /** Сортировка */
     public static function priority(): int

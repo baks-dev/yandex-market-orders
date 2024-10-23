@@ -27,7 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersWithStatusRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
@@ -49,7 +49,7 @@ class UpdateNewOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly GetYaMarketOrdersWithStatusRequest $yandexMarketNewOrdersRequest,
+        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
     )
     {
@@ -124,27 +124,29 @@ class UpdateNewOrdersCommand extends Command
 
         $orders = $this->yandexMarketNewOrdersRequest
             ->profile($profile)
-            ->withNew('STARTED')
             ->findAll(DateInterval::createFromDateString('1 day'));
 
-        if($orders->valid())
+        if(false === $orders->valid())
         {
-            /** @var YandexMarketOrderDTO $order */
-            foreach($orders as $order)
-            {
-                /**
-                 * Обновляем неоплаченный системный заказ, либо создаем новый
-                 */
-                $handle = $this->yandexMarketOrderHandler->handle($order);
-
-                if($handle instanceof Order)
-                {
-                    $this->io->info(sprintf('Добавили новый заказ %s', $order->getNumber()));
-                    continue;
-                }
-
-                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getNumber()));
-            }
+            return;
         }
+
+        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+        foreach($orders as $YandexMarketOrderDTO)
+        {
+            /**
+             * Обновляем неоплаченный системный заказ, либо создаем новый
+             */
+            $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
+
+            if($handle instanceof Order)
+            {
+                $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()));
+                continue;
+            }
+
+            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getNumber()));
+        }
+
     }
 }

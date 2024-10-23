@@ -26,12 +26,9 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Commands;
 
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use DateInterval;
@@ -55,7 +52,8 @@ class UpdateUnpaidOrdersCommand extends Command
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly GetYaMarketOrdersUnpaidRequest $yandexMarketUnpaidOrdersRequest,
         private readonly UnpaidYaMarketOrderStatusHandler $unpaidYaMarketOrderHandler,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
@@ -134,24 +132,28 @@ class UpdateUnpaidOrdersCommand extends Command
             ->profile($profile)
             ->findAll(DateInterval::createFromDateString('1 day'));
 
-        if($orders->valid())
+
+        if(false === $orders->valid())
         {
-            /** @var YandexMarketOrderDTO $order */
-            foreach($orders as $order)
-            {
-                /**
-                 * Создаем системный заказ
-                 */
-                $handle = $this->unpaidYaMarketOrderHandler->handle($order);
-
-                if($handle instanceof Order)
-                {
-                    $this->io->info(sprintf('Добавили неоплаченный заказ %s', $order->getNumber()));
-                    continue;
-                }
-
-                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getNumber()));
-            }
+            return;
         }
+
+        /** @var YandexMarketOrderDTO $order */
+        foreach($orders as $order)
+        {
+            /**
+             * Создаем системный заказ
+             */
+            $handle = $this->unpaidYaMarketOrderHandler->handle($order);
+
+            if($handle instanceof Order)
+            {
+                $this->io->info(sprintf('Добавили неоплаченный заказ %s', $order->getNumber()));
+                continue;
+            }
+
+            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getNumber()));
+        }
+
     }
 }

@@ -23,38 +23,44 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\PaymentType;
+namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Completed;
 
-use BaksDev\Payment\Type\Id\Choice\Collection\TypePaymentInterface;
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
+use BaksDev\Orders\Order\Type\Event\OrderEventUid;
+use BaksDev\Orders\Order\Type\Status\OrderStatus;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[AutoconfigureTag('baks.payment.type')]
-final class TypePaymentYandex implements TypePaymentInterface
+/** @see OrderEvent */
+final class CompletedYaMarketOrderStatusDTO implements OrderEventInterface
 {
+
+    /** Идентификатор события */
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
+    private OrderEventUid $id;
+
+    /** Статус заказа */
+    #[Assert\NotBlank]
+    private readonly OrderStatus $status;
+
+    public function __construct()
+    {
+        $this->status = new OrderStatus(OrderStatusCompleted::class);
+    }
+
+    /** Идентификатор события */
+    public function getEvent(): OrderEventUid
+    {
+        return $this->id;
+    }
+
     /**
-     * Yandex
+     * Status
      */
-    public const TYPE = '18f4915d-d6f9-7678-91fb-6e53d039aa2f';
-
-    public function __toString(): string
+    public function getStatus(): OrderStatus
     {
-        return self::TYPE;
+        return $this->status;
     }
 
-    /** Возвращает значение (value) */
-    public function getValue(): string
-    {
-        return self::TYPE;
-    }
-
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 420;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
-    }
 }

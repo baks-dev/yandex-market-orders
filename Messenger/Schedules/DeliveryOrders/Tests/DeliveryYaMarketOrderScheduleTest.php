@@ -23,20 +23,23 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api\Tests;
+namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders\Tests;
 
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
+use BaksDev\Yandex\Market\Orders\Api\Completed\GetYaMarketOrdersCompletedRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
+use DateInterval;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
+
 /**
- * @group ya-market-orders-info-request
+ * @group delivery-ya-market-order-schedule-test
  */
 #[When(env: 'test')]
-class YaMarketOrdersInfoRequestTest extends KernelTestCase
+class DeliveryYaMarketOrderScheduleTest extends KernelTestCase
 {
+
     private static YaMarketAuthorizationToken $Authorization;
 
     public static function setUpBeforeClass(): void
@@ -49,16 +52,29 @@ class YaMarketOrdersInfoRequestTest extends KernelTestCase
         );
     }
 
+
     public function testUseCase(): void
     {
-        /** @var GetYaMarketOrderInfoRequest $YaMarketOrdersInfoRequest */
-        $YaMarketOrdersInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
-        //        $YaMarketOrdersInfoRequest->TokenHttpClient(self::$Authorization);
-        //        $data = $YaMarketOrdersInfoRequest->find('546806377');
-        //        dd($data->getStatus()->equals(OrderStatusCanceled::class));
+        /** @var GetYaMarketOrdersCompletedRequest $GetYaMarketOrdersCompletedRequest */
+        $GetYaMarketOrdersCompletedRequest = self::getContainer()->get(GetYaMarketOrdersCompletedRequest::class);
+        $GetYaMarketOrdersCompletedRequest->TokenHttpClient(self::$Authorization);
+
+        $orders = $GetYaMarketOrdersCompletedRequest
+            ->findAll(DateInterval::createFromDateString('1 day'));
+
+        if(false === $orders->valid())
+        {
+            self::assertFalse($orders->valid());
+            return;
+        }
+
+
+        //        /** @var YaMarketCompletedOrderDTO $YaMarketCompletedOrderDTO */
+        //        foreach($orders as $YaMarketCompletedOrderDTO)
+        //        {
+        //            dump($YaMarketCompletedOrderDTO->getNumber());
+        //        }
 
         self::assertTrue(true);
-
     }
-
 }

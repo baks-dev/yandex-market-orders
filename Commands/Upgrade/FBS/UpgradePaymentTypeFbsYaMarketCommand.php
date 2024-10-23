@@ -27,14 +27,13 @@ namespace BaksDev\Yandex\Market\Orders\Commands\Upgrade\FBS;
 
 use BaksDev\Payment\Entity\Payment;
 use BaksDev\Payment\Repository\ExistTypePayment\ExistTypePaymentInterface;
-use BaksDev\Payment\Type\Id\Choice\TypePaymentCache;
 use BaksDev\Payment\Type\Id\PaymentUid;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentDTO;
 use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentHandler;
 use BaksDev\Payment\UseCase\Admin\NewEdit\Trans\PaymentTransDTO;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -52,14 +51,15 @@ class UpgradePaymentTypeFbsYaMarketCommand extends Command
         private readonly ExistTypePaymentInterface $existTypePayment,
         private readonly PaymentHandler $paymentHandler,
         private readonly TranslatorInterface $translator,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
     /** Добавляет способ оплаты Yandex Market  */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $PaymentUid = new PaymentUid(TypePaymentYandex::class);
+        $PaymentUid = new PaymentUid(TypePaymentFbsYandex::class);
 
         /** Проверяем наличие способа оплаты Yandex Market */
         $exists = $this->existTypePayment->isExists($PaymentUid);
@@ -70,8 +70,8 @@ class UpgradePaymentTypeFbsYaMarketCommand extends Command
             $io->text('Добавляем способ оплаты Yandex Market');
 
             $PaymentDTO = new PaymentDTO($PaymentUid);
-            $PaymentDTO->setType(new TypeProfileUid(TypeProfileYandexMarket::class));
-            $PaymentDTO->setSort(TypePaymentYandex::priority());
+            $PaymentDTO->setType(new TypeProfileUid(TypeProfileFbsYandexMarket::class));
+            $PaymentDTO->setSort(TypePaymentFbsYandex::priority());
 
 
             $PaymentTransDTO = $PaymentDTO->getTranslate();

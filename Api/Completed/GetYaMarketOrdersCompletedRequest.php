@@ -23,42 +23,51 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api;
+namespace BaksDev\Yandex\Market\Orders\Api\Completed;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use DateInterval;
+use DateTimeImmutable;
+use DateTimeInterface;
+use Generator;
 
 /**
  * Информация о заказах
  */
-final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
+final class GetYaMarketOrdersCompletedRequest extends YandexMarket
 {
+    private int $page = 1;
+
+    private ?DateTimeImmutable $fromDate = null;
+
     /**
-     * Изменение статуса одного заказа «Принят в обработку»
+     * Возвращает информацию о 50 последних заказах со статусом:
+     *
+     * DELIVERY — заказ передан в службу доставки.
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
-     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/updateOrderStatus
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function update(int|string $order): bool
+    public function findAll(?DateInterval $interval = null): Generator
     {
-        if(false === $this->isExecuteEnvironment())
+        if(!$this->fromDate)
         {
-            return true;
+            $dateTime = new DateTimeImmutable();
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
         }
-
-        $order = str_replace('Y-', '', (string) $order);
 
         $response = $this->TokenHttpClient()
             ->request(
-                'PUT',
-                sprintf('/campaigns/%s/orders/%s/status', $this->getCompany(), $order),
-                ['json' =>
+                'GET',
+                sprintf('/campaigns/%s/orders', $this->getCompany()),
+                ['query' =>
                     [
-                        'order' => [
-                            "status" => "PROCESSING",
-                            "substatus" => "READY_TO_SHIP",
-                        ]
+                        'page' => $this->page,
+                        'pageSize' => 50,
+                        'status' => 'DELIVERY',
+                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
                     ]
                 ],
             );
@@ -75,6 +84,9 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
             return false;
         }
 
-        return true;
+        foreach($content['orders'] as $order)
+        {
+            yield new YaMarketCompletedOrderDTO($order['id']);
+        }
     }
 }

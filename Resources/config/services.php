@@ -25,7 +25,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use BaksDev\Yandex\Market\Orders\BaksDevYandexMarketOrdersBundle;
 
-return static function (ContainerConfigurator $container) {
+return static function(ContainerConfigurator $container) {
 
     $services = $container->services()
         ->defaults()

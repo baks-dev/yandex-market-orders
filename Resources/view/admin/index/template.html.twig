@@ -4,7 +4,7 @@
 
 {# ---- CSS ------------------------------------------------------------ #}
 {% block title %}
-	{{ 'page.index'|trans }}
+    {{ 'page.index'|trans }}
 {% endblock %}
 
 {# ---- ШАБЛОН ------------------------------------------------------------ #}
@@ -12,8 +12,8 @@
 
 {# ---- CSS ------------------------------------------------------------ #}
 {% block stylesheets %}
-	<link href="/assets/plugins/nice-select2/nice-select2.min.css" rel="stylesheet">
-	<link data-href="/assets/css/print.min.css" rel="stylesheet" class="lazy" type="text/css">
+    <link href="/assets/plugins/nice-select2/nice-select2.min.css" rel="stylesheet">
+    <link data-href="/assets/css/print.min.css" rel="stylesheet" class="lazy" type="text/css">
 {% endblock %}
 
 
@@ -21,7 +21,7 @@
 
 {# ---- КОНТЕНТ-БЛОК ------------------------------------------------------------ #}
 {% block content %}
-	{{ include(_self|replace({ "template.html.twig": baks_settings.device~"/content.html.twig" })) }}
+    {{ include(_self|replace({ "template.html.twig": baks_settings.device~"/content.html.twig" })) }}
 {% endblock %}
 
 {% block javascript %}

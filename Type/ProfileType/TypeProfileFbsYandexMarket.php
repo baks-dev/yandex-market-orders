@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2024.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,37 @@
  *  THE SOFTWARE.
  */
 
-use BaksDev\Yandex\Market\Orders\BaksDevYandexMarketOrdersBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+declare(strict_types=1);
 
-return function(RoutingConfigurator $routes) {
+namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
 
-    $MODULE = BaksDevYandexMarketOrdersBundle::PATH;
+use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-    $routes->import(
-        $MODULE.'Controller',
-        'attribute',
-        false,
-        $MODULE.implode(DIRECTORY_SEPARATOR, ['Controller', '**', '*Test.php'])
-    )
-        ->prefix(\BaksDev\Core\Type\Locale\Locale::routes())
-        ->namePrefix('yandex-market-orders:');
-};
+#[AutoconfigureTag('baks.users.profile.type')]
+final class TypeProfileFbsYandexMarket implements TypeProfileInterface
+{
+    public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
+
+    public function __toString(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Возвращает значение (value) */
+    public function getValue(): string
+    {
+        return self::TYPE;
+    }
+
+    /** Сортировка */
+    public static function priority(): int
+    {
+        return 420;
+    }
+
+    public static function equals(mixed $uid): bool
+    {
+        return self::TYPE === (string) $uid;
+    }
+}

@@ -44,11 +44,11 @@ use BaksDev\Reference\Money\Type\Money;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -182,16 +182,16 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         {
 
             /** Тип профиля FBS Yandex Market */
-            $Profile = new TypeProfileUid(TypeProfileYandexMarket::class);
+            $Profile = new TypeProfileUid(TypeProfileFbsYandexMarket::class);
 
             $OrderProfileDTO?->setType($Profile);
 
             /** Способ доставки Yandex Market (FBS Yandex Market) */
-            $Delivery = new DeliveryUid(TypeDeliveryYandexMarket::class);
+            $Delivery = new DeliveryUid(TypeDeliveryFbsYandexMarket::class);
             $OrderDeliveryDTO->setDelivery($Delivery);
 
             /** Способ оплаты FBS Yandex Market */
-            $Payment = new PaymentUid(TypePaymentYandex::class);
+            $Payment = new PaymentUid(TypePaymentFbsYandex::class);
             $OrderPaymentDTO->setPayment($Payment);
         }
 

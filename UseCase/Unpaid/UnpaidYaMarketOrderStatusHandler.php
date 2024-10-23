@@ -32,10 +32,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
-use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
-use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusDTO;
 use Psr\Log\LoggerInterface;
 
 final class UnpaidYaMarketOrderStatusHandler
@@ -49,7 +47,8 @@ final class UnpaidYaMarketOrderStatusHandler
         private readonly OrderStatusHandler $orderStatusHandler,
         private readonly ExistsOrderNumberInterface $existsOrderNumber,
         LoggerInterface $yandexMarketOrdersLogger
-    ) {
+    )
+    {
         $this->logger = $yandexMarketOrdersLogger;
     }
 

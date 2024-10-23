@@ -130,8 +130,6 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
                 }
 
 
-
-
                 /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
 
                 /* Принудительно указываем статус UNPAID */

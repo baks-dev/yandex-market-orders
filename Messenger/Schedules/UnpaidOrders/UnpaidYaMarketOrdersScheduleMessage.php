@@ -27,40 +27,17 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders;
 
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Users\User\Entity\User;
-use BaksDev\Users\User\Type\Id\UserUid;
 
 final class UnpaidYaMarketOrdersScheduleMessage
 {
-    /**
-     * Идентификатор пользователя
-     */
-    private UserUid $usr;
-
     /**
      * Идентификатор профиля
      */
     private UserProfileUid $profile;
 
 
-    public function __construct(
-        User|UserUid|string $user,
-        UserProfile|UserProfileUid|string $profile
-    ) {
-
-        if($user instanceof User)
-        {
-            $user = $user->getId();
-        }
-
-        if(is_string($user))
-        {
-            $user = new UserUid($user);
-        }
-
-        $this->usr = $user;
-
-
+    public function __construct(UserProfile|UserProfileUid|string $profile)
+    {
         if($profile instanceof UserProfile)
         {
             $profile = $profile->getId();
@@ -82,11 +59,4 @@ final class UnpaidYaMarketOrdersScheduleMessage
         return $this->profile;
     }
 
-    /**
-     * Usr
-     */
-    public function getUser(): UserUid
-    {
-        return $this->usr;
-    }
 }

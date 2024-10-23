@@ -21,19 +21,8 @@
  *  THE SOFTWARE.
  */
 
-use BaksDev\Yandex\Market\Orders\BaksDevYandexMarketOrdersBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+declare(strict_types=1);
 
-return function(RoutingConfigurator $routes) {
+namespace BaksDev\Yandex\Market\Orders\Schedule\DeliveryOrders;
 
-    $MODULE = BaksDevYandexMarketOrdersBundle::PATH;
-
-    $routes->import(
-        $MODULE.'Controller',
-        'attribute',
-        false,
-        $MODULE.implode(DIRECTORY_SEPARATOR, ['Controller', '**', '*Test.php'])
-    )
-        ->prefix(\BaksDev\Core\Type\Locale\Locale::routes())
-        ->namePrefix('yandex-market-orders:');
-};
+final class DeliveryOrdersScheduleMessage { }

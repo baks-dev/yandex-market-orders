@@ -32,7 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 final class TypeDeliveryDbsYaMarket implements TypeDeliveryInterface
 {
     /** Доставка клиенту */
-    public const TYPE = '5f97cf1c-7278-7c2a-b55f-e87ec660f3a6';
+    public const string TYPE = '5f97cf1c-7278-7c2a-b55f-e87ec660f3a6';
 
     /** Сортировка */
     public static function priority(): int

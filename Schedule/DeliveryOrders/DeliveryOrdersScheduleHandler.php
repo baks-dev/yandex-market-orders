@@ -23,24 +23,24 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Schedule\CancelOrders;
+namespace BaksDev\Yandex\Market\Orders\Schedule\DeliveryOrders;
 
 use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders\CancelYaMarketOrdersScheduleMessage;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders\DeliveryYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use DateInterval;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final readonly class CancelOrdersScheduleHandler
+final readonly class DeliveryOrdersScheduleHandler
 {
     public function __construct(
         private AllProfileYaMarketTokenInterface $allProfileToken,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
-    public function __invoke(CancelOrdersScheduleMessage $message): void
+    public function __invoke(DeliveryOrdersScheduleMessage $message): void
     {
         /** Получаем активные токены авторизации профилей */
         $profiles = $this->allProfileToken
@@ -54,7 +54,7 @@ final readonly class CancelOrdersScheduleHandler
                 $delay = sprintf('%s seconds', random_int(1, 5));
 
                 $this->messageDispatch->dispatch(
-                    message: new CancelYaMarketOrdersScheduleMessage($profile),
+                    message: new DeliveryYaMarketOrdersScheduleMessage($profile),
                     stamps: [new MessageDelay(DateInterval::createFromDateString($delay))],
                     transport: (string) $profile,
                 );

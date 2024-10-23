@@ -60,7 +60,8 @@ final readonly class CancelYaMarketOrderStatusHandler
     public function handle(
         YandexMarketOrderDTO|YaMarketCancelOrderDTO $command,
         UserProfileUid $profile
-    ): Order|string|false {
+    ): Order|string|false
+    {
 
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')
@@ -150,7 +151,8 @@ final readonly class CancelYaMarketOrderStatusHandler
         if(
             $EditOrderDTO->getStatus()->equals(OrderStatusNew::class) === false &&
             $EditOrderDTO->getStatus()->equals(OrderStatusUnpaid::class) === false
-        ) {
+        )
+        {
             $OrderUserDTO = $EditOrderDTO->getUsr();
             $OrderDeliveryDTO = $OrderUserDTO?->getDelivery();
             $deliveryDate = $OrderDeliveryDTO->getDeliveryDate(); // дата доставки

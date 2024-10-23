@@ -91,6 +91,20 @@ final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
         return $this;
     }
 
+    public function withDelivery(): self
+    {
+        if($this->status !== false)
+        {
+            throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
+        }
+
+        // DELIVERED — заказ получен покупателем.
+        // DELIVERY — заказ передан в службу доставки. (в случае FBS)
+
+        $this->status = 'DELIVERY';
+        return $this;
+    }
+
     /**
      * Заказ отменен
      */
@@ -106,7 +120,7 @@ final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
     }
 
     /**
-     * Заказ получен покупателем
+     * Заказ передан в службу доставки
      */
     public function withCompleted(): self
     {
@@ -115,7 +129,7 @@ final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
             throw new InvalidArgumentException(sprintf('Статус уже указан %s', $this->status));
         }
 
-        $this->status = 'DELIVERED';
+        $this->status = 'DELIVERY';
         return $this;
     }
 

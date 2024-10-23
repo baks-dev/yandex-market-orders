@@ -51,17 +51,10 @@ final readonly class NewOrdersScheduleHandler
         {
             foreach($profiles as $profile)
             {
-                /** Получаем идентификатор пользователя */
-                $User = $this->userByUserProfile->forProfile($profile)->findUser();
-
-                if($User)
-                {
-                    $this->messageDispatch->dispatch(
-                        message: new NewYaMarketOrdersScheduleMessage($User->getId(), $profile),
-                        transport: (string) $profile,
-                    );
-                }
-
+                $this->messageDispatch->dispatch(
+                    message: new NewYaMarketOrdersScheduleMessage($profile),
+                    transport: (string) $profile,
+                );
             }
         }
     }

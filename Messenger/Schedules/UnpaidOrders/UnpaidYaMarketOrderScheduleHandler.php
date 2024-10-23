@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders;
 
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -46,13 +45,13 @@ final class UnpaidYaMarketOrderScheduleHandler
         private readonly UnpaidYaMarketOrderStatusHandler $unpaidYandexMarketHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         LoggerInterface $yandexMarketOrdersLogger,
-    ) {
+    )
+    {
         $this->logger = $yandexMarketOrdersLogger;
     }
 
     public function __invoke(UnpaidYaMarketOrdersScheduleMessage $message): void
     {
-
         /**
          * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
          */
@@ -72,20 +71,25 @@ final class UnpaidYaMarketOrderScheduleHandler
 
         $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
 
-        if($extra !== false)
+        if(false === $extra)
         {
-            foreach($extra as $company)
-            {
-                $orders = $this->yandexMarketUnpaidOrdersRequest
-                    ->setExtraCompany($company['company'])
-                    ->findAll();
-
-                if($orders->valid())
-                {
-                    $this->ordersUnpaid($orders, $message->getProfile());
-                }
-            }
+            return;
         }
+
+        foreach($extra as $company)
+        {
+            $orders = $this->yandexMarketUnpaidOrdersRequest
+                ->setExtraCompany($company['company'])
+                ->findAll();
+
+            if(false === $orders->valid())
+            {
+                continue;
+            }
+
+            $this->ordersUnpaid($orders, $message->getProfile());
+        }
+
     }
 
 

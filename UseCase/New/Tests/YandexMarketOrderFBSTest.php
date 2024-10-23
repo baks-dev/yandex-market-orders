@@ -26,24 +26,21 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\Tests;
 
 use BaksDev\Core\Cache\AppCacheInterface;
-use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Entity\Order;
-use BaksDev\Orders\Order\Type\Id\OrderUid;
 use BaksDev\Orders\Order\UseCase\Admin\Delete\Tests\DeleteOrderTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryYandexMarket;
-use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentYandex;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\OrderUserDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -134,9 +131,9 @@ class YandexMarketOrderFBSTest extends KernelTestCase
                 $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
                 $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем клиенту идентификатор тестового профиля
 
-                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileYandexMarket::TYPE));
-                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryYandexMarket::TYPE));
-                self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentYandex::TYPE));
+                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileFbsYandexMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryFbsYandexMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentFbsYandex::TYPE));
 
                 /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
                 $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);

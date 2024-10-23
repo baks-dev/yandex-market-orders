@@ -27,9 +27,6 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use DateInterval;
-use DateTimeImmutable;
-use DomainException;
 
 /**
  * Информация о заказе

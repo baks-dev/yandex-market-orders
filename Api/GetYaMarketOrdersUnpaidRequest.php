@@ -57,7 +57,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
         {
             // заказы за последние 5 минут (планировщик на каждую минуту)
             $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('30 minutes'));
 
             /** В 3 часа ночи получаем заказы за сутки */
             $currentHour = $dateTime->format('H');

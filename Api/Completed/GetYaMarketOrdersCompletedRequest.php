@@ -55,7 +55,7 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
         if(!$this->fromDate)
         {
             $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('15 minutes'));
+            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('30 minutes'));
         }
 
         $response = $this->TokenHttpClient()

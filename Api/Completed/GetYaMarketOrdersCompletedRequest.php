@@ -86,6 +86,12 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
+            /** Пропускаем, если доставка не FBS (Курьером YANDEX) */
+            if($order['delivery']["deliveryPartnerType"] !== 'YANDEX_MARKET')
+            {
+                continue;
+            }
+
             yield new YaMarketCompletedOrderDTO($order['id']);
         }
     }

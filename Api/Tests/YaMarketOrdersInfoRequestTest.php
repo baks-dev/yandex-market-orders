@@ -32,7 +32,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 /**
- * @group ya-market-orders-info-request
+ * @group yandex-market-orders
  */
 #[When(env: 'test')]
 class YaMarketOrdersInfoRequestTest extends KernelTestCase

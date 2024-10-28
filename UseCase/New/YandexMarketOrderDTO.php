@@ -96,7 +96,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     {
         /** Постоянная величина */
         $NewOrderInvariable = new Invariable\NewOrderInvariable();
-        $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate']));
+        $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate'] ?: 'now'));
         $NewOrderInvariable->setProfile($profile);
         $NewOrderInvariable->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
         $this->invariable = $NewOrderInvariable;
@@ -104,7 +104,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         /** @deprecated переносится в Invariable */
         $this->number = 'Y-'.$order['id']; // помечаем заказ префиксом Y
-        $this->created = new DateTimeImmutable($order['creationDate']);
+        $this->created = new DateTimeImmutable($order['creationDate'] ?: 'now');
 
 
         /** Определяем статус заказа */
@@ -125,7 +125,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
-        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
+        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate'] ?: 'now');
 
         $OrderDeliveryDTO = $this->usr->getDelivery();
         $OrderPaymentDTO = $this->usr->getPayment();

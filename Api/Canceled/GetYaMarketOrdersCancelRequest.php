@@ -29,7 +29,7 @@ use BaksDev\Yandex\Market\Api\YandexMarket;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
-use DomainException;
+use Generator;
 
 /**
  * Информация о заказах
@@ -50,7 +50,7 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function findAll(?DateInterval $interval = null)
+    public function findAll(?DateInterval $interval = null): Generator|false
     {
         if(!$this->fromDate)
         {
@@ -89,12 +89,10 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
             foreach($content['errors'] as $error)
             {
                 $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
+
             }
 
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
-            );
+            return false;
         }
 
         foreach($content['orders'] as $order)

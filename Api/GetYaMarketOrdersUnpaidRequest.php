@@ -30,7 +30,7 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
-use DomainException;
+use Generator;
 
 /**
  * Информация о заказах
@@ -51,7 +51,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function findAll(?DateInterval $interval = null)
+    public function findAll(?DateInterval $interval = null): Generator|false
     {
         if(!$this->fromDate)
         {
@@ -93,10 +93,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                 $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
             }
 
-            throw new DomainException(
-                message: 'Ошибка '.self::class,
-                code: $response->getStatusCode()
-            );
+            return false;
         }
 
         foreach($content['orders'] as $order)

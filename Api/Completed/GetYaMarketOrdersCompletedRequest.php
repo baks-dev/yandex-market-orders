@@ -50,7 +50,7 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
      */
-    public function findAll(?DateInterval $interval = null): Generator
+    public function findAll(?DateInterval $interval = null): Generator|false
     {
         if(!$this->fromDate)
         {

@@ -29,7 +29,8 @@ use BaksDev\Core\Deduplicator\Deduplicator;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
@@ -49,6 +50,7 @@ final readonly class CancelYaMarketOrderStatusHandler
         UserProfileUid $profile
     ): Order|string|false
     {
+
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')
             ->deduplication([
@@ -70,34 +72,27 @@ final readonly class CancelYaMarketOrderStatusHandler
         }
 
         /**
-         * Пропускаем, если заказ существует и его статус уже является CANCELED «Отменен» либо Completed «Выполнен»
+         * Отменяем Новый либо Неоплаченный заказ
          */
 
         if(
-            true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class) ||
-            true === $OrderEvent->isStatusEquals(OrderStatusCompleted::class)
+            true === $OrderEvent->isStatusEquals(OrderStatusNew::class) ||
+            true === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class)
         )
         {
-            $Deduplicator->save();
-            return false;
+            /** Делаем отмену заказа */
+
+            $EditOrderDTO = new EditOrderDTO();
+            $OrderEvent->getDto($EditOrderDTO);
+
+            $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
+            $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
+            $CancelYaMarketOrderStatusDTO->setComment('Отмена пользователем Yandex Market');
+
+            $handle = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
         }
 
-
-        /** Делаем отмену заказа */
-
-        $EditOrderDTO = new EditOrderDTO();
-        $OrderEvent->getDto($EditOrderDTO);
-
-        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
-        $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
-        $CancelYaMarketOrderStatusDTO->setComment('Отмена пользователем Yandex Market');
-
-        $handle = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
-
-        if($handle instanceof Order)
-        {
-            $Deduplicator->save();
-        }
+        $Deduplicator->save();
 
         return $handle;
     }

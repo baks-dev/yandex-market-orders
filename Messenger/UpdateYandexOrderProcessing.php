@@ -80,8 +80,6 @@ final class UpdateYandexOrderProcessing
             return;
         }
 
-        $this->logger->debug(self::class, [$message]);
-
         $OrderEvent = $this->orderEventRepository->find($message->getEvent());
 
         if(false === $OrderEvent)

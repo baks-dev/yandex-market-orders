@@ -53,7 +53,6 @@ final class DeliveryYaMarketOrderScheduleHandler
         $this->logger = $yandexMarketOrdersLogger;
     }
 
-
     /**
      * Получаем заказы в доставке и применяем статус Completed
      * (заказ считается доставленным, если передан в службу доставки)

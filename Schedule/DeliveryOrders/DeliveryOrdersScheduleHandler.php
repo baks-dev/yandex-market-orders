@@ -29,8 +29,6 @@ use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders\DeliveryYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
-use DateInterval;
-use Random\Randomizer;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -50,15 +48,11 @@ final readonly class DeliveryOrdersScheduleHandler
 
         if($profiles->valid())
         {
-            $Randomizer = new Randomizer();
-
             foreach($profiles as $profile)
             {
-                $delay = sprintf('%s seconds', $Randomizer->getInt(5, 30));
-
                 $this->messageDispatch->dispatch(
                     message: new DeliveryYaMarketOrdersScheduleMessage($profile),
-                    stamps: [new MessageDelay(DateInterval::createFromDateString($delay))],
+                    stamps: [new MessageDelay('5 seconds')],
                     transport: (string) $profile,
                 );
             }

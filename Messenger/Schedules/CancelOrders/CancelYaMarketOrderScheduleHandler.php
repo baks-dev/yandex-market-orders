@@ -53,7 +53,6 @@ final class CancelYaMarketOrderScheduleHandler
         $this->logger = $yandexMarketOrdersLogger;
     }
 
-
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
         /**
@@ -95,7 +94,6 @@ final class CancelYaMarketOrderScheduleHandler
         }
 
     }
-
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
     {

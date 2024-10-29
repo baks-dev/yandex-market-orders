@@ -30,7 +30,6 @@ use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders\UnpaidYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
-use DateInterval;
 use Random\Randomizer;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -55,11 +54,9 @@ final readonly class UnpaidOrdersScheduleHandler
 
             foreach($profiles as $profile)
             {
-                $delay = sprintf('%s seconds', $Randomizer->getInt(5, 30));
-
                 $this->messageDispatch->dispatch(
                     message: new UnpaidYaMarketOrdersScheduleMessage($profile),
-                    stamps: [new MessageDelay(DateInterval::createFromDateString($delay))],
+                    stamps: [new MessageDelay('5 seconds')],
                     transport: (string) $profile,
                 );
             }

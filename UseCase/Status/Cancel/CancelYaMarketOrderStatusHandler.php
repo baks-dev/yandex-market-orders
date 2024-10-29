@@ -25,10 +25,8 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel;
 
-use BaksDev\Core\Deduplicator\Deduplicator;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
@@ -42,7 +40,6 @@ final readonly class CancelYaMarketOrderStatusHandler
     public function __construct(
         private OrderStatusHandler $orderStatusHandler,
         private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
-        private Deduplicator $deduplicator,
     ) {}
 
     public function handle(
@@ -50,20 +47,6 @@ final readonly class CancelYaMarketOrderStatusHandler
         UserProfileUid $profile
     ): Order|string|false
     {
-
-        $Deduplicator = $this->deduplicator
-            ->namespace('orders-order')
-            ->deduplication([
-                $command->getNumber(),
-                OrderStatusCanceled::STATUS,
-                self::class
-            ]);
-
-        if($Deduplicator->isExecuted())
-        {
-            return false;
-        }
-
         $OrderEvent = $this->currentOrderEventByNumber->find($command->getNumber());
 
         if(false === $OrderEvent)
@@ -89,11 +72,9 @@ final readonly class CancelYaMarketOrderStatusHandler
             $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
             $CancelYaMarketOrderStatusDTO->setComment('Отмена пользователем Yandex Market');
 
-            $handle = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
+            return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
         }
 
-        $Deduplicator->save();
-
-        return $handle;
+        return false;
     }
 }

@@ -10,7 +10,7 @@
 # systemctl stop baks-yandex-market-orders@1.service
 
 [Unit]
-Description=Symfony messenger yandex-market-orders %i
+Description=yandex-market-orders
 StartLimitBurst=5
 StartLimitIntervalSec=0
 

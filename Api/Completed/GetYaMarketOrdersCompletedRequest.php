@@ -66,7 +66,7 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
                     [
                         'page' => $this->page,
                         'pageSize' => 50,
-                        'status' => 'DELIVERY',
+                        'status' => ['DELIVERY', 'DELIVERED'],
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
                     ]
                 ],

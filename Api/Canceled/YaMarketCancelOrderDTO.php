@@ -30,9 +30,30 @@ final readonly class YaMarketCancelOrderDTO
     /** Идентификатор заказа YandexMarket */
     private string $number;
 
-    public function __construct(string|int $number)
+    public string $comment;
+
+    public function __construct(string|int $number, string $substatus)
     {
         $this->number = 'Y-'.$number; // помечаем заказ префиксом Y
+
+        $this->comment = 'Yandex Seller: '.match ($substatus)
+            {
+                'DELIVERY_SERVICE_UNDELIVERED' => 'Служба доставки не смогла доставить заказ',
+                'REPLACING_ORDER' => 'Покупатель решил заменить товар другим по собственной инициативе',
+                'RESERVATION_EXPIRED' => 'Покупатель не завершил оформление зарезервированного заказа в течение 10 минут',
+                'RESERVATION_FAILED' => 'Маркет не может продолжить дальнейшую обработку заказа',
+                'SHOP_FAILED' => 'Магазин не может выполнить заказ',
+                'USER_CHANGED_MIND' => 'Покупатель отменил заказ по личным причинам',
+                'USER_NOT_PAID' => 'Покупатель не оплатил заказ в течение 30 минут',
+                'USER_REFUSED_DELIVERY' => 'Покупателя не устроили условия доставки',
+                'USER_REFUSED_PRODUCT' => 'Покупателю не подошел товар',
+                'USER_REFUSED_QUALITY' => 'Покупателя не устроило качество товара',
+                'USER_UNREACHABLE' => 'Не удалось связаться с покупателем',
+                'USER_WANTS_TO_CHANGE_DELIVERY_DATE' => 'Покупатель хочет получить заказ в другой день',
+                'CANCELLED_COURIER_NOT_FOUND' => 'Не удалось найти курьера',
+
+                default => 'Отмена Yandex Seller (неизвестная причина)',
+            };
     }
 
     /**
@@ -41,5 +62,13 @@ final readonly class YaMarketCancelOrderDTO
     public function getNumber(): string
     {
         return $this->number;
+    }
+
+    /**
+     * Comment
+     */
+    public function getComment(): string
+    {
+        return $this->comment;
     }
 }

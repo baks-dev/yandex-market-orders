@@ -70,7 +70,8 @@ final readonly class CancelYaMarketOrderStatusHandler
 
             $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
             $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
-            $CancelYaMarketOrderStatusDTO->setComment('Отмена пользователем Yandex Market');
+
+            $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
 
             return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
         }

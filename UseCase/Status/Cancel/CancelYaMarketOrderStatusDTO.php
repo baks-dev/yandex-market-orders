@@ -39,19 +39,18 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     /** Идентификатор события */
     #[Assert\NotBlank]
     #[Assert\Uuid]
-    private OrderEventUid $id;
-
-    /** Постоянная величина */
-    //#[Assert\Valid]
-    //private readonly Invariable\CancelOrderInvariable $invariable;
+    private readonly OrderEventUid $id;
 
     /** Ответственный */
     #[Assert\NotBlank]
     private readonly UserProfileUid $profile;
 
+    /** Выделить заказ */
+    private readonly bool $danger;
+
     /** Статус заказа */
     #[Assert\NotBlank]
-    private readonly OrderStatus $status;
+    private OrderStatus $status;
 
     /** Комментарий к заказу */
     #[Assert\NotBlank]
@@ -60,7 +59,6 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
 
     public function __construct(UserProfile|UserProfileUid|string $profile)
     {
-
         if(is_string($profile))
         {
             $profile = new UserProfileUid($profile);
@@ -73,18 +71,22 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
 
         $this->profile = $profile;
 
-
-        //$this->invariable = new Invariable\CancelOrderInvariable();
-        //$this->invariable->setProfile($profile);
-
-        $this->status = new OrderStatus(OrderStatusCanceled::class);
-
+        $this->danger = true;
     }
+
 
     /** Идентификатор события */
     public function getEvent(): OrderEventUid
     {
         return $this->id;
+    }
+
+    /**
+     * Danger
+     */
+    public function getDanger(): bool
+    {
+        return $this->danger;
     }
 
     /**
@@ -95,18 +97,19 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
         return $this->status;
     }
 
+    /**
+     * Статус «Отмена» меняется в случае, если заказ «Новый» либо «Не оплаченный»
+     * В остальных случаях отмена только в ручную, для этого заказ выделяется и обновляется комментарий
+     */
+    public function cancelOrder(): void
+    {
+        $this->status = new OrderStatus(OrderStatusCanceled::class);
+    }
+
     /** Профиль пользователя при неоплаченном статусе - NULL */
     public function getProfile(): UserProfileUid
     {
         return $this->profile;
-    }
-
-    /**
-     * Invariable
-     */
-    public function getInvariable(): Invariable\CancelOrderInvariable
-    {
-        return $this->invariable;
     }
 
     /**
@@ -122,4 +125,6 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
         $this->comment = $comment;
         return $this;
     }
+
+
 }

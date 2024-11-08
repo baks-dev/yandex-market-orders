@@ -52,7 +52,7 @@ final readonly class YaMarketCancelOrderDTO
                 'USER_WANTS_TO_CHANGE_DELIVERY_DATE' => 'Покупатель хочет получить заказ в другой день',
                 'CANCELLED_COURIER_NOT_FOUND' => 'Не удалось найти курьера',
 
-                default => 'Отмена Yandex Seller (неизвестная причина)',
+                default => sprintf('неизвестная причина (%s)', $substatus),
             };
     }
 

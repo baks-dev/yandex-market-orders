@@ -92,7 +92,6 @@ final class CancelYaMarketOrderScheduleHandler
 
             $this->ordersCancel($orders, $message->getProfile());
         }
-
     }
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void

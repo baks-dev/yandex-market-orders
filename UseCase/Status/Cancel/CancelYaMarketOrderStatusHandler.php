@@ -27,6 +27,8 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel;
 
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCanceled;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
@@ -54,8 +56,29 @@ final readonly class CancelYaMarketOrderStatusHandler
             return 'Заказа для отмены не найдено';
         }
 
+        $EditOrderDTO = new EditOrderDTO();
+        $OrderEvent->getDto($EditOrderDTO);
+
+        if(
+            true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class) ||
+            true === $OrderEvent->isStatusEquals(OrderStatusCompleted::class)
+        )
+        {
+            return false;
+        }
+
+
         /**
-         * Отменяем Новый либо Неоплаченный заказ
+         * Делаем отмену заказа
+         */
+
+        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
+        $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
+
+        $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
+
+        /**
+         * Автоматически отменяем «Новый» либо «Не оплаченный» заказ
          */
 
         if(
@@ -63,19 +86,9 @@ final readonly class CancelYaMarketOrderStatusHandler
             true === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class)
         )
         {
-            /** Делаем отмену заказа */
-
-            $EditOrderDTO = new EditOrderDTO();
-            $OrderEvent->getDto($EditOrderDTO);
-
-            $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
-            $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
-
-            $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
-
-            return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO);
+            $CancelYaMarketOrderStatusDTO->cancelOrder();
         }
 
-        return false;
+        return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
     }
 }

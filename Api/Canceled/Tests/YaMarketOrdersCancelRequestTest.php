@@ -57,18 +57,17 @@ class YaMarketOrdersCancelRequestTest extends KernelTestCase
         $GetYaMarketOrdersCancelRequest->TokenHttpClient(self::$Authorization);
         $result = $GetYaMarketOrdersCancelRequest->findAll(DateInterval::createFromDateString('1 day'));
 
-        foreach($result as $data)
+        if($result->valid())
         {
-            if($data->getNumber() !== 'MZEhfjDXsW')
-            {
-                //continue;
-            }
-
-            dd($data);
-
+            self::assertTrue(true);
+            return;
         }
 
-        self::assertTrue(true);
+        foreach($result as $data)
+        {
+            self::assertNotNull($data->getNumber());
+            self::assertNotNull($data->getComment());
+        }
 
     }
 

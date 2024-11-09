@@ -53,9 +53,7 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     private OrderStatus $status;
 
     /** Комментарий к заказу */
-    #[Assert\NotBlank]
     private ?string $comment;
-
 
     public function __construct(UserProfile|UserProfileUid|string $profile)
     {

@@ -203,16 +203,16 @@ final class YandexMarketOrderDTO implements OrderEventInterface
             $OrderProfileDTO?->setType($Profile);
 
             /** Доставка - Самовывоз */
-            if($order['delivery']['type'] === 'PICKUP')
-            {
-                /** Способ доставки Самовывоз */
-                $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
-            }
-            else
-            {
-                /** Способ доставки Магазином (DBS Yandex Market) */
-                $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
-            }
+            //if($order['delivery']['type'] === 'PICKUP')
+            //{
+            //    /** Способ доставки Самовывоз */
+            //    $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
+            //}
+            //else
+            //{
+            /** Способ доставки Магазином (DBS Yandex Market) */
+            $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
+            //}
 
             $OrderDeliveryDTO->setDelivery($Delivery);
 
@@ -226,6 +226,27 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $this->buyer = empty($buyer) ? null : $buyer;
 
         $deliveryComment = [];
+
+
+        if(isset($order['delivery']['dispatchType']))
+        {
+            /**
+             * SHOP_OUTLET - доставка в пункт выдачи заказов магазина.
+             * Способ доставки Самовывоз
+             */
+            if($order['dispatchType'] === 'SHOP_OUTLET')
+            {
+                $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
+                $OrderDeliveryDTO->setDelivery($Delivery);
+            }
+
+            if($order['dispatchType'] === 'MARKET_BRANDED_OUTLET')
+            {
+                $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
+            }
+        }
+
+
 
         foreach($address as $key => $data)
         {

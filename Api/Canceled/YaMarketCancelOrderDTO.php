@@ -52,6 +52,9 @@ final readonly class YaMarketCancelOrderDTO
                 'USER_WANTS_TO_CHANGE_DELIVERY_DATE' => 'Покупатель хочет получить заказ в другой день',
                 'CANCELLED_COURIER_NOT_FOUND' => 'Не удалось найти курьера',
 
+                'USER_BOUGHT_CHEAPER' => 'Покупатель нашел дешевле',
+                'USER_WANTED_ANOTHER_PAYMENT_METHOD' => 'Покупатель выбрал другой способ оплаты',
+
                 default => sprintf('неизвестная причина (%s)', $substatus),
             };
     }

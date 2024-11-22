@@ -27,10 +27,8 @@ namespace BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders;
 
 use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders\UnpaidYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
-use Random\Randomizer;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -50,8 +48,6 @@ final readonly class UnpaidOrdersScheduleHandler
 
         if($profiles->valid())
         {
-            $Randomizer = new Randomizer();
-
             foreach($profiles as $profile)
             {
                 $this->messageDispatch->dispatch(

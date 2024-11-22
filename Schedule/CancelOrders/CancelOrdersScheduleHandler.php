@@ -52,7 +52,7 @@ final readonly class CancelOrdersScheduleHandler
             {
                 $this->messageDispatch->dispatch(
                     message: new CancelYaMarketOrdersScheduleMessage($profile),
-                    stamps: [new MessageDelay('5 seconds')],
+                    stamps: [new MessageDelay('15 seconds')],
                     transport: (string) $profile,
                 );
             }

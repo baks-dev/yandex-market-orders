@@ -25,7 +25,7 @@ namespace BaksDev\Yandex\Market\Orders\Repository\ProductStocksByOrder;
 
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Type\Id\OrderUid;
-use BaksDev\Products\Stocks\Entity\Event\ProductStockEvent;
+use BaksDev\Products\Stocks\Entity\Stock\Event\ProductStockEvent;
 
 interface ProductStocksCompleteByOrderInterface
 {

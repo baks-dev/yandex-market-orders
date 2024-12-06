@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\DeliveryOrders;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
-use BaksDev\Products\Stocks\Entity\ProductStock;
+use BaksDev\Products\Stocks\Entity\Stock\ProductStock;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Completed\GetYaMarketOrdersCompletedRequest;
 use BaksDev\Yandex\Market\Orders\Api\Completed\YaMarketCompletedOrderDTO;

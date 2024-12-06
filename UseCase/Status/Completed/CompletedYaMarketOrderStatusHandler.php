@@ -27,7 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Completed;
 
 use BaksDev\DeliveryTransport\UseCase\Admin\Package\Completed\CompletedProductStockDTO;
 use BaksDev\DeliveryTransport\UseCase\Admin\Package\Completed\CompletedProductStockHandler;
-use BaksDev\Products\Stocks\Entity\ProductStock;
+use BaksDev\Products\Stocks\Entity\Stock\ProductStock;
 use BaksDev\Products\Stocks\Repository\ProductStockByNumber\ProductStockByNumberInterface;
 use BaksDev\Products\Stocks\Type\Status\ProductStockStatus\ProductStockStatusCompleted;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;

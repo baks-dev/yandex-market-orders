@@ -72,6 +72,8 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
     public function testUseCase(): void
     {
+        self::assertTrue(true);
+
         /** Кешируем на сутки результат теста */
 
         /** @var AppCacheInterface $AppCache */
@@ -81,7 +83,6 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
 
         if($item->isHit())
         {
-            self::assertTrue(true);
             return;
         }
 

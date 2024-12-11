@@ -125,12 +125,23 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
-        $deliveryDate = new DateTimeImmutable($shipments['shipmentDate'] ?: 'now');
+
+        $deliveryDate = false;
+
+        if(isset($shipments['shipmentDate']))
+        {
+            $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
+        }
+
+        if(false === $deliveryDate && isset($order['expiryDate']))
+        {
+            $deliveryDate = new DateTimeImmutable($order['expiryDate']);
+        }
+
 
         $OrderDeliveryDTO = $this->usr->getDelivery();
         $OrderPaymentDTO = $this->usr->getPayment();
         $OrderProfileDTO = $this->usr->getUserProfile();
-
 
         $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
 
@@ -245,7 +256,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
                 $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
             }
         }
-
 
 
         foreach($address as $key => $data)

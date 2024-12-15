@@ -73,6 +73,8 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
     public function testUseCase(): void
     {
 
+        self::assertTrue(true);
+
         /** Кешируем на сутки результат теста */
 
         /** @var AppCacheInterface $AppCache */
@@ -82,7 +84,6 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 
         if($item->isHit())
         {
-            self::assertTrue(true);
             return;
         }
 
@@ -161,18 +162,14 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
                 return;
             }
 
-            echo PHP_EOL.'Не найдено продукции для теста '.self::class.':'.__LINE__.PHP_EOL;
-
+            foreach($YandexMarketOrderDTO->getProduct() as $product)
+            {
+                echo PHP_EOL.sprintf('Не найдено продукции %s для теста ', $product->getArticle()).self::class.':'.__LINE__.PHP_EOL;
+            }
         }
         else
         {
             self::assertFalse($response->valid());
         }
-    }
-
-    private static function convert($size)
-    {
-        $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
-        return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2).' '.$unit[$i];
     }
 }

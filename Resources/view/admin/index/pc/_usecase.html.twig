@@ -34,50 +34,6 @@ value="{{ item.event }}">
     <ul class="leader list-group list-group-flush ">
 
 
-        {# {% if constant('BaksDev\\Manufacture\\Part\\Entity\\ManufacturePart::TABLE') is defined and (is_granted('ROLE_MANUFACTURE_PART_NEW') or is_granted('ROLE_ADMIN')) %}
-
-			<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-        #}{# <a href="{{ path('users-table:admin.action.delete', { id: item.event }) }}"
-				   class="text-decoration-none text-dark w-100 modal-link disabled"
-				   data-bs-toggle="modal"
-				   data-bs-target="#modal"
-				   title="{{ 'btn.delete'|trans({}, 'core.btn') }}">
-					Добавить партию производства
-				</a> #}{#
-        <a href=" #}{# {{ path('manufacture-part:admin.newedit.new', {
-					product: item.event,
-					offer: item.product_offer_id,
-					variation: item.product_variation_id,
-					modification: item.product_modification_id
-				}) }} #}{# "
-				   class="text-decoration-none text-dark w-100 modal-link disabled"
-				   title="Добавить партию производства"
-				   data-bs-toggle="modal"
-				   data-bs-target="#modal"
-				>
-					Добавить партию производства
-				</a>
-			</li>
-
-		{% endif %} #}
-
-
-        {# Редактировать #}
-        {# {% if  is_granted(ROLE~'_EDIT') or is_granted('ROLE_ADMIN') %}
-			
-			<li class="list-group-item d-flex justify-content-between bg-transparent border-0 text-truncate rounded-5">
-				<a href="{{ path('products-product:admin.newedit.edit', {id: item.event }) }}"
-						class="text-decoration-none text-dark w-100"
-						title="{{ 'btn.edit'|trans({}, 'core.btn') }}">
-					{{ 'btn.edit'|trans({}, 'core.btn') }}
-				</a>
-			</li>
-			
-		{% endif %} #}
-
-
-
-
         {# Удалить #}
         {% if  is_granted(ROLE~'_DELETE') or is_granted('ROLE_ADMIN') %}
 

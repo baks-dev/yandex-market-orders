@@ -31,7 +31,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('baks.users.profile.type')]
 final class TypeProfileFbsYandexMarket implements TypeProfileInterface
 {
-    public const TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
+    public const string TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
     public function __toString(): string
     {

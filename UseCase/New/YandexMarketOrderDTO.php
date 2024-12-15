@@ -245,13 +245,16 @@ final class YandexMarketOrderDTO implements OrderEventInterface
              * SHOP_OUTLET - доставка в пункт выдачи заказов магазина.
              * Способ доставки Самовывоз
              */
-            if($order['dispatchType'] === 'SHOP_OUTLET')
+            if($order['delivery']['dispatchType'] === 'SHOP_OUTLET')
             {
                 $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
                 $OrderDeliveryDTO->setDelivery($Delivery);
+
+                $deliveryComment[] = 'Самовывоз';
+
             }
 
-            if($order['dispatchType'] === 'MARKET_BRANDED_OUTLET')
+            if($order['delivery']['dispatchType'] === 'MARKET_BRANDED_OUTLET')
             {
                 $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
             }
@@ -356,7 +359,10 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     }
 
 
-    /** Коллекция продукции в заказе */
+    /**
+     * Коллекция продукции в заказе
+     * @return ArrayCollection<Products\NewOrderProductDTO>
+     */
 
     public function getProduct(): ArrayCollection
     {

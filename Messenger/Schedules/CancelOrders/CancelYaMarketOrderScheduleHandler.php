@@ -55,6 +55,20 @@ final class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
+        $Deduplicator = $this->deduplicator
+            ->namespace('yandex-market-orders')
+            ->deduplication([
+                self::class,
+                $message->getProfile(),
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            return;
+        }
+
+        $Deduplicator->save();
+
         /**
          * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
          */
@@ -76,6 +90,7 @@ final class CancelYaMarketOrderScheduleHandler
 
         if(false === $extra)
         {
+            $Deduplicator->delete();
             return;
         }
 
@@ -92,6 +107,8 @@ final class CancelYaMarketOrderScheduleHandler
 
             $this->ordersCancel($orders, $message->getProfile());
         }
+
+        $Deduplicator->delete();
     }
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void

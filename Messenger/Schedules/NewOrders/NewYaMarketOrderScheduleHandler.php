@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders;
 
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -43,6 +44,7 @@ final class NewYaMarketOrderScheduleHandler
         private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $yandexMarketOrdersLogger,
     )
     {
@@ -51,6 +53,20 @@ final class NewYaMarketOrderScheduleHandler
 
     public function __invoke(NewYaMarketOrdersScheduleMessage $message): void
     {
+        $Deduplicator = $this->deduplicator
+            ->namespace('yandex-market-orders')
+            ->deduplication([
+                self::class,
+                $message->getProfile(),
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            return;
+        }
+
+        $Deduplicator->save();
+
         /**
          * Получаем список НОВЫХ сборочных заданий по основному идентификатору компании
          */
@@ -72,6 +88,7 @@ final class NewYaMarketOrderScheduleHandler
 
         if(false === $extra)
         {
+            $Deduplicator->delete();
             return;
         }
 
@@ -89,6 +106,7 @@ final class NewYaMarketOrderScheduleHandler
             $this->ordersCreate($orders);
         }
 
+        $Deduplicator->delete();
     }
 
     private function ordersCreate(Generator $orders): void

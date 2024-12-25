@@ -33,30 +33,15 @@ final class NewYaMarketOrdersScheduleMessage
     /**
      * Идентификатор профиля
      */
-    private UserProfileUid $profile;
+    private string $profile;
 
     public function __construct(UserProfile|UserProfileUid|string $profile)
     {
-
-        if($profile instanceof UserProfile)
-        {
-            $profile = $profile->getId();
-        }
-
-        if(is_string($profile))
-        {
-            $profile = new UserProfileUid($profile);
-        }
-
-        $this->profile = $profile;
+        $this->profile = (string) $profile;
     }
 
-    /**
-     * Profile
-     */
     public function getProfile(): UserProfileUid
     {
-        return $this->profile;
+        return new UserProfileUid($this->profile);
     }
-
 }

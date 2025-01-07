@@ -73,7 +73,7 @@ class GetYaMarketOrdersCompletedRequestTest extends KernelTestCase
         /** @var YaMarketCompletedOrderDTO $YaMarketCompletedOrderDTO */
         foreach($orders as $YaMarketCompletedOrderDTO)
         {
-            dump($YaMarketCompletedOrderDTO->getNumber());
+            echo PHP_EOL.$YaMarketCompletedOrderDTO->getNumber().PHP_EOL;
         }
 
     }

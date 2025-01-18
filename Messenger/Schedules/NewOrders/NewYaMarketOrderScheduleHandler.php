@@ -55,6 +55,7 @@ final class NewYaMarketOrderScheduleHandler
     {
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
+            ->expiresAfter('1 minute')
             ->deduplication([
                 self::class,
                 $message->getProfile(),
@@ -62,11 +63,9 @@ final class NewYaMarketOrderScheduleHandler
 
         if($Deduplicator->isExecuted())
         {
-            $this->logger->debug(sprintf('Пропускаем новые заказы профиля %s', $message->getProfile()));
             return;
         }
 
-        $this->logger->debug(sprintf('Получаем НОВЫЕ заказы профиля %s', $message->getProfile()));
         $Deduplicator->save();
 
         /**
@@ -88,24 +87,21 @@ final class NewYaMarketOrderScheduleHandler
 
         $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
 
-        if(false === $extra)
+        if(false !== $extra)
         {
-            $Deduplicator->delete();
-            return;
-        }
-
-        foreach($extra as $company)
-        {
-            $orders = $this->yandexMarketNewOrdersRequest
-                ->setExtraCompany($company['company'])
-                ->findAll();
-
-            if(false === $orders->valid())
+            foreach($extra as $company)
             {
-                continue;
-            }
+                $orders = $this->yandexMarketNewOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
 
-            $this->ordersCreate($orders);
+                if(false === $orders->valid())
+                {
+                    continue;
+                }
+
+                $this->ordersCreate($orders);
+            }
         }
 
         $Deduplicator->delete();
@@ -113,17 +109,33 @@ final class NewYaMarketOrderScheduleHandler
 
     private function ordersCreate(Generator $orders): void
     {
-        /** @var YandexMarketOrderDTO $order */
-        foreach($orders as $order)
+        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+        foreach($orders as $YandexMarketOrderDTO)
         {
-            $handle = $this->yandexMarketOrderHandler->handle($order);
+            /** Индекс дедубдикации по номеру заказа */
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter('1 day')
+                ->deduplication([
+                    $YandexMarketOrderDTO->getNumber(),
+                    self::class
+                ]);
+
+            if($Deduplicator->isExecuted())
+            {
+                continue;
+            }
+
+            $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
 
             if($handle instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Добавили новый заказ %s', $order->getNumber()),
+                    sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()),
                     [self::class.':'.__LINE__]
                 );
+
+                $Deduplicator->save();
             }
         }
     }

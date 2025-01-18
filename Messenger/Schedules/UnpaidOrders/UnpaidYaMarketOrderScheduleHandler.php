@@ -56,6 +56,7 @@ final class UnpaidYaMarketOrderScheduleHandler
     {
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
+            ->expiresAfter('1 minute')
             ->deduplication([
                 self::class,
                 $message->getProfile(),
@@ -63,13 +64,10 @@ final class UnpaidYaMarketOrderScheduleHandler
 
         if($Deduplicator->isExecuted())
         {
-            $this->logger->debug(sprintf('Пропускаем неоплаченные заказы профиля %s', $message->getProfile()));
             return;
         }
 
-        $this->logger->debug(sprintf('Получаем НЕОПЛАЧЕННЫЕ заказы профиля %s', $message->getProfile()));
         $Deduplicator->save();
-
 
         /**
          * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
@@ -89,49 +87,61 @@ final class UnpaidYaMarketOrderScheduleHandler
 
         $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
 
-        if(false === $extra)
+        if(false !== $extra)
         {
-            $Deduplicator->delete();
-            return;
-        }
-
-        foreach($extra as $company)
-        {
-            $orders = $this->yandexMarketUnpaidOrdersRequest
-                ->setExtraCompany($company['company'])
-                ->findAll();
-
-            if(false === $orders->valid())
+            foreach($extra as $company)
             {
-                continue;
-            }
+                $orders = $this->yandexMarketUnpaidOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
 
-            $this->ordersUnpaid($orders, $message->getProfile());
+                if(false === $orders->valid())
+                {
+                    continue;
+                }
+
+                $this->ordersUnpaid($orders, $message->getProfile());
+            }
         }
 
         $Deduplicator->delete();
     }
 
-
     private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
     {
         /** @var YandexMarketOrderDTO $order */
-        foreach($orders as $order)
+        foreach($orders as $YandexMarketOrderDTO)
         {
-            $order->resetProfile($profile);
+            /** Индекс дедубдикации по номеру заказа */
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter('1 day')
+                ->deduplication([
+                    $YandexMarketOrderDTO->getNumber(),
+                    self::class
+                ]);
 
-            $handle = $this->unpaidYandexMarketHandler->handle($order);
+            if($Deduplicator->isExecuted())
+            {
+                continue;
+            }
+
+            $YandexMarketOrderDTO->resetProfile($profile);
+
+            $handle = $this->unpaidYandexMarketHandler->handle($YandexMarketOrderDTO);
 
             if($handle instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Создали неоплаченный заказ %s', $order->getNumber()),
+                    sprintf('Создали неоплаченный заказ %s', $YandexMarketOrderDTO->getNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
                         'profile' => (string) $profile,
                     ]
                 );
+
+                $Deduplicator->save();
             }
         }
     }

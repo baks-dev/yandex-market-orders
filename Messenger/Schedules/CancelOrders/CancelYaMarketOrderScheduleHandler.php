@@ -32,7 +32,6 @@ use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
-use DateInterval;
 use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -55,10 +54,9 @@ final class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
-
-
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
+            ->expiresAfter('1 minute')
             ->deduplication([
                 self::class,
                 $message->getProfile(),
@@ -66,11 +64,9 @@ final class CancelYaMarketOrderScheduleHandler
 
         if($Deduplicator->isExecuted())
         {
-            $this->logger->debug('Пропускаем отмененные заказы ...');
             return;
         }
 
-        $this->logger->debug(sprintf('Получаем ОТМЕНЕННЫЕ заказы профиля %s', $message->getProfile()));
         $Deduplicator->save();
 
         /**
@@ -92,24 +88,21 @@ final class CancelYaMarketOrderScheduleHandler
 
         $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
 
-        if(false === $extra)
+        if(false !== $extra)
         {
-            $Deduplicator->delete();
-            return;
-        }
-
-        foreach($extra as $company)
-        {
-            $orders = $this->yandexMarketCancelOrdersRequest
-                ->setExtraCompany($company['company'])
-                ->findAll();
-
-            if(false === $orders->valid())
+            foreach($extra as $company)
             {
-                continue;
-            }
+                $orders = $this->yandexMarketCancelOrdersRequest
+                    ->setExtraCompany($company['company'])
+                    ->findAll();
 
-            $this->ordersCancel($orders, $message->getProfile());
+                if(false === $orders->valid())
+                {
+                    continue;
+                }
+
+                $this->ordersCancel($orders, $message->getProfile());
+            }
         }
 
         $Deduplicator->delete();
@@ -123,7 +116,7 @@ final class CancelYaMarketOrderScheduleHandler
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
-                ->expiresAfter(DateInterval::createFromDateString('1 day'))
+                ->expiresAfter('1 day')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
                     self::class
@@ -147,6 +140,8 @@ final class CancelYaMarketOrderScheduleHandler
                     ]
                 );
 
+                $Deduplicator->save();
+
                 continue;
             }
 
@@ -162,7 +157,7 @@ final class CancelYaMarketOrderScheduleHandler
                 );
             }
 
-            $Deduplicator->save();
+
         }
     }
 }

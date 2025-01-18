@@ -54,6 +54,7 @@ final readonly class YaMarketCancelOrderDTO
 
                 'USER_BOUGHT_CHEAPER' => 'Покупатель нашел дешевле',
                 'USER_WANTED_ANOTHER_PAYMENT_METHOD' => 'Покупатель выбрал другой способ оплаты',
+                'USER_WANTS_TO_CHANGE_ADDRESS' => 'Пользователь пожелал изменить адрес доставки',
 
                 default => sprintf('неизвестная причина (%s)', $substatus),
             };

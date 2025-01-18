@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders;
 
+use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
@@ -44,6 +45,7 @@ final class UnpaidYaMarketOrderScheduleHandler
         private readonly GetYaMarketOrdersUnpaidRequest $yandexMarketUnpaidOrdersRequest,
         private readonly UnpaidYaMarketOrderStatusHandler $unpaidYandexMarketHandler,
         private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private readonly DeduplicatorInterface $deduplicator,
         LoggerInterface $yandexMarketOrdersLogger,
     )
     {
@@ -52,6 +54,23 @@ final class UnpaidYaMarketOrderScheduleHandler
 
     public function __invoke(UnpaidYaMarketOrdersScheduleMessage $message): void
     {
+        $Deduplicator = $this->deduplicator
+            ->namespace('yandex-market-orders')
+            ->deduplication([
+                self::class,
+                $message->getProfile(),
+            ]);
+
+        if($Deduplicator->isExecuted())
+        {
+            $this->logger->debug(sprintf('Пропускаем неоплаченные заказы профиля %s', $message->getProfile()));
+            return;
+        }
+
+        $this->logger->debug(sprintf('Получаем НЕОПЛАЧЕННЫЕ заказы профиля %s', $message->getProfile()));
+        $Deduplicator->save();
+
+
         /**
          * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
          */
@@ -62,7 +81,6 @@ final class UnpaidYaMarketOrderScheduleHandler
         if($orders->valid())
         {
             $this->ordersUnpaid($orders, $message->getProfile());
-
         }
 
         /**
@@ -73,6 +91,7 @@ final class UnpaidYaMarketOrderScheduleHandler
 
         if(false === $extra)
         {
+            $Deduplicator->delete();
             return;
         }
 
@@ -90,6 +109,7 @@ final class UnpaidYaMarketOrderScheduleHandler
             $this->ordersUnpaid($orders, $message->getProfile());
         }
 
+        $Deduplicator->delete();
     }
 
 

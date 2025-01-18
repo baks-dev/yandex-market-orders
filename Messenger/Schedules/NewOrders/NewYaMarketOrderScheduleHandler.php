@@ -62,9 +62,11 @@ final class NewYaMarketOrderScheduleHandler
 
         if($Deduplicator->isExecuted())
         {
+            $this->logger->debug(sprintf('Пропускаем новые заказы профиля %s', $message->getProfile()));
             return;
         }
 
+        $this->logger->debug(sprintf('Получаем НОВЫЕ заказы профиля %s', $message->getProfile()));
         $Deduplicator->save();
 
         /**

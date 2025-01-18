@@ -55,6 +55,8 @@ final class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
+
+
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
             ->deduplication([
@@ -64,9 +66,11 @@ final class CancelYaMarketOrderScheduleHandler
 
         if($Deduplicator->isExecuted())
         {
+            $this->logger->debug('Пропускаем отмененные заказы ...');
             return;
         }
 
+        $this->logger->debug(sprintf('Получаем ОТМЕНЕННЫЕ заказы профиля %s', $message->getProfile()));
         $Deduplicator->save();
 
         /**

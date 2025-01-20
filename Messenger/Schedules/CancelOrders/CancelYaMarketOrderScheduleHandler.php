@@ -34,23 +34,19 @@ use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatus
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Generator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class CancelYaMarketOrderScheduleHandler
+final readonly class CancelYaMarketOrderScheduleHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
-        private readonly GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
-        private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
-        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
-        private readonly DeduplicatorInterface $deduplicator,
-        LoggerInterface $yandexMarketOrdersLogger,
-    )
-    {
-        $this->logger = $yandexMarketOrdersLogger;
-    }
+        #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
+        private GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
+        private CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private DeduplicatorInterface $deduplicator,
+    ) {}
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {

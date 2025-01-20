@@ -35,25 +35,21 @@ use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler(priority: 0)]
-final class UpdateYandexOrderProcessing
+final readonly class UpdateYandexOrderProcessing
 {
-    private LoggerInterface $logger;
-
     public function __construct(
-        #[Autowire(env: 'APP_ENV')] private readonly string $environment,
-        private readonly DeduplicatorInterface $deduplicator,
-        private readonly GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
-        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
-        private readonly OrderEventInterface $orderEventRepository,
-        private readonly UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
-        LoggerInterface $ordersOrderLogger,
-    )
-    {
-        $this->logger = $ordersOrderLogger;
-    }
+        #[Autowire(env: 'APP_ENV')] private string $environment,
+        #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
+        private DeduplicatorInterface $deduplicator,
+        private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
+        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private OrderEventInterface $orderEventRepository,
+        private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
+    ) {}
 
     /**
      * Изменение статуса одного заказа YandexMarket

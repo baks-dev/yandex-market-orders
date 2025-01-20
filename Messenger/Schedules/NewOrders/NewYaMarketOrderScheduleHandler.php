@@ -33,23 +33,19 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Generator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
-final class NewYaMarketOrderScheduleHandler
+final readonly class NewYaMarketOrderScheduleHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
-        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
-        private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
-        private readonly YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
-        private readonly DeduplicatorInterface $deduplicator,
-        LoggerInterface $yandexMarketOrdersLogger,
-    )
-    {
-        $this->logger = $yandexMarketOrdersLogger;
-    }
+        #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
+        private GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
+        private YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private DeduplicatorInterface $deduplicator,
+    ) {}
 
     public function __invoke(NewYaMarketOrdersScheduleMessage $message): void
     {

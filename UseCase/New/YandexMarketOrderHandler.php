@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
-use App\Kernel;
 use BaksDev\Contacts\Region\Repository\PickupByGeolocation\PickupByGeolocationInterface;
 use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
@@ -57,11 +56,6 @@ use InvalidArgumentException;
 final class YandexMarketOrderHandler extends AbstractHandler
 {
     public function __construct(
-        EntityManagerInterface $entityManager,
-        MessageDispatchInterface $messageDispatch,
-        ValidatorCollectionInterface $validatorCollection,
-        ImageUploadInterface $imageUpload,
-        FileUploadInterface $fileUpload,
         private readonly UserProfileHandler $profileHandler,
         private readonly ProductConstByArticleInterface $productConstByArticle,
         private readonly FieldByDeliveryChoiceInterface $deliveryFields,
@@ -72,6 +66,12 @@ final class YandexMarketOrderHandler extends AbstractHandler
         private readonly ToggleUnpaidToNewYaMarketOrderHandler $newYaMarketOrderStatusHandler,
         private readonly UserByUserProfileInterface $userByUserProfile,
         private readonly PickupByGeolocationInterface $pickupByGeolocation,
+
+        EntityManagerInterface $entityManager,
+        MessageDispatchInterface $messageDispatch,
+        ValidatorCollectionInterface $validatorCollection,
+        ImageUploadInterface $imageUpload,
+        FileUploadInterface $fileUpload,
     )
     {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);

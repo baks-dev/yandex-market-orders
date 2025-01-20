@@ -29,6 +29,7 @@ use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
+use Generator;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
@@ -57,18 +58,16 @@ class YaMarketOrdersCancelRequestTest extends KernelTestCase
         $GetYaMarketOrdersCancelRequest->TokenHttpClient(self::$Authorization);
         $result = $GetYaMarketOrdersCancelRequest->findAll(DateInterval::createFromDateString('1 day'));
 
-        if($result->valid())
+        if($result instanceof Generator)
         {
-            self::assertTrue(true);
-            return;
+            foreach($result as $data)
+            {
+                self::assertNotNull($data->getNumber());
+                self::assertNotNull($data->getComment());
+            }
         }
 
-        foreach($result as $data)
-        {
-            self::assertNotNull($data->getNumber());
-            self::assertNotNull($data->getComment());
-        }
-
+        self::assertTrue(true);
     }
 
 }

@@ -35,22 +35,19 @@ use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserPro
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 
-final class UnpaidYaMarketOrderStatusHandler
+final readonly class UnpaidYaMarketOrderStatusHandler
 {
-    private LoggerInterface $logger;
-
     public function __construct(
-        private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
-        private readonly CurrentOrderEventInterface $currentOrderEvent,
-        private readonly UserByUserProfileInterface $userByUserProfile,
-        private readonly OrderStatusHandler $orderStatusHandler,
-        private readonly ExistsOrderNumberInterface $existsOrderNumber,
-        LoggerInterface $yandexMarketOrdersLogger
-    )
-    {
-        $this->logger = $yandexMarketOrdersLogger;
-    }
+        #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
+        private YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private CurrentOrderEventInterface $currentOrderEvent,
+        private UserByUserProfileInterface $userByUserProfile,
+        private OrderStatusHandler $orderStatusHandler,
+        private ExistsOrderNumberInterface $existsOrderNumber,
+
+    ) {}
 
     /** @see YandexMarket */
     public function handle(YandexMarketOrderDTO $command): string|Order

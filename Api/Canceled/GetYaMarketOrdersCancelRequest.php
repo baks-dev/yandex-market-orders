@@ -95,6 +95,11 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
             return false;
         }
 
+        if(empty($content['orders']))
+        {
+            return false;
+        }
+
         foreach($content['orders'] as $order)
         {
             yield new YaMarketCancelOrderDTO($order['id'], $order['substatus']);

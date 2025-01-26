@@ -126,8 +126,8 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
                 /** @var SectionFieldTransDTO $SectionFieldTrans */
                 foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)
                 {
-                    $name = $this->translator->trans('yandex.section.contact.field.'.$field.'.name', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
-                    $desc = $this->translator->trans('yandex.section.contact.field.'.$field.'.desc', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $name = $this->translator->trans('yandex.fbs.section.contact.field.'.$field.'.name', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
+                    $desc = $this->translator->trans('yandex.fbs.section.contact.field.'.$field.'.desc', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
 
                     $SectionFieldTrans->setName($name);
                     $SectionFieldTrans->setDescription($desc);

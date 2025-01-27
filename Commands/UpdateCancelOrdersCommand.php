@@ -104,7 +104,7 @@ class UpdateCancelOrdersCommand extends Command
 
             foreach($profiles as $profile)
             {
-                if($profile->getAttr() === $profileName)
+                if($profile->getAttr() === $questions[$profileName])
                 {
                     /* Присваиваем профиль пользователя */
                     $UserProfileUid = $profile;

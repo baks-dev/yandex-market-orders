@@ -35,7 +35,7 @@ final class VoterGet implements VoterInterface
     /**
      * Получить новые заказы
      */
-    public const VOTER = 'GET';
+    public const string VOTER = 'GET';
 
     public static function getVoter(): string
     {

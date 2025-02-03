@@ -75,7 +75,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
 
         $User = $this->userByUserProfile
             ->forProfile($UserProfileUid)
-            ->findUser();
+            ->find();
 
         if($User === false)
         {

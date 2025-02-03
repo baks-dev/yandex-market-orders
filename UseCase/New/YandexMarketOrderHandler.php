@@ -104,7 +104,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         $User = $this->userByUserProfile
             ->forProfile($NewOrderInvariable->getProfile())
-            ->findUser();
+            ->find();
 
         if($User === false)
         {

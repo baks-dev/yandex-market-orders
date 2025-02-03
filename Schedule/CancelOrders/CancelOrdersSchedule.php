@@ -30,7 +30,7 @@ use DateInterval;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 /**
- * Проверяем новые заказы Yandex Market каждые 5 минут
+ * Проверяем отмененные заказы Yandex Market каждые 5 минут
  */
 #[AutoconfigureTag('baks.schedule')]
 final class CancelOrdersSchedule implements ScheduleInterface
@@ -49,6 +49,6 @@ final class CancelOrdersSchedule implements ScheduleInterface
      */
     public function getInterval(): DateInterval
     {
-        return DateInterval::createFromDateString('1 minutes');
+        return DateInterval::createFromDateString('5 minutes');
     }
 }

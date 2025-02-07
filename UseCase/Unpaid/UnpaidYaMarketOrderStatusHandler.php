@@ -104,7 +104,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
             $OrderEvent = $this
                 ->currentOrderEvent
                 ->forOrder($handle->getId())
-                ->execute();
+                ->find();
 
             if(false === $OrderEvent)
             {

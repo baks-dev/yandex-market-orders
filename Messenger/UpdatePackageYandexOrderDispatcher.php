@@ -38,8 +38,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler(priority: 0)]
-final readonly class UpdateYandexOrderProcessing
+/**
+ * Если поступает новый заказ YandexMarket - отправляем уведомление о статусе «Принят в обработку»
+ */
+#[AsMessageHandler(priority: 9)]
+final readonly class UpdatePackageYandexOrderDispatcher
 {
     public function __construct(
         #[Autowire(env: 'APP_ENV')] private string $environment,
@@ -51,10 +54,7 @@ final readonly class UpdateYandexOrderProcessing
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
     ) {}
 
-    /**
-     * Изменение статуса одного заказа YandexMarket
-     * Если поступает новый заказ - отправляем уведомление о статусе «В обработке»
-     */
+
     public function __invoke(OrderMessage $message): void
     {
         if($this->environment !== 'prod')

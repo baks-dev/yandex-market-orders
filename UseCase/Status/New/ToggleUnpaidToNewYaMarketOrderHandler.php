@@ -29,7 +29,7 @@ use BaksDev\Field\Pack\Phone\Type\PhoneField;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Repository\CurrentUserProfileEvent\CurrentUserProfileEventInterface;

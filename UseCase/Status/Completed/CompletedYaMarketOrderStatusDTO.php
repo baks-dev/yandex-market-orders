@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\Completed;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCompleted;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent */

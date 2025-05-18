@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Status\New;
 use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent $var */

@@ -30,7 +30,9 @@ use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Core\Validator\ValidatorCollectionInterface;
+use BaksDev\Delivery\Entity\Event\DeliveryEvent;
 use BaksDev\Delivery\Repository\CurrentDeliveryEvent\CurrentDeliveryEventInterface;
+use BaksDev\Delivery\Type\Event\DeliveryEventUid;
 use BaksDev\Field\Pack\Phone\Type\PhoneField;
 use BaksDev\Files\Resources\Upload\File\FileUploadInterface;
 use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
@@ -39,7 +41,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\ExistsOrderNumber\ExistsOrderNumberInterface;
 use BaksDev\Orders\Order\Repository\FieldByDeliveryChoice\FieldByDeliveryChoiceInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
@@ -319,54 +321,71 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         /** Указываем адрес доставки */
 
-        $address_field = array_filter($fields, function($v) {
-            /** @var InputField $InputField */
-            return $v->getType()->getType() === 'address_field';
-        });
-
-        $address_field = current($address_field);
-
-        if($address_field)
+        if($fields)
         {
-            $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
-            $OrderDeliveryFieldDTO->setField($address_field);
-            $OrderDeliveryFieldDTO->setValue($OrderDeliveryDTO->getAddress());
-            $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
-        }
 
-        /** При самовывозе указываем ПВЗ */
 
-        $contacts_region = array_filter($fields, function($v) {
-            /** @var InputField $InputField */
-            return $v->getType()->getType() === 'contacts_region_type';
-        });
+            $address_field = array_filter($fields, function($v) {
+                /** @var InputField $InputField */
+                return $v->getType()->getType() === 'address_field';
+            });
 
-        $contacts_field = current($contacts_region);
+            $address_field = current($address_field);
 
-        if($contacts_field)
-        {
-            $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
-            $OrderDeliveryFieldDTO->setField($contacts_field);
-
-            /** Определяем по геолокации ПВЗ */
-            $PickupByGeolocationDTO = $this->pickupByGeolocation
-                ->latitude($OrderDeliveryDTO->getLatitude())
-                ->longitude($OrderDeliveryDTO->getLongitude())
-                ->execute();
-
-            if($PickupByGeolocationDTO)
+            if($address_field)
             {
-                $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
+                $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
+                $OrderDeliveryFieldDTO->setField($address_field);
+                $OrderDeliveryFieldDTO->setValue($OrderDeliveryDTO->getAddress());
+                $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
             }
 
-            $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
+            /** При самовывозе указываем ПВЗ */
+
+            $contacts_region = array_filter($fields, function($v) {
+                /** @var InputField $InputField */
+                return $v->getType()->getType() === 'contacts_region_type';
+            });
+
+            $contacts_field = current($contacts_region);
+
+            if($contacts_field)
+            {
+                $OrderDeliveryFieldDTO = new OrderDeliveryFieldDTO();
+                $OrderDeliveryFieldDTO->setField($contacts_field);
+
+                /** Определяем по геолокации ПВЗ */
+                $PickupByGeolocationDTO = $this->pickupByGeolocation
+                    ->latitude($OrderDeliveryDTO->getLatitude())
+                    ->longitude($OrderDeliveryDTO->getLongitude())
+                    ->execute();
+
+                if($PickupByGeolocationDTO)
+                {
+                    $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
+                }
+
+                $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
+            }
         }
 
         /**
          * Присваиваем активное событие доставки
          */
 
-        $DeliveryEvent = $this->currentDeliveryEvent->get($OrderDeliveryDTO->getDelivery());
-        $OrderDeliveryDTO->setEvent($DeliveryEvent?->getId());
+        $DeliveryEventUid = $this->currentDeliveryEvent
+            ->forDelivery($OrderDeliveryDTO->getDelivery())
+            ->getId();
+
+        if(false === $DeliveryEventUid instanceof DeliveryEventUid)
+        {
+
+            throw new InvalidArgumentException(
+                sprintf('Способ доставки не найден! Выполните комманду Upgrade типа %s : ', $OrderDeliveryDTO->getDelivery()),
+            );
+        }
+
+        $OrderDeliveryDTO->setEvent($DeliveryEventUid);
+
     }
 }

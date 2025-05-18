@@ -35,6 +35,8 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('baks.schedule')]
 final class CancelOrdersSchedule implements ScheduleInterface
 {
+    public const string INTERVAL = '5 minutes';
+
     /**
      * Возвращает класс сообщение
      */
@@ -49,6 +51,6 @@ final class CancelOrdersSchedule implements ScheduleInterface
      */
     public function getInterval(): DateInterval
     {
-        return DateInterval::createFromDateString('5 minutes');
+        return DateInterval::createFromDateString(self::INTERVAL);
     }
 }

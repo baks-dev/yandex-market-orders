@@ -30,6 +30,7 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use DomainException;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
@@ -151,6 +152,15 @@ final class GetYaMarketOrdersWithStatusRequest extends YandexMarket
         if($this->status === false)
         {
             throw new InvalidArgumentException('Invalid Argument $status');
+        }
+
+        /** Если не передано время интервала присваиваем  */
+        if(false === ($this->fromDate instanceof DateTimeImmutable))
+        {
+            $this->fromDate = new DateTimeImmutable()
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->sub($interval ?? DateInterval::createFromDateString(UnpaidOrdersSchedule::INTERVAL))
+                ->sub(DateInterval::createFromDateString('1 minute'));
         }
 
         if(!$this->fromDate)

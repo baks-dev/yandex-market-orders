@@ -26,12 +26,18 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
+use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
+use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
+use BaksDev\Orders\Order\UseCase\Admin\Edit\User\OrderUserDTO;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -50,18 +56,14 @@ final readonly class UpdatePackageYandexOrderDispatcher
         private DeduplicatorInterface $deduplicator,
         private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
         private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
-        private OrderEventInterface $orderEventRepository,
+        private OrderEventInterface $OrderEventRepository,
+        private CurrentOrderEventInterface $CurrentOrderEvent,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
     ) {}
 
 
     public function __invoke(OrderMessage $message): void
     {
-        if($this->environment !== 'prod')
-        {
-            return;
-        }
-
         /** Дедубликатор по идентификатору заказа */
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')
@@ -76,49 +78,66 @@ final readonly class UpdatePackageYandexOrderDispatcher
             return;
         }
 
-        $OrderEvent = $this->orderEventRepository->find($message->getEvent());
+        $OrderEvent = $this->OrderEventRepository
+            ->find($message->getEvent());
 
-        if(false === $OrderEvent)
+        if(false === ($OrderEvent instanceof OrderEvent))
         {
-            return;
-        }
+            $this->logger->critical(
+                'products-sign: Не найдено событие OrderEvent',
+                [self::class.':'.__LINE__, var_export($message, true)],
+            );
 
-        if(empty($OrderEvent->getOrderNumber()))
-        {
-            return;
-        }
-
-        /** Проверяем, что номер заказа начинается с Y- (YandexMarket) */
-        if(false === str_starts_with($OrderEvent->getOrderNumber(), 'Y-'))
-        {
             return;
         }
 
         /**
-         * Если статус заказа не Completed «Выполнен» - завершаем обработчик
-         * создаем заявку на возврат только при выполненном заказе
+         * Если статус заказа не Статус New «Новый» - завершаем обработчик
          */
         if(false === $OrderEvent->isStatusEquals(OrderStatusNew::class))
         {
             return;
         }
 
+        if(
+            false === $OrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYandexMarket::TYPE) &&
+            false === $OrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
+        )
+        {
+            return;
+        }
+
+
+        /** Получаем активное событие заказа в случае если статус заказа изменился */
+        if(false === ($OrderEvent->getOrderProfile() instanceof UserProfileUid))
+        {
+            $OrderEvent = $this->CurrentOrderEvent
+                ->forOrder($message->getId())
+                ->find();
+
+            if(false === ($OrderEvent instanceof OrderEvent))
+            {
+                $this->logger->critical(
+                    'yandex-market-orders-sign: Не найдено событие OrderEvent',
+                    [self::class.':'.__LINE__, var_export($message, true)],
+                );
+
+                return;
+            }
+        }
+
         $EditOrderDTO = new EditOrderDTO();
         $OrderEvent->getDto($EditOrderDTO);
         $OrderUserDTO = $EditOrderDTO->getUsr();
 
-        if(!$OrderUserDTO)
+        if(false === ($OrderUserDTO instanceof OrderUserDTO))
         {
             return;
         }
 
         $EditOrderInvariableDTO = $EditOrderDTO->getInvariable();
-        $UserProfileUid = $EditOrderInvariableDTO->getProfile();
+        $UserProfileUid = $OrderEvent->getOrderProfile();
 
-        if(is_null($UserProfileUid))
-        {
-            return;
-        }
 
         /**
          * Получаем информацию о заказе и проверяем что заказ Новый

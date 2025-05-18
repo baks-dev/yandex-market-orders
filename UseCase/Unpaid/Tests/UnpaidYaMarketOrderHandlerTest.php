@@ -28,13 +28,13 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusNew;
-use BaksDev\Orders\Order\Type\Status\OrderStatus\OrderStatusUnpaid;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\Tests\OrderNewTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersWithStatusRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
@@ -94,13 +94,12 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         /**
          * Получаем список новых заказов с целью получить хоть один существующий заказ
          *
-         * @var GetYaMarketOrdersWithStatusRequest $GetYaMarketOrdersWithStatusRequest
+         * @var GetYaMarketOrdersUnpaidRequest $GetYaMarketOrdersUnpaidRequest
          */
-        $GetYaMarketOrdersWithStatusRequest = self::getContainer()->get(GetYaMarketOrdersWithStatusRequest::class);
-        $GetYaMarketOrdersWithStatusRequest->TokenHttpClient(self::$Authorization);
+        $GetYaMarketOrdersUnpaidRequest = self::getContainer()->get(GetYaMarketOrdersUnpaidRequest::class);
+        $GetYaMarketOrdersUnpaidRequest->TokenHttpClient(self::$Authorization);
 
-        $response = $GetYaMarketOrdersWithStatusRequest
-            ->withNew()
+        $response = $GetYaMarketOrdersUnpaidRequest
             ->findAll(DateInterval::createFromDateString('10 day'));
 
         if($response->valid())

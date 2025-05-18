@@ -29,6 +29,7 @@ use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
+use BaksDev\Yandex\Market\Orders\Schedule\CancelOrders\CancelOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -50,12 +51,16 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
+        /**
+         * Ограничиваем периодичность запросов
+         */
+
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
-            ->expiresAfter('1 minute')
+            ->expiresAfter(CancelOrdersSchedule::INTERVAL)
             ->deduplication([
                 self::class,
-                $message->getProfile(),
+                (string) $message->getProfile(),
             ]);
 
         if($Deduplicator->isExecuted())
@@ -63,6 +68,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
             return;
         }
 
+        /* @see строку :106 */
         $Deduplicator->save();
 
         /**
@@ -112,7 +118,6 @@ final readonly class CancelYaMarketOrderScheduleHandler
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
-                ->expiresAfter('1 day')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
                     self::class
@@ -152,8 +157,6 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     ]
                 );
             }
-
-
         }
     }
 }

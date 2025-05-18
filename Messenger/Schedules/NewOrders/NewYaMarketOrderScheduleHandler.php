@@ -28,6 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
+use BaksDev\Yandex\Market\Orders\Schedule\NewOrders\NewOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -49,12 +50,16 @@ final readonly class NewYaMarketOrderScheduleHandler
 
     public function __invoke(NewYaMarketOrdersScheduleMessage $message): void
     {
+        /**
+         * Ограничиваем периодичность запросов
+         */
+
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
-            ->expiresAfter('1 minute')
+            ->expiresAfter(NewOrdersSchedule::INTERVAL)
             ->deduplication([
                 self::class,
-                $message->getProfile(),
+                (string) $message->getProfile(),
             ]);
 
         if($Deduplicator->isExecuted())
@@ -62,6 +67,7 @@ final readonly class NewYaMarketOrderScheduleHandler
             return;
         }
 
+        /* @see строку :104 */
         $Deduplicator->save();
 
         /**
@@ -111,7 +117,6 @@ final readonly class NewYaMarketOrderScheduleHandler
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
-                ->expiresAfter('1 day')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
                     self::class

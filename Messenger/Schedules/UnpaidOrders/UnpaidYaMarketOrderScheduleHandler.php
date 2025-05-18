@@ -29,6 +29,7 @@ use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
+use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
@@ -50,12 +51,16 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
 
     public function __invoke(UnpaidYaMarketOrdersScheduleMessage $message): void
     {
+        /**
+         * Ограничиваем периодичность запросов
+         */
+
         $Deduplicator = $this->deduplicator
             ->namespace('yandex-market-orders')
-            ->expiresAfter('1 minute')
+            ->expiresAfter(UnpaidOrdersSchedule::INTERVAL)
             ->deduplication([
                 self::class,
-                $message->getProfile(),
+                (string) $message->getProfile(),
             ]);
 
         if($Deduplicator->isExecuted())
@@ -63,6 +68,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
             return;
         }
 
+        /*  @see строку :105 */
         $Deduplicator->save();
 
         /**

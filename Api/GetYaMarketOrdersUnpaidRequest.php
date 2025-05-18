@@ -26,10 +26,12 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use Generator;
 
 /**
@@ -53,20 +55,13 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
      */
     public function findAll(?DateInterval $interval = null): Generator|false
     {
-        if(!$this->fromDate)
+        /** Если не передано время интервала присваиваем  */
+        if(false === ($this->fromDate instanceof DateTimeImmutable))
         {
-            // заказы за последние 5 минут (планировщик на каждую минуту)
-            $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('30 minutes'));
-
-            /** В 3 часа ночи получаем заказы за сутки */
-            $currentHour = $dateTime->format('H');
-            $currentMinute = $dateTime->format('i');
-
-            if($currentHour === '03' && $currentMinute >= '00' && $currentMinute <= '05')
-            {
-                $this->fromDate = $dateTime->sub(DateInterval::createFromDateString('1 days'));
-            }
+            $this->fromDate = new DateTimeImmutable()
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->sub($interval ?? DateInterval::createFromDateString(UnpaidOrdersSchedule::INTERVAL))
+                ->sub(DateInterval::createFromDateString('1 minute'));
         }
 
         $response = $this->TokenHttpClient()
@@ -78,7 +73,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                         'page' => $this->page,
                         'pageSize' => 50,
                         'status' => 'UNPAID',
-                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
+                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
                     ]
                 ],
             );

@@ -26,9 +26,11 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Api\Canceled;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use BaksDev\Yandex\Market\Orders\Schedule\CancelOrders\CancelOrdersSchedule;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use Generator;
 
 /**
@@ -52,20 +54,13 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
      */
     public function findAll(?DateInterval $interval = null): Generator|false
     {
-        if(!$this->fromDate)
+        /** Если не передано время интервала присваиваем  */
+        if(false === ($this->fromDate instanceof DateTimeImmutable))
         {
-            // заказы за последние 5 минут (планировщик на каждую минуту)
-            $dateTime = new DateTimeImmutable();
-            $this->fromDate = $dateTime->sub($interval ?? DateInterval::createFromDateString('30 minutes'));
-
-            /** В 3 часа ночи получаем заказы за сутки */
-            $currentHour = $dateTime->format('H');
-            $currentMinute = $dateTime->format('i');
-
-            if($currentHour === '03' && $currentMinute >= '00' && $currentMinute <= '05')
-            {
-                $this->fromDate = $dateTime->sub(DateInterval::createFromDateString('1 days'));
-            }
+            $this->fromDate = new DateTimeImmutable()
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->sub($interval ?? DateInterval::createFromDateString(CancelOrdersSchedule::INTERVAL))
+                ->sub(DateInterval::createFromDateString('1 minute'));
         }
 
         $response = $this->TokenHttpClient()
@@ -77,7 +72,7 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
                         'page' => $this->page,
                         'pageSize' => 50,
                         'status' => 'CANCELLED',
-                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::W3C)
+                        'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
                     ]
                 ],
             );

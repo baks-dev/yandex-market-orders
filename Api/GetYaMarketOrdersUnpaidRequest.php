@@ -61,7 +61,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
             $this->fromDate = new DateTimeImmutable()
                 ->setTimezone(new DateTimeZone('UTC'))
                 ->sub($interval ?? DateInterval::createFromDateString(UnpaidOrdersSchedule::INTERVAL))
-                ->sub(DateInterval::createFromDateString('1 minute'));
+                ->sub(DateInterval::createFromDateString('1 hour'));
         }
 
         $response = $this->TokenHttpClient()

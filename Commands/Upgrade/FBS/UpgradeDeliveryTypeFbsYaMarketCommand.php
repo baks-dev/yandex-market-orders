@@ -37,8 +37,8 @@ use BaksDev\Delivery\UseCase\Admin\NewEdit\Trans\DeliveryTransDTO;
 use BaksDev\Reference\Currency\Type\Currency;
 use BaksDev\Reference\Money\Type\Money;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,7 +64,7 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
     /** Добавляет доставку Yandex Market  */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $DeliveryUid = new DeliveryUid(TypeDeliveryFbsYandexMarket::class);
+        $DeliveryUid = new DeliveryUid(TypeDeliveryFbsYaMarket::class);
 
         /** Проверяем наличие доставки Yandex Market */
         $exists = $this->existTypeDelivery->isExists($DeliveryUid);
@@ -76,8 +76,8 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
 
             $DeliveryDTO = new DeliveryDTO($DeliveryUid);
 
-            $DeliveryDTO->setType(new TypeProfileUid(TypeProfileFbsYandexMarket::class));
-            $DeliveryDTO->setSort(TypeDeliveryFbsYandexMarket::priority());
+            $DeliveryDTO->setType(new TypeProfileUid(TypeProfileFbsYaMarket::class));
+            $DeliveryDTO->setSort(TypeDeliveryFbsYaMarket::priority());
 
 
             /** Бесплатная доставка */

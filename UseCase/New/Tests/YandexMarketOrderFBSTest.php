@@ -32,9 +32,9 @@ use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByAr
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\OrderUserDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -131,8 +131,8 @@ class YandexMarketOrderFBSTest extends KernelTestCase
                 $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
                 $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем клиенту идентификатор тестового профиля
 
-                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileFbsYandexMarket::TYPE));
-                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryFbsYandexMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getUserProfile()->getType()->equals(TypeProfileFbsYaMarket::TYPE));
+                self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryFbsYaMarket::TYPE));
                 self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentFbsYandex::TYPE));
 
                 /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */

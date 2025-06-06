@@ -33,6 +33,8 @@ use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
+use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
+use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -45,68 +47,58 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private GetYaMarketOrdersUnpaidRequest $yandexMarketUnpaidOrdersRequest,
         private UnpaidYaMarketOrderStatusHandler $unpaidYandexMarketHandler,
-        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
         private DeduplicatorInterface $deduplicator,
     ) {}
 
     public function __invoke(UnpaidYaMarketOrdersScheduleMessage $message): void
     {
-        /**
-         * Ограничиваем периодичность запросов
-         */
+        /** Получаем все токены профиля */
 
-        $Deduplicator = $this->deduplicator
-            ->namespace('yandex-market-orders')
-            ->expiresAfter(UnpaidOrdersSchedule::INTERVAL)
-            ->deduplication([
-                self::class,
-                (string) $message->getProfile(),
-            ]);
+        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($message->getProfile());
 
-        if($Deduplicator->isExecuted())
+        if(false === $tokensByProfile || false === $tokensByProfile->valid())
         {
             return;
         }
 
-        /*  @see строку :105 */
-        $Deduplicator->save();
-
-        /**
-         * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
-         */
-        $orders = $this->yandexMarketUnpaidOrdersRequest
-            ->profile($message->getProfile())
-            ->findAll();
-
-        if($orders->valid())
+        /** @var YaMarketTokenUid $YaMarketTokenUid */
+        foreach($tokensByProfile as $YaMarketTokenUid)
         {
-            $this->ordersUnpaid($orders, $message->getProfile());
-        }
+            /**
+             * Ограничиваем периодичность запросов
+             */
 
-        /**
-         * Получаем заказы по дополнительным идентификаторам
-         */
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter(UnpaidOrdersSchedule::INTERVAL)
+                ->deduplication([
+                    self::class,
+                    (string) $YaMarketTokenUid,
+                ]);
 
-        $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
-
-        if(false !== $extra)
-        {
-            foreach($extra as $company)
+            if($Deduplicator->isExecuted())
             {
-                $orders = $this->yandexMarketUnpaidOrdersRequest
-                    ->setExtraCompany($company['company'])
-                    ->findAll();
+                return;
+            }
 
-                if(false === $orders->valid())
-                {
-                    continue;
-                }
+            /*  @see строку :105 */
+            $Deduplicator->save();
 
+            /**
+             * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
+             */
+            $orders = $this->yandexMarketUnpaidOrdersRequest
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->findAll();
+
+            if($orders->valid())
+            {
                 $this->ordersUnpaid($orders, $message->getProfile());
             }
-        }
 
-        $Deduplicator->delete();
+            $Deduplicator->delete();
+        }
     }
 
     private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
@@ -120,7 +112,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
                 ->expiresAfter('1 day')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
-                    self::class
+                    self::class,
                 ]);
 
             if($Deduplicator->isExecuted())
@@ -140,7 +132,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
                         'profile' => (string) $profile,
-                    ]
+                    ],
                 );
 
                 $Deduplicator->save();

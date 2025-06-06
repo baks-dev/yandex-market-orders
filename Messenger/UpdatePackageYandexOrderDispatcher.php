@@ -37,8 +37,10 @@ use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
-use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
+use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
+use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -55,10 +57,10 @@ final readonly class UpdatePackageYandexOrderDispatcher
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private DeduplicatorInterface $deduplicator,
         private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
-        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
         private OrderEventInterface $OrderEventRepository,
         private CurrentOrderEventInterface $CurrentOrderEvent,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
+        private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
     ) {}
 
 
@@ -70,7 +72,7 @@ final readonly class UpdatePackageYandexOrderDispatcher
             ->deduplication([
                 (string) $message->getId(),
                 OrderStatusNew::STATUS,
-                self::class
+                self::class,
             ]);
 
         if($Deduplicator->isExecuted() === true)
@@ -78,10 +80,16 @@ final readonly class UpdatePackageYandexOrderDispatcher
             return;
         }
 
-        $OrderEvent = $this->OrderEventRepository
-            ->find($message->getEvent());
 
-        if(false === ($OrderEvent instanceof OrderEvent))
+        /**
+         * Получаем активное событие, т.к. может быть Unpaid
+         * если Unpaid - ожидаем возврат в статус NEW
+         */
+        $CurrentOrderEvent = $this->CurrentOrderEvent
+            ->forOrder($message->getId())
+            ->find();
+
+        if(false === ($CurrentOrderEvent instanceof OrderEvent))
         {
             $this->logger->critical(
                 'products-sign: Не найдено событие OrderEvent',
@@ -91,128 +99,78 @@ final readonly class UpdatePackageYandexOrderDispatcher
             return;
         }
 
+
         /**
          * Если статус заказа не Статус New «Новый» - завершаем обработчик
          */
-        if(false === $OrderEvent->isStatusEquals(OrderStatusNew::class))
+        if(false === $CurrentOrderEvent->isStatusEquals(OrderStatusNew::class))
         {
             return;
         }
 
         if(
-            false === $OrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYandexMarket::TYPE) &&
-            false === $OrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
+            false === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYaMarket::TYPE) &&
+            false === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
         )
         {
             return;
         }
 
 
-        /** Получаем активное событие заказа в случае если статус заказа изменился */
-        if(false === ($OrderEvent->getOrderProfile() instanceof UserProfileUid))
-        {
-            $OrderEvent = $this->CurrentOrderEvent
-                ->forOrder($message->getId())
-                ->find();
+        $UserProfileUid = $CurrentOrderEvent->getOrderProfile();
 
-            if(false === ($OrderEvent instanceof OrderEvent))
-            {
-                $this->logger->critical(
-                    'yandex-market-orders-sign: Не найдено событие OrderEvent',
-                    [self::class.':'.__LINE__, var_export($message, true)],
-                );
-
-                return;
-            }
-        }
-
-        $EditOrderDTO = new EditOrderDTO();
-        $OrderEvent->getDto($EditOrderDTO);
-        $OrderUserDTO = $EditOrderDTO->getUsr();
-
-        if(false === ($OrderUserDTO instanceof OrderUserDTO))
-        {
-            return;
-        }
-
-        $EditOrderInvariableDTO = $EditOrderDTO->getInvariable();
-        $UserProfileUid = $OrderEvent->getOrderProfile();
-
-
-        /**
-         * Получаем информацию о заказе и проверяем что заказ Новый
-         */
-
-        $YandexMarketOrderDTO = $this->yaMarketOrdersInfoRequest
-            ->profile($UserProfileUid)
-            ->find($EditOrderInvariableDTO->getNumber());
-
-        /**
-         * Если заказ в Яндексе не найден - пробуем найти по дополнительным идентификаторам
-         */
-
-        $extraCompany = null;
-
-        if($YandexMarketOrderDTO === false)
-        {
-            $extra = $this->tokenExtraCompany
-                ->profile($UserProfileUid)
-                ->execute();
-
-            if($extra === false)
-            {
-                return;
-            }
-
-            foreach($extra as $company)
-            {
-                $YandexMarketOrderDTO = $this->yaMarketOrdersInfoRequest
-                    ->setExtraCompany($company['company'])
-                    ->find($EditOrderInvariableDTO->getNumber());
-
-                if($YandexMarketOrderDTO !== false)
-                {
-                    $extraCompany = $company['company'];
-                    break;
-                }
-            }
-        }
-
-        if($YandexMarketOrderDTO === false)
+        if(false === ($UserProfileUid instanceof UserProfileUid))
         {
             $this->logger->critical(
-                sprintf('Yandex: Информация о заказе %s не найдено', $EditOrderInvariableDTO->getNumber()),
-                [self::class.':'.__LINE__]
+                'yandex-market-orders: Идентификатор профиля заказа не определен',
+                [self::class.':'.__LINE__, var_export($message, true)],
             );
-
             return;
         }
 
-        if(false === $YandexMarketOrderDTO->getStatusEquals(OrderStatusNew::class))
+
+        /** Получаем все токены профиля */
+
+        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);
+
+        if(false === $tokensByProfile || false === $tokensByProfile->valid())
         {
             return;
         }
 
-        /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
-
-        $UpdateYaMarketOrderReadyStatusRequest = $this->updateYaMarketOrderReadyStatusRequest;
-
-        $UpdateYaMarketOrderReadyStatusRequest
-            ->profile($UserProfileUid);
-
-        if(false === is_null($extraCompany))
+        foreach($tokensByProfile as $YaMarketTokenUid)
         {
-            /** Присваиваем компанию, если заказ найден в другом магазине */
+            /**
+             * Получаем информацию о заказе и проверяем что заказ Новый
+             */
+
+            $YandexMarketOrderDTO = $this->yaMarketOrdersInfoRequest
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->find($CurrentOrderEvent->getOrderNumber());
+
+            /** Если заказ не найден - пробуем определить в другом магазине */
+            if(false === $YandexMarketOrderDTO instanceof YandexMarketOrderDTO)
+            {
+                continue;
+            }
+
+            if(false === $YandexMarketOrderDTO->getStatusEquals(OrderStatusNew::class))
+            {
+                return;
+            }
+
+            /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
+
+            $UpdateYaMarketOrderReadyStatusRequest = $this->updateYaMarketOrderReadyStatusRequest;
+
             $UpdateYaMarketOrderReadyStatusRequest
-                ->setExtraCompany($extraCompany);
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->update($CurrentOrderEvent->getOrderNumber());
         }
-
-        $UpdateYaMarketOrderReadyStatusRequest
-            ->update($EditOrderInvariableDTO->getNumber());
 
         $this->logger->info(
-            sprintf('%s: Отправили информацию о принятом в обработку заказе', $EditOrderInvariableDTO->getNumber()),
-            [self::class.':'.__LINE__]
+            sprintf('%s: Отправили информацию о принятом в обработку заказе', $CurrentOrderEvent->getOrderNumber()),
+            [self::class.':'.__LINE__],
         );
 
         $Deduplicator->save();

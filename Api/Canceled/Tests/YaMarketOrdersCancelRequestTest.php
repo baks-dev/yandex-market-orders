@@ -44,7 +44,7 @@ class YaMarketOrdersCancelRequestTest extends KernelTestCase
     public static function setUpBeforeClass(): void
     {
         self::$Authorization = new YaMarketAuthorizationToken(
-            new UserProfileUid(),
+            UserProfileUid::TEST,
             $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
             $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
             $_SERVER['TEST_YANDEX_MARKET_BUSINESS']

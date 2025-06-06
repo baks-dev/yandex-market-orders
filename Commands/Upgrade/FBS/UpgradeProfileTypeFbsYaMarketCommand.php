@@ -36,7 +36,7 @@ use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Section\Trans\Sectio
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\Trans\TransDTO;
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileDTO;
 use BaksDev\Users\Profile\TypeProfile\UseCase\Admin\NewEdit\TypeProfileHandler;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -62,7 +62,7 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
     /** Добавляет тип профиля Yandex Market  */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $TypeProfileUid = new TypeProfileUid(TypeProfileFbsYandexMarket::class);
+        $TypeProfileUid = new TypeProfileUid(TypeProfileFbsYaMarket::class);
 
         /** Проверяем наличие типа Yandex Market */
         $exists = $this->existTypeProfile->isExistTypeProfile($TypeProfileUid);
@@ -73,7 +73,7 @@ class UpgradeProfileTypeFbsYaMarketCommand extends Command
             $io->text('Добавляем тип профиля FBS Yandex Market');
 
             $TypeProfileDTO = new TypeProfileDTO();
-            $TypeProfileDTO->setSort(TypeProfileFbsYandexMarket::priority());
+            $TypeProfileDTO->setSort(TypeProfileFbsYaMarket::priority());
             $TypeProfileDTO->setProfile($TypeProfileUid);
 
             $TypeProfileTranslateDTO = $TypeProfileDTO->getTranslate();

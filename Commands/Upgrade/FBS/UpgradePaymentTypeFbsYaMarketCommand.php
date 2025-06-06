@@ -33,7 +33,7 @@ use BaksDev\Payment\UseCase\Admin\NewEdit\PaymentHandler;
 use BaksDev\Payment\UseCase\Admin\NewEdit\Trans\PaymentTransDTO;
 use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
-use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYandexMarket;
+use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -70,7 +70,7 @@ class UpgradePaymentTypeFbsYaMarketCommand extends Command
             $io->text('Добавляем способ оплаты Yandex Market');
 
             $PaymentDTO = new PaymentDTO($PaymentUid);
-            $PaymentDTO->setType(new TypeProfileUid(TypeProfileFbsYandexMarket::class));
+            $PaymentDTO->setType(new TypeProfileUid(TypeProfileFbsYaMarket::class));
             $PaymentDTO->setSort(TypePaymentFbsYandex::priority());
 
 

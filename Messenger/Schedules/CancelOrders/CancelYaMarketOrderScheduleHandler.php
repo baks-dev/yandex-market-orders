@@ -33,6 +33,8 @@ use BaksDev\Yandex\Market\Orders\Schedule\CancelOrders\CancelOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
+use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
+use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Generator;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -45,69 +47,58 @@ final readonly class CancelYaMarketOrderScheduleHandler
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
         private CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
-        private YaMarketTokenExtraCompanyInterface $tokenExtraCompany,
+        private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
         private DeduplicatorInterface $deduplicator,
     ) {}
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
     {
-        /**
-         * Ограничиваем периодичность запросов
-         */
+        /** Получаем все токены профиля */
 
-        $Deduplicator = $this->deduplicator
-            ->namespace('yandex-market-orders')
-            ->expiresAfter(CancelOrdersSchedule::INTERVAL)
-            ->deduplication([
-                self::class,
-                (string) $message->getProfile(),
-            ]);
+        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($message->getProfile());
 
-        if($Deduplicator->isExecuted())
+        if(false === $tokensByProfile || false === $tokensByProfile->valid())
         {
             return;
         }
 
-        /* @see строку :106 */
-        $Deduplicator->save();
-
-        /**
-         * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
-         */
-
-        $orders = $this->yandexMarketCancelOrdersRequest
-            ->profile($message->getProfile())
-            ->findAll();
-
-        if($orders->valid())
+        /** @var YaMarketTokenUid $YaMarketTokenUid */
+        foreach($tokensByProfile as $YaMarketTokenUid)
         {
-            $this->ordersCancel($orders, $message->getProfile());
-        }
+            /**
+             * Ограничиваем периодичность запросов
+             */
 
-        /**
-         * Получаем заказы по дополнительным идентификаторам
-         */
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter(CancelOrdersSchedule::INTERVAL)
+                ->deduplication([self::class, (string) $YaMarketTokenUid]);
 
-        $extra = $this->tokenExtraCompany->profile($message->getProfile())->execute();
-
-        if(false !== $extra)
-        {
-            foreach($extra as $company)
+            if($Deduplicator->isExecuted())
             {
-                $orders = $this->yandexMarketCancelOrdersRequest
-                    ->setExtraCompany($company['company'])
-                    ->findAll();
-
-                if(false === $orders->valid())
-                {
-                    continue;
-                }
-
-                $this->ordersCancel($orders, $message->getProfile());
+                return;
             }
-        }
 
-        $Deduplicator->delete();
+            /* @see строку :106 */
+            $Deduplicator->save();
+
+            /**
+             * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
+             */
+
+            $orders = $this->yandexMarketCancelOrdersRequest
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->findAll();
+
+            if(false === $orders || false === $orders->valid())
+            {
+                $Deduplicator->delete();
+                continue;
+            }
+
+            $this->ordersCancel($orders, $message->getProfile());
+            $Deduplicator->delete();
+        }
     }
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
@@ -120,7 +111,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 ->namespace('yandex-market-orders')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
-                    self::class
+                    self::class,
                 ]);
 
             if($Deduplicator->isExecuted())
@@ -138,7 +129,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
                         'profile' => (string) $profile,
-                    ]
+                    ],
                 );
 
                 $Deduplicator->save();
@@ -154,7 +145,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
                         'profile' => (string) $profile,
-                    ]
+                    ],
                 );
             }
         }

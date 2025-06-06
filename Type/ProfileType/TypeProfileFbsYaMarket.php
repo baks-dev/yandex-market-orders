@@ -23,16 +23,15 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Type\DeliveryType;
+namespace BaksDev\Yandex\Market\Orders\Type\ProfileType;
 
-use BaksDev\Delivery\Type\Id\Choice\Collection\TypeDeliveryInterface;
+use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\Collection\TypeProfileInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
-#[AutoconfigureTag('baks.delivery.type')]
-final class TypeDeliveryFbsYandexMarket implements TypeDeliveryInterface
+#[AutoconfigureTag('baks.users.profile.type')]
+final class TypeProfileFbsYaMarket implements TypeProfileInterface
 {
-    /** Yandex Market */
-    public const string TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
+    public const string TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
     public function __toString(): string
     {

@@ -58,6 +58,11 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
         {
             foreach($content['errors'] as $error)
             {
+                if($error['code'] !== 'NOT_FOUND')
+                {
+                    return false;
+                }
+
                 $this->logger->critical($error['code'].': '.$error['message'], [self::class.':'.__LINE__]);
             }
 

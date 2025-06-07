@@ -28,9 +28,9 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
+use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -51,6 +51,7 @@ class UpdateNewOrdersCommand extends Command
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
         private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private readonly YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
     )
     {
         parent::__construct();
@@ -69,6 +70,11 @@ class UpdateNewOrdersCommand extends Command
 
         $helper = $this->getHelper('question');
 
+
+        /**
+         * Интерактивная форма списка профилей
+         */
+
         $questions[] = 'Все';
 
         foreach($profiles as $quest)
@@ -76,77 +82,110 @@ class UpdateNewOrdersCommand extends Command
             $questions[] = $quest->getAttr();
         }
 
+        $questions['-'] = 'Выйти';
+
         $question = new ChoiceQuestion(
-            'Профиль пользователя',
+            'Профиль пользователя (Ctrl+C чтобы выйти)',
             $questions,
-            0
+            '0',
         );
 
-        $profileName = $helper->ask($input, $output, $question);
+        $key = $helper->ask($input, $output, $question);
 
-        if($profileName === 'Все')
+        /**
+         *  Выходим без выполненного запроса
+         */
+
+        if($key === '-' || $key === 'Выйти')
+        {
+            return Command::SUCCESS;
+        }
+
+
+        /**
+         * Выполняем все
+         */
+
+        if($key === '0' || $key === 'Все')
         {
             /** @var UserProfileUid $profile */
             foreach($profiles as $profile)
             {
                 $this->update($profile);
             }
+
+            return Command::SUCCESS;
         }
-        else
+
+
+        /**
+         * Выполняем определенный профиль
+         */
+
+        $UserProfileUid = null;
+
+        foreach($profiles as $profile)
         {
-            $UserProfileUid = null;
-
-            foreach($profiles as $profile)
+            if($profile->getAttr() === $questions[$key])
             {
-                if($profile->getAttr() === $profileName)
-                {
-                    /* Присваиваем профиль пользователя */
-                    $UserProfileUid = $profile;
-                    break;
-                }
+                /* Присваиваем профиль пользователя */
+                $UserProfileUid = $profile;
+                break;
             }
-
-            if($UserProfileUid)
-            {
-                $this->update($UserProfileUid);
-            }
-
         }
 
-        $this->io->success('Заказы успешно обновлены');
+        if($UserProfileUid)
+        {
+            $this->update($UserProfileUid);
 
+            $this->io->success('Заказы успешно обновлены');
+            return Command::SUCCESS;
+        }
+
+        $this->io->success('Профиль пользователя не найден');
         return Command::SUCCESS;
+
     }
 
-    public function update(UserProfileUid $profile): void
+    public function update(UserProfileUid $UserProfileUid): void
     {
-        $this->io->note(sprintf('Обновляем новые заказы профиля %s', $profile->getAttr()));
+        $this->io->note(sprintf('Обновляем новые заказы профиля %s', $UserProfileUid->getAttr()));
 
-        $orders = $this->yandexMarketNewOrdersRequest
-            ->profile($profile)
-            ->findAll(DateInterval::createFromDateString('1 day'));
+        /** Получаем все токены профиля */
 
-        if(false === $orders->valid())
+        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);
+
+        if(false === $tokensByProfile || false === $tokensByProfile->valid())
         {
+            $this->io->error(sprintf('Токенов авторизации профиля %s не найдено', $UserProfileUid->getAttr()));
             return;
         }
 
-        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
-        foreach($orders as $YandexMarketOrderDTO)
+        foreach($tokensByProfile as $YaMarketTokenUid)
         {
-            /**
-             * Обновляем неоплаченный системный заказ, либо создаем новый
-             */
-            $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
+            $orders = $this->yandexMarketNewOrdersRequest
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->findAll(DateInterval::createFromDateString('1 week'));
 
-            if($handle instanceof Order)
+            if(false === $orders || false === $orders->valid())
             {
-                $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()));
+                $this->io->writeln(sprintf('<fg=gray>%s: новых заказов не найдено</>', $YaMarketTokenUid));
                 continue;
             }
 
-            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getNumber()));
-        }
+            foreach($orders as $YandexMarketOrderDTO)
+            {
+                $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
 
+                if($handle instanceof Order)
+                {
+                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()));
+                    continue;
+                }
+
+                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getNumber()));
+            }
+
+        }
     }
 }

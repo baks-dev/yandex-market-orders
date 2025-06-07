@@ -128,7 +128,6 @@ final readonly class UpdatePackageYandexOrderDispatcher
             return;
         }
 
-
         /** Получаем все токены профиля */
 
         $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);

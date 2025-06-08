@@ -60,12 +60,13 @@ class YandexMarketOrderDBSTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
-        /** Токен авторизации заказов FBS - доставка курьером Яндекс Маркет */
         self::$Authorization = new YaMarketAuthorizationToken(
-            new UserProfileUid(),
-            $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
-            $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
-            $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS']
+            profile: UserProfileUid::TEST,
+            token: $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
+            company: (int) $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
+            business: (int) $_SERVER['TEST_YANDEX_MARKET_BUSINESS'],
+            card: false,
+            stocks: false,
         );
 
         // Бросаем событие консольной комманды

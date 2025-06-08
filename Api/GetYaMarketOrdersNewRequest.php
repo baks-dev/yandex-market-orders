@@ -77,7 +77,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         'page' => $this->page,
                         'pageSize' => 50,
                         'status' => 'PROCESSING',
-                        'substatus' => 'STARTED',
+                        'substatus' => $this->isExecuteEnvironment() ? 'STARTED' : null, // в тестовом окружении получаем все СУБ-статусы
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
                     ]
                 ],

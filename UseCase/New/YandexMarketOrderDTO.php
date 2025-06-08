@@ -82,7 +82,11 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     #[Assert\Valid]
     private User\OrderUserDTO $usr;
 
-    /** Ответственный */
+    /**
+     * Ответственный
+     *
+     * @deprecated переносится в Invariable
+     */
     private ?UserProfileUid $profile = null;
 
     /** Комментарий к заказу */
@@ -425,12 +429,17 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     /**
      * Profile
+     *
+     * @deprecated переносится в Invariable
      */
     public function getProfile(): ?UserProfileUid
     {
         return $this->profile;
     }
 
+    /**
+     * @deprecated переносится в Invariable
+     */
     public function resetProfile(?UserProfileUid $profile = null): self
     {
         $this->profile = $profile;

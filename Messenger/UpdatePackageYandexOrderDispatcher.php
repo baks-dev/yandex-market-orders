@@ -160,11 +160,12 @@ final readonly class UpdatePackageYandexOrderDispatcher
 
             /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
 
-            $UpdateYaMarketOrderReadyStatusRequest = $this->updateYaMarketOrderReadyStatusRequest;
-
-            $UpdateYaMarketOrderReadyStatusRequest
+            $this
+                ->updateYaMarketOrderReadyStatusRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
                 ->update($CurrentOrderEvent->getOrderNumber());
+
+            break;
         }
 
         $this->logger->info(

@@ -58,7 +58,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
         {
             foreach($content['errors'] as $error)
             {
-                if($error['code'] !== 'NOT_FOUND')
+                if($error['code'] === 'NOT_FOUND')
                 {
                     return false;
                 }

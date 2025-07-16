@@ -23,7 +23,7 @@
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Info;
 
-use BaksDev\Users\Profile\UserProfile\Entity\Info\UserProfileInfoInterface;
+use BaksDev\Users\Profile\UserProfile\Entity\Event\Info\UserProfileInfoInterface;
 use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\Status\UserProfileStatusBlock;
 use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\Status\UserProfileStatusModeration;
 use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\UserProfileStatus;

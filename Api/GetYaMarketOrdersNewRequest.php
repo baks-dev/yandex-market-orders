@@ -53,7 +53,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
-     * @return Generator{int, YandexMarketOrderDTO}|false
+     * @return Generator<int, YandexMarketOrderDTO>|false
      *
      */
     public function findAll(?DateInterval $interval = null): Generator|false

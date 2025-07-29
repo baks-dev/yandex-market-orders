@@ -31,7 +31,7 @@ use BaksDev\Users\User\Type\Id\UserUid;
 use ReflectionProperty;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see OrderInvariable */
+/** @see OrderInvariableDTO */
 final class UnpaidOrderInvariable implements OrderInvariableInterface
 {
     /**

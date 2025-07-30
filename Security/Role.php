@@ -31,9 +31,9 @@ use BaksDev\Orders\Order\Security\MenuGroupMarketplace;
 use BaksDev\Users\Profile\Group\Security\RoleInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
+// #[AutoconfigureTag('baks.menu.admin')]
 #[AutoconfigureTag('baks.security.role')]
-#[AutoconfigureTag('baks.menu.admin')]
-final class Role implements RoleInterface, MenuAdminInterface
+final class Role implements RoleInterface //, MenuAdminInterface
 {
     public const string ROLE = 'ROLE_YA_MARKET_ORDERS';
 
@@ -44,54 +44,54 @@ final class Role implements RoleInterface, MenuAdminInterface
         return self::ROLE;
     }
 
-    /**
-     * Добавляем раздел в меню администрирования.
-     */
-
-    /** Метод возвращает PATH раздела */
-    public function getPath(): string
-    {
-        return 'yandex-market-orders:admin.index';
-    }
-
-    /**
-     * Метод возвращает ключ раздела (для меню телеграм)
-     */
-    public function getPathKey(): string
-    {
-        return self::KEY;
-    }
-
-    /**
-     * Метод возвращает секцию, в которую помещается ссылка на раздел.
-     */
-    public function getGroupMenu(): MenuAdminSectionGroupCollectionInterface|bool
-    {
-        return new MenuGroupMarketplace();
-    }
-
-    /**
-     * Метод возвращает позицию, в которую располагается ссылка в секции меню.
-     */
-    public static function getSortMenu(): int
-    {
-        return 422;
-    }
-
-    /**
-     * Метод возвращает флаг "Показать в выпадающем меню".
-     */
-    public function getDropdownMenu(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Метод возвращает флаг "Модальное окно".
-     */
-    public function getModal(): bool
-    {
-        return false;
-    }
+    //    /**
+    //     * Добавляем раздел в меню администрирования.
+    //     */
+    //
+    //    /** Метод возвращает PATH раздела */
+    //    public function getPath(): string
+    //    {
+    //        return 'yandex-market-orders:admin.index';
+    //    }
+    //
+    //    /**
+    //     * Метод возвращает ключ раздела (для меню телеграм)
+    //     */
+    //    public function getPathKey(): string
+    //    {
+    //        return self::KEY;
+    //    }
+    //
+    //    /**
+    //     * Метод возвращает секцию, в которую помещается ссылка на раздел.
+    //     */
+    //    public function getGroupMenu(): MenuAdminSectionGroupCollectionInterface|bool
+    //    {
+    //        return new MenuGroupMarketplace();
+    //    }
+    //
+    //    /**
+    //     * Метод возвращает позицию, в которую располагается ссылка в секции меню.
+    //     */
+    //    public static function getSortMenu(): int
+    //    {
+    //        return 422;
+    //    }
+    //
+    //    /**
+    //     * Метод возвращает флаг "Показать в выпадающем меню".
+    //     */
+    //    public function getDropdownMenu(): bool
+    //    {
+    //        return true;
+    //    }
+    //
+    //    /**
+    //     * Метод возвращает флаг "Модальное окно".
+    //     */
+    //    public function getModal(): bool
+    //    {
+    //        return false;
+    //    }
 
 }

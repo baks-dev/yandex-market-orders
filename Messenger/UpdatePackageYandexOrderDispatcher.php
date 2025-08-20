@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
+use BaksDev\Core\Messenger\MessageDelay;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
@@ -61,6 +63,7 @@ final readonly class UpdatePackageYandexOrderDispatcher
         private CurrentOrderEventInterface $CurrentOrderEvent,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
         private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
+        private MessageDispatchInterface $messageDispatch,
     ) {}
 
 
@@ -160,10 +163,19 @@ final readonly class UpdatePackageYandexOrderDispatcher
 
             /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
 
-            $this
+            $update = $this
                 ->updateYaMarketOrderReadyStatusRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
                 ->update($CurrentOrderEvent->getOrderNumber());
+
+            if(false === $update)
+            {
+                $this->messageDispatch->dispatch(
+                    message: $message,
+                    stamps: [new MessageDelay('1 minutes')],
+                    transport: $UserProfileUid.'-low',
+                );
+            }
 
             break;
         }

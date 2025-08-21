@@ -48,6 +48,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
      *
      * PROCESSING - заказ находится в обработке.
      * STARTED — заказ подтвержден, его можно начать обрабатывать
+     * READY_TO_SHIP - готов к отправке
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *

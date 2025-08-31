@@ -35,13 +35,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 final class GetYaMarketOrderInfoRequest extends YandexMarket
 {
     /**
-     * Возвращает информацию о 50 последних заказах со статусом:
+     * Информация об одном заказе
      *
-     * UNPAID - заказ оформлен, но еще не оплачен (если выбрана оплата при оформлении).
+     * Возвращает информацию о заказе.
      *
-     * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
-     *
-     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder
      *
      */
     public function find(int|string $order): YandexMarketOrderDTO|false

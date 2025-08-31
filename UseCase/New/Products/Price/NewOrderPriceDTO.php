@@ -56,9 +56,10 @@ final class NewOrderPriceDTO implements OrderPriceInterface
     }
 
 
-    public function setTotal(int $total): void
+    public function setTotal(int $total): self
     {
         $this->total = $total;
+        return $this;
     }
 
 
@@ -70,9 +71,10 @@ final class NewOrderPriceDTO implements OrderPriceInterface
     }
 
 
-    public function setPrice(Money $price): void
+    public function setPrice(Money $price): self
     {
         $this->price = $price;
+        return $this;
     }
 
 
@@ -84,9 +86,10 @@ final class NewOrderPriceDTO implements OrderPriceInterface
     }
 
 
-    public function setCurrency(Currency $currency): void
+    public function setCurrency(Currency $currency): self
     {
         $this->currency = $currency;
+        return $this;
     }
 
 }

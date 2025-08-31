@@ -49,6 +49,7 @@ use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -81,13 +82,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /** Пользователь */
     #[Assert\Valid]
     private User\OrderUserDTO $usr;
-
-    /**
-     * Ответственный
-     *
-     * @deprecated переносится в Invariable
-     */
-    private ?UserProfileUid $profile = null;
 
     /** Комментарий к заказу */
     private ?string $comment = null;
@@ -143,18 +137,19 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         }
 
 
-        $OrderDeliveryDTO = $this->usr->getDelivery();
         $OrderPaymentDTO = $this->usr->getPayment();
         $OrderProfileDTO = $this->usr->getUserProfile();
 
-        $OrderDeliveryDTO->setDeliveryDate($deliveryDate);
-
+        /**
+         * Адрес и геолокация клиента
+         */
 
         $address = $order['delivery']['address'];
 
-        /** Геолокация клиента */
-        $OrderDeliveryDTO->setLatitude(new GpsLatitude($address['gps']['latitude']));
-        $OrderDeliveryDTO->setLongitude(new GpsLongitude($address['gps']['longitude']));
+        $OrderDeliveryDTO = $this->usr->getDelivery()
+            ->setDeliveryDate($deliveryDate)
+            ->setLatitude(new GpsLatitude($address['gps']['latitude']))
+            ->setLongitude(new GpsLongitude($address['gps']['longitude']));
 
 
         /** Адрес доставки клиента */
@@ -231,7 +226,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
             $OrderDeliveryDTO->setDelivery($Delivery);
 
-
             /** Способ оплаты DBS Yandex Market  */
             $Payment = new PaymentUid(TypePaymentDbsYaMarket::class);
             $OrderPaymentDTO->setPayment($Payment);
@@ -299,26 +293,24 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
         /** Комментарий покупателя */
         $this->comment = implode(', ', $deliveryComment);
-        //dd($this->comment);
 
         /** Продукция */
         foreach($order['items'] as $item)
         {
-            $NewOrderProductDTO = new Products\NewOrderProductDTO($item['offerId']);
+
+            $NewOrderProductDTO = new NewOrderProductDTO()
+                ->setId($item['id'])
+                ->setArticle($item['offerId']);
 
             $NewOrderPriceDTO = $NewOrderProductDTO->getPrice();
 
-            $Money = new Money($item['priceBeforeDiscount']); // Стоимость товара в валюте магазина до применения скидок.
-            $Currency = new Currency($order['currency']);
-
-            $NewOrderPriceDTO->setPrice($Money);
-            $NewOrderPriceDTO->setCurrency($Currency);
-            $NewOrderPriceDTO->setTotal($item['count']);
+            $NewOrderPriceDTO
+                ->setPrice(new Money($item['priceBeforeDiscount'])) // Стоимость товара в валюте магазина до применения скидок.
+                ->setCurrency(new Currency($order['currency']))
+                ->setTotal($item['count']);
 
             $this->addProduct($NewOrderProductDTO);
-
         }
-
     }
 
 
@@ -365,9 +357,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     /**
      * Коллекция продукции в заказе
-     * @return ArrayCollection<Products\NewOrderProductDTO>
+     *
+     * @return ArrayCollection<NewOrderProductDTO>
      */
-
     public function getProduct(): ArrayCollection
     {
         return $this->product;
@@ -378,9 +370,9 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         $this->product = $product;
     }
 
-    public function addProduct(Products\NewOrderProductDTO $product): void
+    public function addProduct(NewOrderProductDTO $product): void
     {
-        $filter = $this->product->filter(function(Products\NewOrderProductDTO $element) use ($product) {
+        $filter = $this->product->filter(function(NewOrderProductDTO $element) use ($product) {
             return $element->getArticle() === $product->getArticle();
         });
 
@@ -390,7 +382,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         }
     }
 
-    public function removeProduct(Products\NewOrderProductDTO $product): void
+    public function removeProduct(NewOrderProductDTO $product): void
     {
         $this->product->removeElement($product);
     }
@@ -425,25 +417,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     public function getInvariable(): Invariable\NewOrderInvariable
     {
         return $this->invariable;
-    }
-
-    /**
-     * Profile
-     *
-     * @deprecated переносится в Invariable
-     */
-    public function getProfile(): ?UserProfileUid
-    {
-        return $this->profile;
-    }
-
-    /**
-     * @deprecated переносится в Invariable
-     */
-    public function resetProfile(?UserProfileUid $profile = null): self
-    {
-        $this->profile = $profile;
-        return $this;
     }
 
 }

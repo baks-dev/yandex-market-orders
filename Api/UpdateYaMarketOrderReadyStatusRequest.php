@@ -58,8 +58,8 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
                         'order' => [
                             "status" => "PROCESSING",
                             "substatus" => "READY_TO_SHIP",
-                        ]
-                    ]
+                        ],
+                    ],
                 ],
             );
 

@@ -33,20 +33,16 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest;
+use PHPUnit\Framework\Attributes\DependsOnClass;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group yandex-market-orders
- * @group yandex-market-orders-status
- *
- * @depends BaksDev\Yandex\Market\Orders\UseCase\Unpaid\Tests\UnpaidYaMarketOrderHandlerTest::class
- *
- */
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class NewYaMarketOrderStatusTest extends KernelTestCase
 {
-
+    #[DependsOnClass(UnpaidYaMarketOrderHandlerTest::class)]
     public function testUseCase(): void
     {
 

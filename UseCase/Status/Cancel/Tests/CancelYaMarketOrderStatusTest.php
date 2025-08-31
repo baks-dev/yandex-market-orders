@@ -38,18 +38,16 @@ use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfile
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests\NewYaMarketOrderStatusTest;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DependsOnClass;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group yandex-market-orders
- * @group yandex-market-orders-status
- *
- * @depends BaksDev\Yandex\Market\Orders\UseCase\Status\New\Tests\NewYaMarketOrderStatusTest::class
- */
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class CancelYaMarketOrderStatusTest extends KernelTestCase
 {
+    #[DependsOnClass(NewYaMarketOrderStatusTest::class)]
     public function testUseCase(): void
     {
         self::assertTrue(true);

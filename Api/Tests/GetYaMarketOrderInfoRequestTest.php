@@ -35,11 +35,8 @@ use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group yandex-market-orders
- */
-#[Group('yandex-market-orders')]
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class GetYaMarketOrderInfoRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;

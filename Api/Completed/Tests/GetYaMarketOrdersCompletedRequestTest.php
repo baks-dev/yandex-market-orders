@@ -30,14 +30,12 @@ use BaksDev\Yandex\Market\Orders\Api\Completed\GetYaMarketOrdersCompletedRequest
 use BaksDev\Yandex\Market\Orders\Api\Completed\YaMarketCompletedOrderDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-
-/**
- * @group yandex-market-orders
- */
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class GetYaMarketOrdersCompletedRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;

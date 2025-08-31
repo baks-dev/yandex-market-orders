@@ -30,13 +30,12 @@ use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Generator;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group yandex-market-orders
- */
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class YaMarketOrdersCancelRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;

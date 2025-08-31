@@ -42,14 +42,12 @@ use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-/**
- * @group yandex-market-orders
- * @group yandex-market-orders-status
- */
 #[When(env: 'test')]
+#[Group('yandex-market-orders')]
 class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;

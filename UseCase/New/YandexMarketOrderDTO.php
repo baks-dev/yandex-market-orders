@@ -299,7 +299,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         {
 
             $NewOrderProductDTO = new NewOrderProductDTO()
-                ->setId($item['id'])
+                ->setIdentifier($item['id'])
                 ->setArticle($item['offerId']);
 
             $NewOrderPriceDTO = $NewOrderProductDTO->getPrice();

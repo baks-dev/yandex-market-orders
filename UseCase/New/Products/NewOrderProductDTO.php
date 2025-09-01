@@ -38,7 +38,7 @@ final class NewOrderProductDTO implements OrderProductInterface
 {
     /** Идентификатор продукта в заказе */
     #[Assert\NotBlank]
-    private int $id;
+    private int $identifier;
 
     /** Артикул продукта */
     #[Assert\NotBlank]
@@ -73,15 +73,15 @@ final class NewOrderProductDTO implements OrderProductInterface
 
     /** Идентификатор продукта в заказе */
 
-    public function setId(int $id): self
+    public function setIdentifier(int $identifier): self
     {
-        $this->id = $id;
+        $this->identifier = $identifier;
         return $this;
     }
 
-    public function getId(): int
+    public function getIdentifier(): int
     {
-        return $this->id;
+        return $this->identifier;
     }
 
 

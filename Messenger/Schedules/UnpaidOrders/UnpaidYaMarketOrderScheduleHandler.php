@@ -120,8 +120,6 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $YandexMarketOrderDTO->resetProfile($profile);
-
             $handle = $this->unpaidYandexMarketHandler->handle($YandexMarketOrderDTO);
 
             if($handle instanceof Order)

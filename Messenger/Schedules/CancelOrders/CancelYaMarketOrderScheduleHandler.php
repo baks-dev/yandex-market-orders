@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
 
+use BaksDev\Centrifugo\Server\Publish\CentrifugoPublishInterface;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
@@ -49,6 +50,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
         private CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
         private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
         private DeduplicatorInterface $deduplicator,
+        private CentrifugoPublishInterface $publish,
     ) {}
 
     public function __invoke(CancelYaMarketOrdersScheduleMessage $message): void
@@ -119,9 +121,9 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $handle = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $profile);
+            $Order = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $profile);
 
-            if($handle instanceof Order)
+            if($Order instanceof Order)
             {
                 $this->logger->info(
                     sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getNumber()),
@@ -132,15 +134,21 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     ],
                 );
 
+                /** Скрываем идентификатор у всех пользователей */
+                $this->publish
+                    ->addData(['profile' => false]) // Скрывает у всех
+                    ->addData(['identifier' => (string) $Order->getId()])
+                    ->send('remove');
+
                 $Deduplicator->save();
 
                 continue;
             }
 
-            if($handle !== false)
+            if($Order !== false)
             {
                 $this->logger->critical(
-                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getNumber(), $handle),
+                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getNumber(), $Order),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

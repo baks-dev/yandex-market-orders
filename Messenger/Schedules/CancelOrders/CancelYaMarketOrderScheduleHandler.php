@@ -111,6 +111,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
+                ->expiresAfter('1 day')
                 ->deduplication([
                     $YandexMarketOrderDTO->getNumber(),
                     self::class,

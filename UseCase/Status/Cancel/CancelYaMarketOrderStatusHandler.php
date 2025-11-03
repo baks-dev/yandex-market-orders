@@ -44,10 +44,7 @@ final readonly class CancelYaMarketOrderStatusHandler
         private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
     ) {}
 
-    public function handle(
-        YandexMarketOrderDTO|YaMarketCancelOrderDTO $command,
-        UserProfileUid $profile
-    ): Order|string|false
+    public function handle(YandexMarketOrderDTO|YaMarketCancelOrderDTO $command): Order|string|false
     {
         $OrderEvent = $this->currentOrderEventByNumber->find($command->getNumber());
 
@@ -67,12 +64,11 @@ final readonly class CancelYaMarketOrderStatusHandler
             return false;
         }
 
-
         /**
          * Делаем отмену заказа
          */
 
-        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO($profile);
+        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO();
         $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
 
         $CancelYaMarketOrderStatusDTO->setComment($command->getComment());

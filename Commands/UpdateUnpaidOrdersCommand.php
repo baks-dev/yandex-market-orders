@@ -129,7 +129,6 @@ class UpdateUnpaidOrdersCommand extends Command
         $this->io->note(sprintf('Обновляем неоплаченные заказы профиля %s', $profile->getAttr()));
 
         $orders = $this->yandexMarketUnpaidOrdersRequest
-            ->profile($profile)
             ->findAll(DateInterval::createFromDateString('1 day'));
 
 

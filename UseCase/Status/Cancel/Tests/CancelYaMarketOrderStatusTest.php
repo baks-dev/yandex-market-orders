@@ -85,8 +85,6 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 
         self::assertNotNull($CancelYaMarketOrderStatusDTO->getEvent());
         self::assertTrue($CancelYaMarketOrderStatusDTO->getStatus()->equals(OrderStatusCanceled::class));
-        self::assertNotNull($CancelYaMarketOrderStatusDTO->getProfile());
-        self::assertTrue($CancelYaMarketOrderStatusDTO->getProfile()->equals(UserProfileUid::TEST));
 
         $CancelOrderInvariable = $CancelYaMarketOrderStatusDTO->getInvariable();
         self::assertNotNull($CancelOrderInvariable->getProfile());

@@ -29,8 +29,6 @@ use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCanceled;
-use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
-use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent */
@@ -40,10 +38,6 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     #[Assert\NotBlank]
     #[Assert\Uuid]
     private readonly OrderEventUid $id;
-
-    /** Ответственный */
-    #[Assert\NotBlank]
-    private readonly UserProfileUid $profile;
 
     /** Выделить заказ */
     private readonly bool $danger;
@@ -55,23 +49,10 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     /** Комментарий к заказу */
     private ?string $comment;
 
-    public function __construct(UserProfile|UserProfileUid|string $profile)
+    public function __construct()
     {
-        if(is_string($profile))
-        {
-            $profile = new UserProfileUid($profile);
-        }
-
-        if($profile instanceof UserProfile)
-        {
-            $profile = $profile->getId();
-        }
-
-        $this->profile = $profile;
-
         $this->danger = true;
     }
-
 
     /** Идентификатор события */
     public function getEvent(): OrderEventUid
@@ -102,12 +83,6 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     public function cancelOrder(): void
     {
         $this->status = new OrderStatus(OrderStatusCanceled::class);
-    }
-
-    /** Профиль пользователя при неоплаченном статусе - NULL */
-    public function getProfile(): UserProfileUid
-    {
-        return $this->profile;
     }
 
     /**

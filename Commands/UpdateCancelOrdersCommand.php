@@ -129,7 +129,6 @@ class UpdateCancelOrdersCommand extends Command
         $this->io->note(sprintf('Отменяем заказы профиля %s', $profile->getAttr()));
 
         $orders = $this->yandexMarketCancelOrdersRequest
-            ->profile($profile)
             ->findAll(DateInterval::createFromDateString('1 day'));
 
         if(false === $orders->valid())

@@ -43,10 +43,6 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
     #[Assert\NotBlank]
     private OrderStatus $status;
 
-    /** Профиль ответственного */
-    #[Assert\IsNull]
-    private readonly null $profile;
-
     /** Пользователь */
     #[Assert\Valid]
     private User\OrderUserDTO $usr;
@@ -54,7 +50,6 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
     public function __construct()
     {
         $this->usr = new User\OrderUserDTO();
-        $this->profile = null;
     }
 
     /** Идентификатор события */
@@ -77,10 +72,6 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
         return $this->status;
     }
 
-    public function getProfile(): null
-    {
-        return $this->profile;
-    }
 
     public function getUsr(): User\OrderUserDTO
     {

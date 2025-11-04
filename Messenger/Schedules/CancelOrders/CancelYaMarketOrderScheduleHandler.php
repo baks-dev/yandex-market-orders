@@ -122,7 +122,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $Order = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO, $profile);
+            $Order = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO);
 
             if($Order instanceof Order)
             {
@@ -156,6 +156,8 @@ final readonly class CancelYaMarketOrderScheduleHandler
                         'profile' => (string) $profile,
                     ],
                 );
+
+                $Deduplicator->save();
             }
         }
     }

@@ -42,7 +42,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\User\OrderUserDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Posting\UpdateOrderProductsPostingHandler;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\CurrentProductDTO;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
-use BaksDev\Products\Product\Repository\CurrentProductIdentifier\CurrentProductIdentifierInterface;
+use BaksDev\Products\Product\Repository\CurrentProductIdentifier\CurrentProductIdentifierByEventInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderPackageStatusRequest;
@@ -69,7 +69,7 @@ final class UpdatePackageYandexOrderFbsDispatcher
         private ProductParameterInterface $productParameterRepository,
         private ProductConstByArticleInterface $productConstByArticleRepository,
         private UpdateOrderProductsPostingHandler $updateOrderProductsPostingHandler,
-        private CurrentProductIdentifierInterface $CurrentProductIdentifierRepository,
+        private CurrentProductIdentifierByEventInterface $CurrentProductIdentifierRepository,
     ) {}
 
     public function __invoke(OrderMessage $message): void

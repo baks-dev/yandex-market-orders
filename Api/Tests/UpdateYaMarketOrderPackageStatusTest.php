@@ -74,7 +74,7 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
                 ]],
 
             )
-            ->update('11111111111');
+            ->package('11111111111');
 
     }
 

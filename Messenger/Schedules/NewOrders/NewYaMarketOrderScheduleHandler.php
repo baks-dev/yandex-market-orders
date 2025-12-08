@@ -75,10 +75,10 @@ final readonly class NewYaMarketOrderScheduleHandler
 
             if($Deduplicator->isExecuted())
             {
-                return;
+                continue;
             }
 
-            /* @see строку :104 */
+            /** Добавляем дедубликатор обновления (удалям в конце данного процесса) */
             $Deduplicator->save();
 
             /**
@@ -96,12 +96,13 @@ final readonly class NewYaMarketOrderScheduleHandler
             }
 
             $this->ordersCreate($orders);
+
+            /** Удаляем дедубликатор обновления */
             $Deduplicator->delete();
         }
     }
 
     /** @param Generator<int, YandexMarketOrderDTO> $orders */
-
     private function ordersCreate(Generator $orders): void
     {
         foreach($orders as $YandexMarketOrderDTO)

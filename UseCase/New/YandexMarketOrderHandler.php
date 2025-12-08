@@ -97,10 +97,11 @@ final class YandexMarketOrderHandler extends AbstractHandler
             return $this->newYaMarketOrderStatusHandler->handle($command);
         }
 
-
         /**
          * Присваиваем заказу идентификатор пользователя
          */
+
+        $this->setCommand($command);
 
         $NewOrderInvariable = $command->getInvariable();
 
@@ -118,6 +119,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         /**
          * Получаем события продукции
+         *
          * @var Products\NewOrderProductDTO $product
          */
         foreach($command->getProduct() as $product)
@@ -144,9 +146,6 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         /** Присваиваем информацию о доставке */
         $this->fillDelivery($command);
-
-        /** Валидация DTO  */
-        $this->validatorCollection->add($command);
 
         $OrderUserDTO = $command->getUsr();
 
@@ -179,12 +178,9 @@ final class YandexMarketOrderHandler extends AbstractHandler
 
         /** Сохраняем */
 
-        $Order = new Order();
-        $Order->setNumber($command->getNumber());
-
         $this
             ->setCommand($command)
-            ->preEventPersistOrUpdate($Order, OrderEvent::class);
+            ->preEventPersistOrUpdate(Order::class, OrderEvent::class);
 
         /** Валидация всех объектов */
         if($this->validatorCollection->isInvalid())
@@ -197,7 +193,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /* Отправляем сообщение в шину */
         $this->messageDispatch->dispatch(
             message: new OrderMessage($this->main->getId(), $this->main->getEvent(), $command->getEvent()),
-            transport: 'orders-order'
+            transport: 'orders-order',
         );
 
         return $this->main;
@@ -291,7 +287,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         /* Создаем адрес геолокации */
         $GeocodeAddress = $this->geocodeAddressParser
             ->getGeocode(
-                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude()
+                $OrderDeliveryDTO->getLatitude().', '.$OrderDeliveryDTO->getLongitude(),
             );
 
         /** Если адрес не найден по геолокации - пробуем определить по адресу */
@@ -299,7 +295,7 @@ final class YandexMarketOrderHandler extends AbstractHandler
         {
             $GeocodeAddress = $this->geocodeAddressParser
                 ->getGeocode(
-                    $OrderDeliveryDTO->getAddress()
+                    $OrderDeliveryDTO->getAddress(),
                 );
         }
 

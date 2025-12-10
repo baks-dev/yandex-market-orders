@@ -40,7 +40,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\OrderProductDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\Products\Posting\OrderProductPostingDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\User\OrderUserDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Posting\UpdateOrderProductsPostingHandler;
-use BaksDev\Products\Product\Repository\CurrentProductByArticle\CurrentProductDTO;
+use BaksDev\Products\Product\Repository\CurrentProductByArticle\CurrentProductByBarcodeResult;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Products\Product\Repository\CurrentProductIdentifier\CurrentProductIdentifierByEventInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
@@ -277,7 +277,7 @@ final class UpdatePackageYandexOrderFbsDispatcher
              * Из всех продуктов в заказе в системе находим соответствие продукту из заказа Ozon
              *
              * @var OrderProductDTO|null $orderProductDTO
-             * @var CurrentProductDTO $ProductData
+             * @var CurrentProductByBarcodeResult $ProductData
              */
 
             $orderProductDTO = $EditOrderDTO->getProduct()

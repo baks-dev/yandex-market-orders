@@ -31,20 +31,16 @@ use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
-use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
-use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
-use BaksDev\Orders\Order\UseCase\Admin\Edit\User\OrderUserDTO;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
+use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderPackageStatusRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -58,17 +54,15 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private DeduplicatorInterface $deduplicator,
         private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
-        private CurrentOrderEventInterface $CurrentOrderEvent,
+        private CurrentOrderEventInterface $CurrentOrderEventRepository,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
         private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
+        private UpdateYaMarketOrderPackageStatusRequest $UpdateYaMarketOrderPackageStatusRequest,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
-
     public function __invoke(OrderMessage $message): void
     {
-        return; /* TODO: ВРМЕННО ОТКЛЮЧЕНО !!! */
-
         /** Дедубликатор по идентификатору заказа */
         $Deduplicator = $this->deduplicator
             ->namespace('orders-order')
@@ -83,12 +77,11 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-
         /**
          * Получаем активное событие, т.к. может быть Unpaid
          * если Unpaid - ожидаем возврат в статус NEW
          */
-        $CurrentOrderEvent = $this->CurrentOrderEvent
+        $CurrentOrderEvent = $this->CurrentOrderEventRepository
             ->forOrder($message->getId())
             ->find();
 
@@ -128,6 +121,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
                 'yandex-market-orders: Идентификатор профиля заказа не определен',
                 [self::class.':'.__LINE__, var_export($message, true)],
             );
+
             return;
         }
 
@@ -163,18 +157,68 @@ final readonly class UpdateProcessingYandexOrderDispatcher
 
             /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
 
-            $update = $this
+            $isUpdate = $this
                 ->updateYaMarketOrderReadyStatusRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
                 ->update($CurrentOrderEvent->getOrderNumber());
 
-            if(false === $update)
+            if(false === $isUpdate)
             {
                 $this->messageDispatch->dispatch(
                     message: $message,
                     stamps: [new MessageDelay('1 minutes')],
                     transport: $UserProfileUid.'-low',
                 );
+            }
+
+
+            /**
+             *
+             * Если заказ FBS - Создаем задание на разделение заказа на машиноместа
+             */
+
+            if(true === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYaMarket::TYPE))
+            {
+                $products = null;
+
+                $CurrentOrderEvent->getOrderNumber();
+
+                foreach($YandexMarketOrderDTO->getProduct() as $NewOrderProductDTO)
+                {
+                    $pack = $NewOrderProductDTO->getPrice()->getTotal();
+
+                    for($i = 1; $i <= $pack; $i++)
+                    {
+                        $products[] = [
+                            'items' => [
+                                [
+                                    'id' => $NewOrderProductDTO->getIdentifier(), // идентификатор продукта
+                                    'fullCount' => 1, // машиноместо
+                                ],
+                            ],
+                        ];
+                    }
+                }
+
+                /**
+                 * Отправляем результат разделения машиномест
+                 */
+
+                if(false === empty($products))
+                {
+                    $isPack = $this->UpdateYaMarketOrderPackageStatusRequest
+                        ->forTokenIdentifier($YaMarketTokenUid)
+                        ->products($products)
+                        ->package($CurrentOrderEvent->getOrderNumber());
+
+                    if(false === $isPack)
+                    {
+                        $this->logger->info(
+                            sprintf('%s: разделили заказ на машиноместа', $CurrentOrderEvent->getOrderNumber()),
+                            [self::class.':'.__LINE__, $products],
+                        );
+                    }
+                }
             }
 
             break;
@@ -184,6 +228,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             sprintf('%s: Отправили информацию о принятом в обработку заказе', $CurrentOrderEvent->getOrderNumber()),
             [self::class.':'.__LINE__],
         );
+
 
         $Deduplicator->save();
     }

@@ -136,6 +136,19 @@ final class YandexMarketOrderDTO implements OrderEventInterface
             $deliveryDate = new DateTimeImmutable($order['expiryDate']);
         }
 
+        /** Список отправлений */
+        //        if(isset($shipments['boxes']))
+        //        {
+        //            /**
+        //             * @example
+        //             * "id" => 111111111
+        //             * "fulfilmentId" => "11111111111-1"
+        //             */
+        //            foreach($shipments['boxes'] as $boxes)
+        //            {
+        //                dump($boxes);
+        //            }
+        //        }
 
         $OrderPaymentDTO = $this->usr->getPayment();
         $OrderProfileDTO = $this->usr->getUserProfile();
@@ -297,7 +310,6 @@ final class YandexMarketOrderDTO implements OrderEventInterface
         /** Продукция */
         foreach($order['items'] as $item)
         {
-
             $NewOrderProductDTO = new NewOrderProductDTO()
                 ->setIdentifier($item['id'])
                 ->setArticle($item['offerId']);

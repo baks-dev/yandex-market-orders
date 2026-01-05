@@ -51,7 +51,6 @@ final class UpdateYaMarketOrderPackageStatusRequest extends YandexMarket
      */
     public function package(int|string $order): bool
     {
-
         if(false === $this->isExecuteEnvironment())
         {
             return true;
@@ -66,16 +65,20 @@ final class UpdateYaMarketOrderPackageStatusRequest extends YandexMarket
                 ['json' => ['boxes' => $this->products]],
             );
 
+        $content = $response->toArray(false);
+
         if($response->getStatusCode() !== 200)
         {
-            $content = $response->toArray(false);
-
             $this->logger->critical(
                 sprintf('yandex-market-orders: Ошибка %s при обновлении упаковки заказа %s', $response->getStatusCode(), $order),
                 [$content, $this->products, self::class.':'.__LINE__]);
 
             return false;
         }
+
+        $this->logger->info(
+            sprintf('%s: Разделили заказ на машиноместа', $order),
+            [$content, $this->products, self::class.':'.__LINE__]);
 
         return true;
     }

@@ -114,7 +114,6 @@ class YandexMarketOrderFBSTest extends KernelTestCase
                     continue;
                 }
 
-
                 /** @var NewOrderProductDTO $NewOrderProductDTO */
                 foreach($products as $NewOrderProductDTO)
                 {
@@ -144,7 +143,6 @@ class YandexMarketOrderFBSTest extends KernelTestCase
                 $item->expiresAfter(DateInterval::createFromDateString('1 day'));
                 $item->set(1);
                 $cache->save($item);
-
 
                 return;
             }

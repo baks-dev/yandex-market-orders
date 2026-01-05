@@ -100,75 +100,74 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         $GetYaMarketOrdersUnpaidRequest->TokenHttpClient(self::$Authorization);
 
         $response = $GetYaMarketOrdersUnpaidRequest
-            ->findAll(DateInterval::createFromDateString('10 day'));
+            ->findAll(DateInterval::createFromDateString('30 day'));
 
-        if($response->valid())
+        if(false === $response || false === $response->valid())
         {
-            /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
-            $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
-
-
-            /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
-            foreach($response as $YandexMarketOrderDTO)
-            {
-                $products = $YandexMarketOrderDTO->getProduct();
-
-                if($products->count() > 1)
-                {
-                    continue;
-                }
-
-                /** @var NewOrderProductDTO $NewOrderProductDTO */
-                $NewOrderProductDTO = $products->current();
-
-                $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
-
-
-                if($CurrentProductDTO === false)
-                {
-                    continue;
-                }
-
-
-                /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
-
-                /* Принудительно указываем статус UNPAID */
-                $YandexMarketOrderDTO->setStatus(OrderStatusUnpaid::class);
-
-                /** @var UnpaidYaMarketOrderStatusHandler $handler */
-                $handler = self::getContainer()->get(UnpaidYaMarketOrderStatusHandler::class);
-                $handle = $handler->handle($YandexMarketOrderDTO);
-
-                $em = self::getContainer()->get(EntityManagerInterface::class);
-                $OrderEvent = $em->getRepository(OrderEvent::class)->find($handle->getEvent());
-
-                self::assertNotNull($OrderEvent);
-                self::assertTrue($OrderEvent->getStatus()->equals(OrderStatusUnpaid::class));
-
-
-                /** Возвращаем неоплаченный заказ в статус НОВЫЙ после оплаты */
-                $YandexMarketOrderDTO->setStatus(OrderStatusNew::class);
-
-                /** @var ToggleUnpaidToNewYaMarketOrderHandler $toggle */
-                $toggle = self::getContainer()->get(ToggleUnpaidToNewYaMarketOrderHandler::class);
-                $handle = $toggle->handle($YandexMarketOrderDTO);
-
-                /** Запоминаем результат тестирования */
-                $item->expiresAfter(DateInterval::createFromDateString('1 day'));
-                $item->set(1);
-                $cache->save($item);
-
-                return;
-            }
-
-            foreach($YandexMarketOrderDTO->getProduct() as $product)
-            {
-                echo PHP_EOL.sprintf('Не найдено продукции %s для теста ', $product->getArticle()).self::class.':'.__LINE__.PHP_EOL;
-            }
+            return;
         }
-        else
+
+
+        /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
+        $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
+
+
+        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+        foreach($response as $YandexMarketOrderDTO)
         {
-            self::assertFalse($response->valid());
+            $products = $YandexMarketOrderDTO->getProduct();
+
+            if($products->count() > 1)
+            {
+                continue;
+            }
+
+            /** @var NewOrderProductDTO $NewOrderProductDTO */
+            $NewOrderProductDTO = $products->current();
+
+            $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
+
+
+            if($CurrentProductDTO === false)
+            {
+                continue;
+            }
+
+
+            /** Создаем новый заказ, который автоматически должен измениться на статус «Не оплачен» */
+
+            /* Принудительно указываем статус UNPAID */
+            $YandexMarketOrderDTO->setStatus(OrderStatusUnpaid::class);
+
+            /** @var UnpaidYaMarketOrderStatusHandler $handler */
+            $handler = self::getContainer()->get(UnpaidYaMarketOrderStatusHandler::class);
+            $handle = $handler->handle($YandexMarketOrderDTO);
+
+            $em = self::getContainer()->get(EntityManagerInterface::class);
+            $OrderEvent = $em->getRepository(OrderEvent::class)->find($handle->getEvent());
+
+            self::assertNotNull($OrderEvent);
+            self::assertTrue($OrderEvent->getStatus()->equals(OrderStatusUnpaid::class));
+
+
+            /** Возвращаем неоплаченный заказ в статус НОВЫЙ после оплаты */
+            $YandexMarketOrderDTO->setStatus(OrderStatusNew::class);
+
+            /** @var ToggleUnpaidToNewYaMarketOrderHandler $toggle */
+            $toggle = self::getContainer()->get(ToggleUnpaidToNewYaMarketOrderHandler::class);
+            $handle = $toggle->handle($YandexMarketOrderDTO);
+
+            /** Запоминаем результат тестирования */
+            $item->expiresAfter(DateInterval::createFromDateString('1 day'));
+            $item->set(1);
+            $cache->save($item);
+
+            return;
+        }
+
+        foreach($YandexMarketOrderDTO->getProduct() as $product)
+        {
+            echo PHP_EOL.sprintf('Не найдено продукции %s для теста ', $product->getArticle()).self::class.':'.__LINE__.PHP_EOL;
         }
     }
 }

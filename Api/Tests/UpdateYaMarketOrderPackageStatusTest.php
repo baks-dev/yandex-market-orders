@@ -53,33 +53,62 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
         );
     }
 
-    /** @todo Подготовка заказа (попытка разделения товара на коробки и и передача кизов) */
     public function testUseCase(): void
     {
         self::assertTrue(true);
 
-        return;
-
-
         /** @var UpdateYaMarketOrderPackageStatusRequest $UpdateYaMarketOrderPackageStatusRequest */
         $UpdateYaMarketOrderPackageStatusRequest = self::getContainer()->get(UpdateYaMarketOrderPackageStatusRequest::class);
+        $UpdateYaMarketOrderPackageStatusRequest->TokenHttpClient(self::$Authorization);
 
         $UpdateYaMarketOrderPackageStatusRequest
-            ->products(
-                ['boxes' => [
-
-                    ['items' => [[
-                        'id' => 123456, // идентификатор продукта
-                        'fullCount' => 1, // машиноместо
-                        'instances' => [
-                            ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
+            ->products([
+                [
+                    'items' => [
+                        [
+                            'id' => 1024724806, // идентификатор продукта
+                            'fullCount' => 1, // машиноместо
+                            /*'instances' => [
+                                ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
+                            ],*/
                         ],
-                    ]]],
-
-                ]],
-
-            )
-            ->package('11111111111');
+                    ],
+                ],
+                [
+                    'items' => [
+                        [
+                            'id' => 1024724806, // идентификатор продукта
+                            'fullCount' => 1, // машиноместо
+                            /*'instances' => [
+                                ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
+                            ],*/
+                        ],
+                    ],
+                ],
+                [
+                    'items' => [
+                        [
+                            'id' => 1024724806, // идентификатор продукта
+                            'fullCount' => 1, // машиноместо
+                            /*'instances' => [
+                                ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
+                            ],*/
+                        ],
+                    ],
+                ],
+                [
+                    'items' => [
+                        [
+                            'id' => 1024724806, // идентификатор продукта
+                            'fullCount' => 1, // машиноместо
+                            /*'instances' => [
+                                ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
+                            ],*/
+                        ],
+                    ],
+                ],
+            ])
+            ->package('Y-52812432577');
 
     }
 

@@ -55,7 +55,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler(priority: 8)]
+/** При статусе заказа «Укомплектовано» - отправляем маркировку товара «Честный знак» */
+#[AsMessageHandler(priority: 0)]
 final class UpdatePackageYandexOrderFbsDispatcher
 {
     public function __construct(
@@ -149,8 +150,8 @@ final class UpdatePackageYandexOrderFbsDispatcher
         /** Токен из заказа в системе (был установлен при получении заказа из Ozon) */
         $YaMarketTokenUid = new YaMarketTokenUid($OrderEvent->getOrderTokenIdentifier());
 
-
         /**
+         * Получаем информацию о заказе YandexMarket
          * @var YandexMarketOrderDTO $YandexMarketOrderDTO
          */
         $YandexMarketOrderDTO = $this
@@ -186,7 +187,6 @@ final class UpdatePackageYandexOrderFbsDispatcher
          */
         foreach($YandexMarketOrderDTO->getProduct() as $NewOrderProductDTO)
         {
-
             /** Получаем идентификатор карточки в системе */
             $ProductData = $this->productConstByArticleRepository
                 ->find($NewOrderProductDTO->getArticle());

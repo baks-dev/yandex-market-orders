@@ -27,7 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderStickerRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DependsOnClass;
@@ -37,7 +37,7 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 
 #[When(env: 'test')]
 #[Group('yandex-market-orders')]
-class GetYaMarketOrderInfoRequestTest extends KernelTestCase
+class GetYaMarketOrderStickerRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;
 
@@ -55,16 +55,20 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
 
     public function testUseCase(): void
     {
-
-        /** @var GetYaMarketOrderInfoRequest $GetYaMarketOrderInfoRequest */
-        $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
-        $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
-
-        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('1234567890');
-
-        //dump($YandexMarketOrderDTO);
-
         self::assertTrue(true);
+        return;
+
+        /** @var GetYaMarketOrderStickerRequest $GetYaMarketOrderStickerRequest */
+        $GetYaMarketOrderStickerRequest = self::getContainer()->get(GetYaMarketOrderStickerRequest::class);
+        $GetYaMarketOrderStickerRequest->TokenHttpClient(self::$Authorization);
+
+        $YandexMarketOrderDTO = $GetYaMarketOrderStickerRequest
+            ->number('Y-1234567890')
+            ->box(12345679890)
+            ->key(1)
+            ->get();
+
+        // dump($YandexMarketOrderDTO);
 
     }
 

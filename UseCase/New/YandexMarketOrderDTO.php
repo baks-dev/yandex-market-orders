@@ -49,7 +49,9 @@ use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Invariable\NewOrderInvariableDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
+use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -66,7 +68,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
 
     /** Постоянная величина */
     #[Assert\Valid]
-    private Invariable\NewOrderInvariable $invariable;
+    private Invariable\NewOrderInvariableDTO $invariable;
 
     /** Дата заказа */
     #[Assert\NotBlank]
@@ -90,13 +92,21 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     private ?array $buyer;
 
 
-    public function __construct(array $order, UserProfileUid $profile, ?array $buyer = null)
+    public function __construct(
+        array $order,
+        UserProfileUid $profile,
+        YaMarketTokenUid|false $token,
+        ?array $buyer = null
+    )
     {
         /** Постоянная величина */
-        $NewOrderInvariable = new Invariable\NewOrderInvariable();
-        $NewOrderInvariable->setCreated(new DateTimeImmutable($order['creationDate'] ?: 'now'));
-        $NewOrderInvariable->setProfile($profile);
-        $NewOrderInvariable->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
+        $NewOrderInvariable = new NewOrderInvariableDTO()
+            ->setCreated(new DateTimeImmutable($order['creationDate'] ?: 'now'))
+            ->setProfile($profile)
+            ->setToken($token)
+            ->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
+
+
         $this->invariable = $NewOrderInvariable;
 
 
@@ -426,7 +436,7 @@ final class YandexMarketOrderDTO implements OrderEventInterface
     /**
      * Invariable
      */
-    public function getInvariable(): Invariable\NewOrderInvariable
+    public function getInvariable(): Invariable\NewOrderInvariableDTO
     {
         return $this->invariable;
     }

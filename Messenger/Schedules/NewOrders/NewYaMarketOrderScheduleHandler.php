@@ -102,7 +102,7 @@ final readonly class NewYaMarketOrderScheduleHandler
         }
     }
 
-    /** @param Generator<int, YandexMarketOrderDTO> $orders */
+    /** @param Generator<YandexMarketOrderDTO> $orders */
     private function ordersCreate(Generator $orders): void
     {
         foreach($orders as $YandexMarketOrderDTO)

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,12 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api;
+namespace BaksDev\Yandex\Market\Orders\Api\Pack;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use Generator;
 
-final class UpdateYaMarketOrderPackageStatusRequest extends YandexMarket
+final class UpdateYaMarketProductsPackByOrderRequest extends YandexMarket
 {
 
     private array|false $products = false;
@@ -48,8 +49,10 @@ final class UpdateYaMarketOrderPackageStatusRequest extends YandexMarket
      * - удалить товар из заказа, если его не оказалось на складе.
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/setOrderBoxLayout
+     *
+     * @return Generator<YaMarketProductsPackDTO>|false
      */
-    public function package(int|string $order): bool
+    public function package(int|string $order): bool|Generator
     {
         if(false === $this->isExecuteEnvironment())
         {
@@ -80,6 +83,15 @@ final class UpdateYaMarketOrderPackageStatusRequest extends YandexMarket
             sprintf('%s: Разделили заказ на машиноместа', $order),
             [$content, $this->products, self::class.':'.__LINE__]);
 
-        return true;
+
+        if(empty($content['result']['boxes']))
+        {
+            return false;
+        }
+
+        foreach($content['result']['boxes'] as $box)
+        {
+            yield new YaMarketProductsPackDTO($box);
+        }
     }
 }

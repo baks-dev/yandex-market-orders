@@ -97,7 +97,12 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
         }
 
         /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
-        return new YandexMarketOrderDTO($order, $this->getProfile(), $client);
+        return new YandexMarketOrderDTO(
+            order: $order,
+            profile: $this->getProfile(),
+            token: $this->getTokenIdentifier(),
+            buyer: $client,
+        );
 
     }
 }

@@ -34,8 +34,10 @@ use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
-use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderPackageStatusRequest;
+use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
+use BaksDev\Yandex\Market\Orders\Api\Pack\YaMarketProductsPackDTO;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
+use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
@@ -57,7 +59,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         private CurrentOrderEventInterface $CurrentOrderEventRepository,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
         private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
-        private UpdateYaMarketOrderPackageStatusRequest $UpdateYaMarketOrderPackageStatusRequest,
+        private UpdateYaMarketProductsPackByOrderRequest $UpdateYaMarketOrderPackageStatusRequest,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
@@ -171,9 +173,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
                 );
             }
 
-
             /**
-             *
              * Если заказ FBS - Создаем задание на разделение заказа на машиноместа
              */
 
@@ -206,21 +206,43 @@ final readonly class UpdateProcessingYandexOrderDispatcher
 
                 if(false === empty($products))
                 {
-                    $isPack = $this->UpdateYaMarketOrderPackageStatusRequest
+                    $packages = $this->UpdateYaMarketOrderPackageStatusRequest
                         ->forTokenIdentifier($YaMarketTokenUid)
                         ->products($products)
                         ->package($CurrentOrderEvent->getOrderNumber());
 
-                    if(false === $isPack)
+                    if(false === $packages || false === $packages->valid())
                     {
                         $this->logger->info(
                             sprintf('%s: разделили заказ на машиноместа', $CurrentOrderEvent->getOrderNumber()),
                             [self::class.':'.__LINE__, $products],
                         );
+
+                        continue;
+                    }
+
+                    /** Создаем задание на получение стикеров */
+                    foreach($packages as $key => $YaMarketProductsPackDTO)
+                    {
+                        ++$key;
+
+                        $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
+                            token: $YaMarketTokenUid,
+                            order: $CurrentOrderEvent->getOrderNumber(),
+                            box: $YaMarketProductsPackDTO->getBoxId(),
+                            key: $key,
+                        );
+
+                        $this->messageDispatch->dispatch(
+                            message: $ProcessYandexPackageStickersMessage,
+                            stamps: [new MessageDelay(sprintf('%s seconds', $key + 3))],
+                            transport: $UserProfileUid.'-low',
+                        );
                     }
                 }
             }
 
+            /** Если заказ найден - обрываем */
             break;
         }
 
@@ -228,7 +250,6 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             sprintf('%s: Отправили информацию о принятом в обработку заказе', $CurrentOrderEvent->getOrderNumber()),
             [self::class.':'.__LINE__],
         );
-
 
         $Deduplicator->save();
     }

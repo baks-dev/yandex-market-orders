@@ -80,7 +80,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         'status' => 'PROCESSING',
                         'substatus' => $this->isExecuteEnvironment() ? 'STARTED' : null, // в тестовом окружении получаем все СУБ-статусы
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
-                    ]
+                    ],
                 ],
             );
 
@@ -110,8 +110,8 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     sprintf(
                         '/campaigns/%s/orders/%s/buyer',
                         $this->getCompany(),
-                        $order['id']
-                    )
+                        $order['id'],
+                    ),
                 );
 
                 if($response->getStatusCode() === 200)
@@ -122,7 +122,12 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
             }
 
             /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-            yield new YandexMarketOrderDTO($order, $this->getProfile(), $client);
+            yield new YandexMarketOrderDTO(
+                order: $order,
+                profile: $this->getProfile(),
+                token: $this->getTokenIdentifier(),
+                buyer: $client,
+            );
         }
     }
 }

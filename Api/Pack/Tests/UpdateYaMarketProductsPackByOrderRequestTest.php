@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,21 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api\Tests;
+namespace BaksDev\Yandex\Market\Orders\Api\Pack\Tests;
 
-use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderPackageStatusRequest;
+use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
+use BaksDev\Yandex\Market\Orders\Api\Pack\YaMarketProductsPackDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
-use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\Attributes\DependsOnClass;
 use PHPUnit\Framework\Attributes\Group;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 #[When(env: 'test')]
 #[Group('yandex-market-orders')]
-class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
+class UpdateYaMarketProductsPackByOrderRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;
 
@@ -56,17 +56,18 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
     public function testUseCase(): void
     {
         self::assertTrue(true);
+        //return;
 
-        /** @var UpdateYaMarketOrderPackageStatusRequest $UpdateYaMarketOrderPackageStatusRequest */
-        $UpdateYaMarketOrderPackageStatusRequest = self::getContainer()->get(UpdateYaMarketOrderPackageStatusRequest::class);
-        $UpdateYaMarketOrderPackageStatusRequest->TokenHttpClient(self::$Authorization);
+        /** @var UpdateYaMarketProductsPackByOrderRequest $UpdateYaMarketProductsPackByOrderRequest */
+        $UpdateYaMarketProductsPackByOrderRequest = self::getContainer()->get(UpdateYaMarketProductsPackByOrderRequest::class);
+        $UpdateYaMarketProductsPackByOrderRequest->TokenHttpClient(self::$Authorization);
 
-        $UpdateYaMarketOrderPackageStatusRequest
+        $results = $UpdateYaMarketProductsPackByOrderRequest
             ->products([
                 [
                     'items' => [
                         [
-                            'id' => 1024724806, // идентификатор продукта
+                            'id' => 1025572165, // идентификатор продукта
                             'fullCount' => 1, // машиноместо
                             /*'instances' => [
                                 ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
@@ -77,7 +78,7 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
                 [
                     'items' => [
                         [
-                            'id' => 1024724806, // идентификатор продукта
+                            'id' => 1025572165, // идентификатор продукта
                             'fullCount' => 1, // машиноместо
                             /*'instances' => [
                                 ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
@@ -88,7 +89,7 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
                 [
                     'items' => [
                         [
-                            'id' => 1024724806, // идентификатор продукта
+                            'id' => 1025572165, // идентификатор продукта
                             'fullCount' => 1, // машиноместо
                             /*'instances' => [
                                 ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
@@ -99,7 +100,7 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
                 [
                     'items' => [
                         [
-                            'id' => 1024724806, // идентификатор продукта
+                            'id' => 1025572165, // идентификатор продукта
                             'fullCount' => 1, // машиноместо
                             /*'instances' => [
                                 ['cis' => '01030410947874432155Qbag!93Zjqw'], // честный знак
@@ -108,10 +109,25 @@ class UpdateYaMarketOrderPackageStatusTest extends KernelTestCase
                     ],
                 ],
             ])
-            ->package('Y-52812432577');
+            ->package('Y-52858158913');
 
+        foreach($results as $YaMarketProductsPackDTO)
+        {
+            // Вызываем все геттеры
+            $reflectionClass = new ReflectionClass(YaMarketProductsPackDTO::class);
+            $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+
+            foreach($methods as $method)
+            {
+                // Методы без аргументов
+                if($method->getNumberOfParameters() === 0)
+                {
+                    // Вызываем метод
+                    $data = $method->invoke($YaMarketProductsPackDTO);
+                    // dump($data);
+                }
+            }
+        }
     }
-
-
 }
 

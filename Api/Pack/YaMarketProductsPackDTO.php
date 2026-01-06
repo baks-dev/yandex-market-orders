@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,18 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers;
+namespace BaksDev\Yandex\Market\Orders\Api\Pack;
 
-use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see ProcessYandexPackageStickersMessage */
-final class ProcessYandexPackageStickersMessage
+/** @see YaMarketProductsPack */
+final class YaMarketProductsPackDTO
 {
-    private string $token;
-
-    private string $order;
-
     private int $box;
 
-    private int $key;
-
-    public function __construct(
-        YaMarketTokenUid $token,
-        string|int $order,
-        int $box,
-        int $key,
-    )
+    public function __construct($data)
     {
-        $this->token = (string) $token;
-        $this->order = str_replace('Y-', '', (string) $order);
-        $this->box = $box;
-        $this->key = $key;
-    }
-
-    public function getToken(): YaMarketTokenUid
-    {
-        return new YaMarketTokenUid($this->token);
+        $this->box = $data['boxId'];
     }
 
     public function getBoxId(): int
@@ -62,13 +42,4 @@ final class ProcessYandexPackageStickersMessage
         return $this->box;
     }
 
-    public function getOrder(): string
-    {
-        return $this->order;
-    }
-
-    public function getKey(): int
-    {
-        return $this->key;
-    }
 }

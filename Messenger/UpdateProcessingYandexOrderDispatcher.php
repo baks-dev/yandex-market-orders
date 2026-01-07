@@ -111,6 +111,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             false === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
         )
         {
+            $Deduplicator->save();
             return;
         }
 

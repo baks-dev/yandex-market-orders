@@ -103,7 +103,7 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
             Imagick::setResourceLimit(Imagick::RESOURCETYPE_MEMORY, (1024 * 1024 * 256));
 
             $imagick = new Imagick();
-            $imagick->setResolution(300, 300); // DPI
+            $imagick->setResolution(400, 400); // DPI
 
             /** Одна страница, если передан один номер отправления */
             $imagick->readImageBlob($sticker.'[0]'); // [0] — первая страница

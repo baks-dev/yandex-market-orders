@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers;
 
 
+use BaksDev\Barcode\Reader\BarcodeRead;
+use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderStickerRequest;
@@ -39,7 +41,9 @@ final readonly class ProcessYandexPackageStickersDispatcher
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private GetYaMarketOrderStickerRequest $GetYaMarketOrderStickerRequest,
-        private MessageDispatchInterface $MessageDispatch
+        private MessageDispatchInterface $MessageDispatch,
+        private BarcodeRead $BarcodeRead,
+        private AppCacheInterface $Cache,
     ) {}
 
     public function __invoke(ProcessYandexPackageStickersMessage $message): void
@@ -67,8 +71,37 @@ final readonly class ProcessYandexPackageStickersDispatcher
             return;
         }
 
+        /**
+         * Делаем проверку, что стикер читается
+         */
+
+        $number = str_replace('Y-', '', $message->getOrder()).'-'.$message->getKey();
+        $cache = $this->Cache->init('order-sticker');
+        $ozonSticker = $cache->getItem($number)->get();
+
+        $isErrorRead = $this->BarcodeRead->decode($ozonSticker, decode: true)->isError();
+
+        /** Если стикер не читается - удаляем кеш для повторной попытки */
+        if(true === $isErrorRead)
+        {
+            $this->logger->critical(
+                'yandex-market-orders: ошибка при чтении полученного стикера. Пробуем повторить попытку позже',
+                [self::class.':'.__LINE__, var_export($message, true)],
+            );
+
+            $cache->deleteItem($number);
+
+            $this->MessageDispatch->dispatch(
+                message: $message,
+                stamps: [new MessageDelay('5 seconds')],
+                transport: 'yandex-market-orders',
+            );
+
+            return;
+        }
+
         $this->logger->info(
-            sprintf('%s-%s: получили стикер маркировки заказа', $message->getOrder(), $message->getKey()),
+            sprintf('%s: получили стикер маркировки заказа', $number),
             [self::class.':'.__LINE__],
         );
     }

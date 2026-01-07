@@ -117,6 +117,6 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
 
         });
 
-        return $sticker !== false;
+        return false === empty($sticker);
     }
 }

@@ -113,7 +113,7 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
 
             $imagick->clear();
 
-            return $imageBlob;
+            return base64_encode($imageBlob);
 
         });
 

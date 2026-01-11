@@ -2,8 +2,8 @@ yandex:
 
   fbs:
 
-    name: 'Yandex Market'
-    desc: 'Пользователь Yandex Market'
+    name: 'YaMarket'
+    desc: 'Пользователь YaMarket'
 
     section:
       contact:
@@ -19,8 +19,8 @@ yandex:
 
   dbs:
 
-    name: 'DBS YaMarket'
-    desc: 'Пользователь DBS YaMarket'
+    name: 'DBS: YaMarket'
+    desc: 'Пользователь YaMarket'
 
     section:
       contact:

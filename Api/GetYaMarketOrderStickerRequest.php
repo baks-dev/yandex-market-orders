@@ -27,6 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use DateInterval;
+use Exception;
 use Imagick;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -106,7 +107,16 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
             $imagick->setResolution(400, 400); // DPI
 
             /** Одна страница, если передан один номер отправления */
-            $imagick->readImageBlob($sticker.'[0]'); // [0] — первая страница
+            try
+            {
+                $imagick->readImageBlob($sticker.'[0]');
+            }
+
+                /** Если с индексом 0 вознкла проблема - пробуем индекс 1 */
+            catch(Exception)
+            {
+                $imagick->readImageBlob($sticker.'[1]');
+            }
 
             $imagick->setImageFormat('png');
             $imageBlob = $imagick->getImageBlob();

@@ -27,7 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -116,7 +116,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
             }
 
             /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-            yield new YandexMarketOrderDTO(
+            yield new NewYaMarketOrderDTO(
                 order: $order,
                 profile: $this->getProfile(),
                 token: $this->getTokenIdentifier(),

@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use DateInterval;
@@ -136,7 +136,7 @@ class UpdateCancelOrdersCommand extends Command
 
         }
 
-        /** @var YandexMarketOrderDTO $order */
+        /** @var NewYaMarketOrderDTO $order */
         foreach($orders as $order)
         {
             /**

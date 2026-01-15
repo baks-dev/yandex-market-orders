@@ -29,8 +29,8 @@ use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\NewOrders\NewOrdersSchedule;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
@@ -45,7 +45,7 @@ final readonly class NewYaMarketOrderScheduleHandler
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
         private GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
-        private YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private NewYaMarketOrderHandler $yandexMarketOrderHandler,
         private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
         private DeduplicatorInterface $deduplicator,
     ) {}
@@ -102,7 +102,7 @@ final readonly class NewYaMarketOrderScheduleHandler
         }
     }
 
-    /** @param Generator<YandexMarketOrderDTO> $orders */
+    /** @param Generator<NewYaMarketOrderDTO> $orders */
     private function ordersCreate(Generator $orders): void
     {
         foreach($orders as $YandexMarketOrderDTO)

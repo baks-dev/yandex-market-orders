@@ -32,10 +32,10 @@ use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByAr
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\User\OrderUserDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\User\NewYaMarketOrderUserDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
 use PHPUnit\Framework\Attributes\Group;
@@ -103,7 +103,7 @@ class YandexMarketOrderDBSTest extends KernelTestCase
             /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
             $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
 
-            /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+            /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
             {
                 $products = $YandexMarketOrderDTO->getProduct();
@@ -113,7 +113,7 @@ class YandexMarketOrderDBSTest extends KernelTestCase
                     continue;
                 }
 
-                /** @var NewOrderProductDTO $NewOrderProductDTO */
+                /** @var NewYaMarketOrderProductDTO $NewOrderProductDTO */
                 foreach($products as $NewOrderProductDTO)
                 {
                     $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());
@@ -124,7 +124,7 @@ class YandexMarketOrderDBSTest extends KernelTestCase
                     }
                 }
 
-                /** @var OrderUserDTO $OrderUserDTO */
+                /** @var NewYaMarketOrderUserDTO $OrderUserDTO */
                 $OrderUserDTO = $YandexMarketOrderDTO->getUsr();
                 $OrderUserDTO->setProfile(new UserProfileEventUid()); // присваиваем клиенту идентификатор тестового профиля
 
@@ -132,8 +132,8 @@ class YandexMarketOrderDBSTest extends KernelTestCase
                 //self::assertTrue($OrderUserDTO->getDelivery()->getDelivery()->equals(TypeDeliveryDbsYaMarket::TYPE));
                 //self::assertTrue($OrderUserDTO->getPayment()->getPayment()->equals(TypePaymentDbsYaMarket::TYPE));
 
-                /** @var YandexMarketOrderHandler $YandexMarketOrderHandler */
-                $YandexMarketOrderHandler = self::getContainer()->get(YandexMarketOrderHandler::class);
+                /** @var NewYaMarketOrderHandler $YandexMarketOrderHandler */
+                $YandexMarketOrderHandler = self::getContainer()->get(NewYaMarketOrderHandler::class);
 
                 $handle = $YandexMarketOrderHandler->handle($YandexMarketOrderDTO);
                 self::assertTrue(($handle instanceof Order), $handle.': Ошибка YandexMarketOrder');

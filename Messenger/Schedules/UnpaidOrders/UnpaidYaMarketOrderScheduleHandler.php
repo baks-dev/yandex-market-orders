@@ -30,7 +30,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
@@ -103,7 +103,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
 
     private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var YandexMarketOrderDTO $order */
+        /** @var NewYaMarketOrderDTO $order */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */

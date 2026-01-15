@@ -35,7 +35,7 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 
 final readonly class CancelYaMarketOrderStatusHandler
 {
@@ -44,7 +44,7 @@ final readonly class CancelYaMarketOrderStatusHandler
         private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
     ) {}
 
-    public function handle(YandexMarketOrderDTO|YaMarketCancelOrderDTO $command): Order|string|false
+    public function handle(NewYaMarketOrderDTO|YaMarketCancelOrderDTO $command): Order|string|false
     {
         $OrderEvent = $this->currentOrderEventByNumber->find($command->getNumber());
 

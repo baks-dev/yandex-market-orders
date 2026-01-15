@@ -35,12 +35,11 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
-use BaksDev\Yandex\Market\Orders\Api\Pack\YaMarketProductsPackDTO;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -148,7 +147,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
                 ->find($CurrentOrderEvent->getOrderNumber());
 
             /** Если заказ не найден - пробуем определить в другом магазине */
-            if(false === $YandexMarketOrderDTO instanceof YandexMarketOrderDTO)
+            if(false === $YandexMarketOrderDTO instanceof NewYaMarketOrderDTO)
             {
                 continue;
             }

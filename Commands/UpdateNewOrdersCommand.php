@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Commands;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use DateInterval;
@@ -50,7 +50,7 @@ class UpdateNewOrdersCommand extends Command
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
-        private readonly YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private readonly NewYaMarketOrderHandler $yandexMarketOrderHandler,
         private readonly YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
     )
     {

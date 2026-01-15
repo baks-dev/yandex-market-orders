@@ -35,8 +35,8 @@ use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByAr
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewOrderProductDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
@@ -112,7 +112,7 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
         $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
 
 
-        /** @var YandexMarketOrderDTO $YandexMarketOrderDTO */
+        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
         foreach($response as $YandexMarketOrderDTO)
         {
             $products = $YandexMarketOrderDTO->getProduct();
@@ -122,7 +122,7 @@ class UnpaidYaMarketOrderHandlerTest extends KernelTestCase
                 continue;
             }
 
-            /** @var NewOrderProductDTO $NewOrderProductDTO */
+            /** @var NewYaMarketOrderProductDTO $NewOrderProductDTO */
             $NewOrderProductDTO = $products->current();
 
             $CurrentProductDTO = $ProductConstByArticleInterface->find($NewOrderProductDTO->getArticle());

@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
@@ -42,7 +42,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder
      *
      */
-    public function find(int|string $order): YandexMarketOrderDTO|false
+    public function find(int|string $order): NewYaMarketOrderDTO|false
     {
         $order = str_replace('Y-', '', (string) $order);
 
@@ -97,7 +97,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
         }
 
         /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
-        return new YandexMarketOrderDTO(
+        return new NewYaMarketOrderDTO(
             order: $order,
             profile: $this->getProfile(),
             token: $this->getTokenIdentifier(),

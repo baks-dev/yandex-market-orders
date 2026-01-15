@@ -39,7 +39,7 @@ use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\UserProfileDTO;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\UserProfileHandler;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Value\ValueDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 
 final readonly class ToggleUnpaidToNewYaMarketOrderHandler
 {
@@ -55,7 +55,7 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
     /**
      * Метод возвращает статус неоплаченного заказа UNPAID в статус NEW
      */
-    public function handle(YandexMarketOrderDTO $command): string|Order
+    public function handle(NewYaMarketOrderDTO $command): string|Order
     {
         $isExists = $this->existsOrderNumber->isExists($command->getNumber());
 
@@ -104,7 +104,7 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
     }
 
 
-    public function fillProfile(YandexMarketOrderDTO $command, UserProfileEventUid $profile): UserProfileEventUid|false
+    public function fillProfile(NewYaMarketOrderDTO $command, UserProfileEventUid $profile): UserProfileEventUid|false
     {
 
         if(empty($command->getBuyer()))

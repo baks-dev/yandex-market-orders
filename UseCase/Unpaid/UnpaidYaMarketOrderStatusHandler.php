@@ -32,8 +32,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\YandexMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 
@@ -41,7 +41,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
 {
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
-        private YandexMarketOrderHandler $yandexMarketOrderHandler,
+        private NewYaMarketOrderHandler $yandexMarketOrderHandler,
         private CurrentOrderEventInterface $currentOrderEvent,
         private UserByUserProfileInterface $userByUserProfile,
         private OrderStatusHandler $orderStatusHandler,
@@ -50,7 +50,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
     ) {}
 
     /** @see YandexMarket */
-    public function handle(YandexMarketOrderDTO $command): string|Order
+    public function handle(NewYaMarketOrderDTO $command): string|Order
     {
         /** Не добавляем неоплаченный заказ, если он не «В ожидании оплаты» */
         if(false === $command->getStatusEquals(OrderStatusUnpaid::class))

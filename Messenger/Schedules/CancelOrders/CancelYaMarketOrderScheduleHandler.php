@@ -141,6 +141,11 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     ->addData(['identifier' => (string) $Order->getId()])
                     ->send('remove');
 
+                $this->publish
+                    ->addData(['profile' => false]) // Скрывает у всех
+                    ->addData(['order' => (string) $Order->getId()])
+                    ->send('orders');
+
                 $Deduplicator->save();
 
                 continue;

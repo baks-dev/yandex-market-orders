@@ -26,12 +26,7 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Messenger;
 
 
-use BaksDev\Barcode\Writer\BarcodeFormat;
-use BaksDev\Barcode\Writer\BarcodeType;
-use BaksDev\Barcode\Writer\BarcodeWrite;
 use BaksDev\Core\Cache\AppCacheInterface;
-use BaksDev\Orders\Order\Messenger\Sticker\OrderStickerMessage;
-use BaksDev\Products\Sign\Repository\ProductSignByOrder\ProductSignByOrderInterface;
 use BaksDev\Products\Stocks\Messenger\Part\ProductStockPartMessage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -39,7 +34,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /** Получаем стикер маркировки заказов Yandex в сборочном листе */
 #[AsMessageHandler(priority: 0)]
-final readonly class ProductStockPartDispatcher
+final readonly class ProductStockPartYandexOrderDispatcher
 {
     public function __construct(
         #[Target('productsSignLogger')] private LoggerInterface $logger,
@@ -54,6 +49,11 @@ final readonly class ProductStockPartDispatcher
         /** Получаем стикеры маркировки заказа на продукцию */
         foreach($message->getOrders() as $order)
         {
+            if(false === str_starts_with($order->number, 'Y-'))
+            {
+                continue;
+            }
+
             $number = str_replace('Y-', '', (string) $order->number);
 
             $yandexSticker = $cache->getItem($number)->get();
@@ -64,8 +64,8 @@ final readonly class ProductStockPartDispatcher
                 continue;
             }
 
-            $this->logger->critical(
-                sprintf('yandex-market-orders: стикер маркировки заказа %s не найден', $order->number),
+            $this->logger->warning(
+                sprintf('yandex-market-orders: стикер маркировки заказа %s в упаковке не найден', $order->number),
                 [self::class.':'.__LINE__],
             );
 

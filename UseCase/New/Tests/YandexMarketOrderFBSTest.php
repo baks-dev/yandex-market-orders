@@ -27,6 +27,7 @@ namespace BaksDev\Yandex\Market\Orders\UseCase\New\Tests;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Orders\Order\Entity\Order;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\UseCase\Admin\Delete\Tests\DeleteOrderTest;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
@@ -107,6 +108,12 @@ class YandexMarketOrderFBSTest extends KernelTestCase
             /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
             {
+                /** т.к. в тестовом окружении получаем все статусы - пропускаем до НОВОГО */
+                if(false === $YandexMarketOrderDTO->getStatus()->equals(OrderStatusNew::class))
+                {
+                    continue;
+                }
+
                 $products = $YandexMarketOrderDTO->getProduct();
 
                 if($products->count() > 1)

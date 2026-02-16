@@ -57,8 +57,6 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
         private CurrentOrderEventInterface $CurrentOrderEventRepository,
         private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
-        private YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
-        private UpdateYaMarketProductsPackByOrderRequest $UpdateYaMarketOrderPackageStatusRequest,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 

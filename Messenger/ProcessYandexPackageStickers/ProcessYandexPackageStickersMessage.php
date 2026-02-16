@@ -37,19 +37,15 @@ final class ProcessYandexPackageStickersMessage
 
     private int $box;
 
-    private int $key;
-
     public function __construct(
         YaMarketTokenUid $token,
         string|int $order,
-        int $box,
-        int $key,
+        int $box
     )
     {
         $this->token = (string) $token;
         $this->order = str_replace('Y-', '', (string) $order);
         $this->box = $box;
-        $this->key = $key;
     }
 
     public function getToken(): YaMarketTokenUid
@@ -65,10 +61,5 @@ final class ProcessYandexPackageStickersMessage
     public function getOrder(): string
     {
         return $this->order;
-    }
-
-    public function getKey(): int
-    {
-        return $this->key;
     }
 }

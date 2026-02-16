@@ -52,7 +52,6 @@ final readonly class ProcessYandexPackageStickersDispatcher
             ->forTokenIdentifier($message->getToken())
             ->number($message->getOrder())
             ->box($message->getBoxId())
-            ->key($message->getKey())
             ->get();
 
         if(false === $asSticker)
@@ -75,7 +74,7 @@ final readonly class ProcessYandexPackageStickersDispatcher
          * Делаем проверку, что стикер читается
          */
 
-        $number = str_replace('Y-', '', $message->getOrder()).'-'.$message->getKey();
+        $number = str_replace('Y-', '', $message->getOrder()).'-'.$message->getBoxId();
         $cache = $this->Cache->init('order-sticker');
         $ozonSticker = $cache->getItem($number)->get();
 

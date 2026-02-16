@@ -52,12 +52,6 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
         return $this;
     }
 
-    public function key(int $key): self
-    {
-        $this->key = $key;
-        return $this;
-    }
-
     /**
      * Готовый ярлык‑наклейка для коробки в заказе
      *
@@ -70,7 +64,7 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
          * Указываем отличающийся namespace для кеша стикера (не сбрасываем по какому-либо модулю)
          */
         $cache = $this->getCacheInit('order-sticker');
-        $key = $this->number.'-'.$this->key;
+        $key = $this->number.'-'.$this->box;
 
         $sticker = $cache->get($key, function(ItemInterface $item): string|false {
 
@@ -84,7 +78,7 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
                         '/v2/campaigns/%s/orders/%s/delivery/shipments/%s/boxes/%s/label',
                         $this->getCompany(),
                         $this->number,
-                        $this->key,
+                        $this->box,
                         $this->box,
                     ),
                     ['query' => ['format' => 'A7']],

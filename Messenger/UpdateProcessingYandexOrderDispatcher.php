@@ -36,6 +36,7 @@ use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
 use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
+use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
@@ -112,7 +113,6 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-
         $UserProfileUid = $CurrentOrderEvent->getOrderProfile();
 
         if(false === ($UserProfileUid instanceof UserProfileUid))
@@ -124,7 +124,6 @@ final readonly class UpdateProcessingYandexOrderDispatcher
 
             return;
         }
-
 
         if(true === empty($CurrentOrderEvent->getOrderTokenIdentifier()))
         {
@@ -172,8 +171,37 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             [self::class.':'.__LINE__],
         );
 
+
         $Deduplicator->save();
 
-    }
+        /**
+         * Создаем задание на получение стикеров
+         */
 
+        foreach($YandexMarketOrderDTO->getPostingBox() as $box)
+        {
+            /**
+             * //             * @example
+             * //             * "id" => 111111111
+             * //             * "fulfilmentId" => "11111111111-1"
+             * //             */
+            //            foreach($shipments['boxes'] as $boxes)
+            //            {
+            //                dump($boxes);
+            //            }
+
+            $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
+                token: $YaMarketTokenUid,
+                order: $CurrentOrderEvent->getOrderNumber(),
+                box: $box['id'],
+            );
+
+            $this->messageDispatch->dispatch(
+                message: $ProcessYandexPackageStickersMessage,
+                stamps: [new MessageDelay('3 seconds')],
+                transport: $UserProfileUid.'-low',
+            );
+
+        }
+    }
 }

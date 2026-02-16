@@ -65,7 +65,6 @@ class GetYaMarketOrderStickerRequestTest extends KernelTestCase
         $YandexMarketOrderDTO = $GetYaMarketOrderStickerRequest
             ->number('Y-1234567890')
             ->box(12345679890)
-            ->key(1)
             ->get();
 
         // dump($YandexMarketOrderDTO);

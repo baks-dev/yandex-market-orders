@@ -94,6 +94,7 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     /** Информация о покупателе */
     private ?array $buyer;
 
+    private ?array $boxes;
 
     public function __construct(
         array $order,
@@ -150,6 +151,10 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         {
             $deliveryDate = new DateTimeImmutable($order['expiryDate']);
         }
+
+
+        $this->boxes = isset($shipments['boxes']) ? $shipments['boxes'] : null;
+
 
         /** Список отправлений */
         //        if(isset($shipments['boxes']))
@@ -386,6 +391,12 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     {
         return $this->posting->getValue();
     }
+
+    public function getPostingBox(): ?array
+    {
+        return $this->boxes;
+    }
+
 
     /**
      * Коллекция продукции в заказе

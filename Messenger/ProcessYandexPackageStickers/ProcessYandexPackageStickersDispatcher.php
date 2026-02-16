@@ -51,6 +51,7 @@ final readonly class ProcessYandexPackageStickersDispatcher
         $asSticker = $this->GetYaMarketOrderStickerRequest
             ->forTokenIdentifier($message->getToken())
             ->number($message->getOrder())
+            ->posting($message->getPosting())
             ->box($message->getBoxId())
             ->get();
 
@@ -74,9 +75,9 @@ final readonly class ProcessYandexPackageStickersDispatcher
          * Делаем проверку, что стикер читается
          */
 
-        $number = str_replace('Y-', '', $message->getOrder()).'-'.$message->getBoxId();
+        $posting = str_replace('Y-', '', $message->getPosting());
         $cache = $this->Cache->init('order-sticker');
-        $ozonSticker = $cache->getItem($number)->get();
+        $ozonSticker = $cache->getItem($posting)->get();
 
         $isErrorRead = $this->BarcodeRead->decode($ozonSticker, decode: true)->isError();
 
@@ -88,7 +89,7 @@ final readonly class ProcessYandexPackageStickersDispatcher
                 [self::class.':'.__LINE__, var_export($message, true)],
             );
 
-            $cache->deleteItem($number);
+            $cache->deleteItem($posting);
 
             $this->MessageDispatch->dispatch(
                 message: $message,
@@ -100,7 +101,7 @@ final readonly class ProcessYandexPackageStickersDispatcher
         }
 
         $this->logger->info(
-            sprintf('%s: получили стикер маркировки заказа', $number),
+            sprintf('%s: получили стикер маркировки заказа', $posting),
             [self::class.':'.__LINE__],
         );
     }

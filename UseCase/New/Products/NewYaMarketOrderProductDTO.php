@@ -39,10 +39,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 /** @see OrderProduct */
 final class NewYaMarketOrderProductDTO implements OrderProductInterface
 {
-    /** Идентификатор продукта в заказе */
-    #[Assert\NotBlank]
-    private int $identifier;
-
     /** Артикул продукта */
     #[Assert\NotBlank]
     private string $article;
@@ -82,20 +78,6 @@ final class NewYaMarketOrderProductDTO implements OrderProductInterface
         $this->price = new NewYaMarketNewOrderPriceDTO();
         $this->item = new ArrayCollection();
     }
-
-    /** Идентификатор продукта в заказе */
-
-    public function setIdentifier(int $identifier): self
-    {
-        $this->identifier = $identifier;
-        return $this;
-    }
-
-    public function getIdentifier(): int
-    {
-        return $this->identifier;
-    }
-
 
     /** Артикул продукта */
 

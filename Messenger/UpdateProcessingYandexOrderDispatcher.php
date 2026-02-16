@@ -193,6 +193,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                 token: $YaMarketTokenUid,
                 order: $CurrentOrderEvent->getOrderNumber(),
+                posting: $box['fulfilmentId'],
                 box: $box['id'],
             );
 

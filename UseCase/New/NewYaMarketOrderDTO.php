@@ -337,7 +337,7 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         foreach($order['items'] as $item)
         {
             $NewOrderProductDTO = new NewYaMarketOrderProductDTO()
-                ->setIdentifier($item['id'])
+                //->setIdentifier($item['id'])
                 ->setArticle($item['offerId']);
 
             $NewOrderPriceDTO = $NewOrderProductDTO->getPrice();

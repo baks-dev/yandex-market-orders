@@ -35,9 +35,10 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
 {
     private string $number;
 
+    private string $posting;
+
     private int $box;
 
-    private int $key;
 
     /**Передаем идентификатор отправления для кеширования */
     public function number(string $number): self
@@ -45,6 +46,13 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
         $this->number = str_replace('Y-', '', $number);
         return $this;
     }
+
+    public function posting(string $posting): self
+    {
+        $this->posting = str_replace('Y-', '', $posting);
+        return $this;
+    }
+
 
     public function box(int $box): self
     {
@@ -64,7 +72,7 @@ final class GetYaMarketOrderStickerRequest extends YandexMarket
          * Указываем отличающийся namespace для кеша стикера (не сбрасываем по какому-либо модулю)
          */
         $cache = $this->getCacheInit('order-sticker');
-        $key = $this->number.'-'.$this->box;
+        $key = $this->posting;
 
         $sticker = $cache->get($key, function(ItemInterface $item): string|false {
 

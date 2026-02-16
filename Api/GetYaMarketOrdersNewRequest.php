@@ -220,9 +220,9 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
                 $fbsOrder = $order;
 
-                foreach($order['delivery']['shipments'] as $shipment)
+                foreach($order['delivery']['shipments'] as $key => $shipment)
                 {
-                    foreach($shipment['boxes'] as $key => $box)
+                    foreach($shipment['boxes'] as $box)
                     {
                         /** Создаем заказ на единицу продукции */
                         $fbsOrder['posting'] = $box['fulfilmentId'];

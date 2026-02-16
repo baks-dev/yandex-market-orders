@@ -179,11 +179,11 @@ class UpdateNewOrdersCommand extends Command
 
                 if($handle instanceof Order)
                 {
-                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()));
+                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getPostingNumber()));
                     continue;
                 }
 
-                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getNumber()));
+                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getPostingNumber()));
             }
 
         }

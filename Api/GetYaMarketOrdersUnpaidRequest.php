@@ -93,6 +93,78 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
+            if(false === $this->isExecuteEnvironment())
+            {
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+                yield new NewYaMarketOrderDTO(
+                    order: $order,
+                    profile: $this->getProfile(),
+                    token: $this->getTokenIdentifier(),
+                );
+            }
+
+            // получаем количество товаров в заказе
+            $totalItems = array_sum(array_column($order['items'], 'count'));
+
+            // получаем количество отправлений в заказе
+            $totalBoxes = isset($order['delivery']['shipments'])
+                ? array_sum(array_map(static function($item) {
+                    return count($item['boxes']);
+                }, $order['delivery']['shipments']))
+                : 0;
+
+
+            /**
+             * Отправляем запрос на разделение, если заказ не разделен
+             */
+
+            if($totalItems !== $totalBoxes)
+            {
+                $products = [];
+
+                foreach($order['items'] as $product)
+                {
+                    for($i = 1; $i <= $product['count']; $i++)
+                    {
+                        $products[] = [
+                            'items' => [
+                                [
+                                    'id' => $product['id'], // идентификатор продукта
+                                    'fullCount' => 1,
+                                ],
+                            ],
+                        ];
+                    }
+                }
+
+                $responseBoxes = $this->TokenHttpClient()
+                    ->request(
+                        'PUT',
+                        sprintf('/campaigns/%s/orders/%s/boxes', $this->getCompany(), $order['id']),
+                        ['json' => ['boxes' => $products]],
+                    );
+
+                if($responseBoxes->getStatusCode() !== 200)
+                {
+
+                    $contentBoxes = $responseBoxes->toArray(false);
+
+                    $this->logger->critical(
+                        sprintf('yandex-market-orders: Ошибка %s при разделении упаковки заказа %s', $response->getStatusCode(), $order['id']),
+                        [$contentBoxes, $products, self::class.':'.__LINE__]);
+
+                    continue;
+                }
+
+                $this->logger->info(
+                    sprintf('%s: Разделили заказ на машиноместа', $order),
+                    [$products, self::class.':'.__LINE__],
+                );
+
+                continue;
+            }
+
+
             $client = null;
 
             // Получаем информацию о клиенте
@@ -114,6 +186,43 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                     $client = $clientResponse->toArray(false)['result'];
                 }
             }
+
+
+            /**
+             * Если заказ FBS и он разделен на машиноместа
+             */
+
+            if(
+                isset($order['delivery']['deliveryPartnerType'])
+                && $order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET'
+            )
+            {
+                $fbsOrder = $order;
+
+                foreach($order['delivery']['shipments'] as $shipment)
+                {
+                    foreach($shipment['boxes'] as $key => $box)
+                    {
+                        /** Создаем заказ на единицу продукции */
+                        $fbsOrder['posting'] = $box['fulfilmentId'];
+
+                        $fbsOrder['items'] = null;
+                        $fbsOrder['items'][0] = $order['items'][$key];
+                        $fbsOrder['items'][0]['count'] = 1;
+
+                        yield new NewYaMarketOrderDTO(
+                            order: $fbsOrder,
+                            profile: $this->getProfile(),
+                            token: $this->getTokenIdentifier(),
+                            buyer: $client,
+                        );
+                    }
+                }
+            }
+
+            /**
+             * Все остальные заказы создаем как есть
+             */
 
             /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
             yield new NewYaMarketOrderDTO(

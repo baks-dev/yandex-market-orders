@@ -113,7 +113,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 ->namespace('yandex-market-orders')
                 ->expiresAfter('1 day')
                 ->deduplication([
-                    $YandexMarketOrderDTO->getNumber(),
+                    $YandexMarketOrderDTO->getPostingNumber(),
                     self::class,
                 ]);
 
@@ -127,7 +127,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
             if($Order instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getNumber()),
+                    sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getPostingNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
@@ -154,7 +154,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
             if($Order !== false)
             {
                 $this->logger->critical(
-                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getNumber(), $Order),
+                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getPostingNumber(), $Order),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

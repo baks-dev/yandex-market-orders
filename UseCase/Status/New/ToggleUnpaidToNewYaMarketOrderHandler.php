@@ -57,14 +57,14 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
      */
     public function handle(NewYaMarketOrderDTO $command): string|Order
     {
-        $isExists = $this->existsOrderNumber->isExists($command->getNumber());
+        $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
 
         if($isExists === false)
         {
             return 'Заказ не найден';
         }
 
-        $OrderEvent = $this->currentOrderNumber->find($command->getNumber());
+        $OrderEvent = $this->currentOrderNumber->find($command->getPostingNumber());
 
 
         if(false === $OrderEvent)

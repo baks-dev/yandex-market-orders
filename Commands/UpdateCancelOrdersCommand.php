@@ -146,11 +146,11 @@ class UpdateCancelOrdersCommand extends Command
 
             if($handle instanceof Order)
             {
-                $this->io->info(sprintf('Отменили заказ %s', $order->getNumber()));
+                $this->io->info(sprintf('Отменили заказ %s', $order->getPostingNumber()));
                 continue;
             }
 
-            $this->io->error(sprintf('%s: Ошибка при отмене заказа %s', $handle, $order->getNumber()));
+            $this->io->error(sprintf('%s: Ошибка при отмене заказа %s', $handle, $order->getPostingNumber()));
         }
 
     }

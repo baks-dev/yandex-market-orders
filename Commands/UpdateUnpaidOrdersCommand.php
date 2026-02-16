@@ -147,11 +147,11 @@ class UpdateUnpaidOrdersCommand extends Command
 
             if($handle instanceof Order)
             {
-                $this->io->info(sprintf('Добавили неоплаченный заказ %s', $order->getNumber()));
+                $this->io->info(sprintf('Добавили неоплаченный заказ %s', $order->getPostingNumber()));
                 continue;
             }
 
-            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getNumber()));
+            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getPostingNumber()));
         }
 
     }

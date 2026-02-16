@@ -59,11 +59,11 @@ final readonly class UnpaidYaMarketOrderStatusHandler
         }
 
         /** Не добавляем заказ, если он уже создан */
-        $isExists = $this->existsOrderNumber->isExists($command->getNumber());
+        $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
 
         if($isExists)
         {
-            return sprintf('%s: Ошибка при создании заказа неоплаченного (заказ уже добавлен)!', $command->getNumber());
+            return sprintf('%s: Ошибка при создании заказа неоплаченного (заказ уже добавлен)!', $command->getPostingNumber());
         }
 
         /**
@@ -109,7 +109,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
             if(false === $OrderEvent)
             {
                 $this->logger->critical(
-                    sprintf('Не смогли получить «Новый» заказ %s для перевода в статус «Не оплачено»', $command->getNumber())
+                    sprintf('Не смогли получить «Новый» заказ %s для перевода в статус «Не оплачено»', $command->getPostingNumber()),
                 );
 
                 return '';
@@ -118,7 +118,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
             if(false === $OrderEvent->isStatusEquals(OrderStatusNew::class))
             {
                 $this->logger->critical(
-                    sprintf('Не смогли получить «Новый» заказ %s для перевода в статус «Не оплачено»', $command->getNumber())
+                    sprintf('Не смогли получить «Новый» заказ %s для перевода в статус «Не оплачено»', $command->getPostingNumber()),
                 );
 
                 return '';

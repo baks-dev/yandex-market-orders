@@ -46,7 +46,7 @@ final readonly class CancelYaMarketOrderStatusHandler
 
     public function handle(NewYaMarketOrderDTO|YaMarketCancelOrderDTO $command): Order|string|false
     {
-        $OrderEvent = $this->currentOrderEventByNumber->find($command->getNumber());
+        $OrderEvent = $this->currentOrderEventByNumber->find($command->getPostingNumber());
 
         if(false === $OrderEvent)
         {

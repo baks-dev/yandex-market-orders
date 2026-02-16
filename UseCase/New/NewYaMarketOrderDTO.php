@@ -50,7 +50,9 @@ use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Invariable\NewYaMarketOrderInvariableDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Posting\NewYaMarketOrderPostingDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\User\NewYaMarketOrderUserDTO;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -63,12 +65,13 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     #[Assert\Uuid]
     private ?OrderEventUid $id = null;
 
-    /** Идентификатор заказа YandexMarket */
-    private string $number;
-
     /** Постоянная величина */
     #[Assert\Valid]
-    private Invariable\NewYaMarketOrderInvariableDTO $invariable;
+    private NewYaMarketOrderInvariableDTO $invariable;
+
+    /** Идентификатор отпарвления */
+    #[Assert\Valid]
+    private NewYaMarketOrderPostingDTO $posting;
 
     /** Дата заказа */
     #[Assert\NotBlank]
@@ -83,7 +86,7 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
 
     /** Пользователь */
     #[Assert\Valid]
-    private User\NewYaMarketOrderUserDTO $usr;
+    private NewYaMarketOrderUserDTO $usr;
 
     /** Комментарий к заказу */
     private ?string $comment = null;
@@ -100,18 +103,20 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     )
     {
         /** Постоянная величина */
-        $NewOrderInvariable = new NewYaMarketOrderInvariableDTO()
+        $this->invariable = new NewYaMarketOrderInvariableDTO()
             ->setCreated(new DateTimeImmutable($order['creationDate'] ?: 'now'))
             ->setProfile($profile)
             ->setToken($token)
             ->setNumber('Y-'.$order['id']); // помечаем заказ префиксом Y
 
+        /** Если имеется отправление - присваиваем, в ином случае присваиваем номер заказа */
+        $this->posting = new NewYaMarketOrderPostingDTO()
+            ->setValue(
+                isset($order['posting'])
+                    ? 'Y-'.$order['posting']
+                    : $this->invariable->getNumber(),
+            );
 
-        $this->invariable = $NewOrderInvariable;
-
-
-        /** @deprecated переносится в Invariable */
-        $this->number = 'Y-'.$order['id']; // помечаем заказ префиксом Y
         $this->created = new DateTimeImmutable($order['creationDate'] ?: 'now');
 
 
@@ -127,9 +132,9 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
 
         $this->status = new OrderStatus($yandexStatus);
 
-
         $this->product = new ArrayCollection();
-        $this->usr = new User\NewYaMarketOrderUserDTO();
+
+        $this->usr = new NewYaMarketOrderUserDTO();
 
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
@@ -189,11 +194,14 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
                     'postcode', // Почтовый индекс.
                     'recipient', // Фамилия, имя и отчество получателя заказа.
                     'subway', // Станция метро.
-                    'floor', // Этаж
                     'phone', // Телефон получателя заказа.
+                    'entryphone', // Код домофона.
+                    'floor', // Этаж
+                    'apartment', // Номер квартиры или офиса.
                 ])
             )
             {
+                /** Пропускаем элементы, добавляя их в комментарий */
                 continue;
             }
 
@@ -201,8 +209,9 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
             {
                 //'street' => 'улица '.trim(str_replace('улица', '', $data)),
                 'house' => 'дом '.$data,
-                //'block' => 'корпус '.$data,
+                'block' => 'корпус '.$data,
                 'entrance' => 'подъезд '.$data,
+
                 default => $data,
             };
         }
@@ -306,8 +315,10 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
                 'recipient' => 'получатель '.$data,
                 'phone' => 'тел. '.$data,
                 'subway' => 'ст.метро '.$data,
-                'apartment' => 'кв. '.$data,
+                'entryphone' => 'код домофона '.$data,
                 'floor' => 'этаж '.$data,
+                'apartment' => 'кв. '.$data,
+
                 default => $data,
             };
         }
@@ -371,11 +382,10 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     /**
      * Number
      */
-    public function getNumber(): string
+    public function getPostingNumber(): string
     {
-        return $this->number;
+        return $this->posting->getValue();
     }
-
 
     /**
      * Коллекция продукции в заказе
@@ -412,7 +422,7 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     /**
      * Usr
      */
-    public function getUsr(): User\NewYaMarketOrderUserDTO
+    public function getUsr(): NewYaMarketOrderUserDTO
     {
         return $this->usr;
     }
@@ -436,9 +446,15 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     /**
      * Invariable
      */
-    public function getInvariable(): Invariable\NewYaMarketOrderInvariableDTO
+    public function getInvariable(): NewYaMarketOrderInvariableDTO
     {
         return $this->invariable;
     }
+
+    public function getPosting(): NewYaMarketOrderPostingDTO
+    {
+        return $this->posting;
+    }
+
 
 }

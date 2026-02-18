@@ -109,7 +109,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
             // получаем количество отправлений в заказе
             $totalBoxes = isset($order['delivery']['shipments'])
                 ? array_sum(array_map(static function($item) {
-                    return count($item['boxes']);
+                    return isset($item['boxes']) ? count($item['boxes']) : 0;
                 }, $order['delivery']['shipments']))
                 : 0;
 
@@ -157,7 +157,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                 }
 
                 $this->logger->info(
-                    sprintf('%s: Разделили заказ на машиноместа', $order),
+                    sprintf('%s: Разделили заказ на машиноместа', $order['id']),
                     [$products, self::class.':'.__LINE__],
                 );
 

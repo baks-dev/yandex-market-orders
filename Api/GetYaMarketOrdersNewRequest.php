@@ -207,7 +207,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 // получаем количетсво отправлений в заказе
                 $totalBoxes = isset($order['delivery']['shipments'])
                     ? array_sum(array_map(static function($item) {
-                        return count($item['boxes']);
+                        return isset($item['boxes']) ? count($item['boxes']) : 0;
                     }, $order['delivery']['shipments']))
                     : 0;
 

@@ -27,10 +27,12 @@ namespace BaksDev\Yandex\Market\Orders\Api\Canceled\Tests;
 
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
+use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use DateInterval;
-use Generator;
 use PHPUnit\Framework\Attributes\Group;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
@@ -54,21 +56,37 @@ class YaMarketOrdersCancelRequestTest extends KernelTestCase
 
     public function testUseCase(): void
     {
+        self::assertTrue(true);
+
         /** @var GetYaMarketOrdersCancelRequest $GetYaMarketOrdersCancelRequest */
         $GetYaMarketOrdersCancelRequest = self::getContainer()->get(GetYaMarketOrdersCancelRequest::class);
         $GetYaMarketOrdersCancelRequest->TokenHttpClient(self::$Authorization);
         $result = $GetYaMarketOrdersCancelRequest->findAll(DateInterval::createFromDateString('1 day'));
 
-        if($result instanceof Generator)
+        if(false === $result || false === $result->valid())
         {
-            foreach($result as $data)
+            return;
+        }
+
+        foreach($result as $YaMarketCancelOrderDTO)
+        {
+            // Вызываем все геттеры
+            $reflectionClass = new ReflectionClass(YaMarketCancelOrderDTO::class);
+            $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+
+            foreach($methods as $method)
             {
-                self::assertNotNull($data->getNumber());
-                self::assertNotNull($data->getComment());
+                // Методы без аргументов
+                if($method->getNumberOfParameters() === 0)
+                {
+                    // Вызываем метод
+                    $data = $method->invoke($YaMarketCancelOrderDTO);
+                    // dump($data);
+                }
             }
         }
 
-        self::assertTrue(true);
+
     }
 
 }

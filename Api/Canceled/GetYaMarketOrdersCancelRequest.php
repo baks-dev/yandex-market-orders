@@ -51,6 +51,8 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
      *
+     * @return Generator<YaMarketCancelOrderDTO>|false
+     *
      */
     public function findAll(?DateInterval $interval = null): Generator|false
     {

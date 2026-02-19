@@ -35,8 +35,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
-use BaksDev\Yandex\Market\Orders\Api\UpdateYaMarketOrderReadyStatusRequest;
 use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
+use BaksDev\Yandex\Market\Orders\Messenger\Ready\UpdateYaMarketOrderReadyStatusMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
@@ -57,7 +57,6 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         private DeduplicatorInterface $deduplicator,
         private GetYaMarketOrderInfoRequest $yaMarketOrdersInfoRequest,
         private CurrentOrderEventInterface $CurrentOrderEventRepository,
-        private UpdateYaMarketOrderReadyStatusRequest $updateYaMarketOrderReadyStatusRequest,
         private MessageDispatchInterface $messageDispatch,
     ) {}
 
@@ -150,29 +149,21 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-        /** Если заказ Яндекс PROCESSING - отправляем уведомление о принятом заказе в обработку */
+        /**
+         * Отправляем уведомление о принятом заказе в обработку
+         */
 
-        $isUpdate = $this
-            ->updateYaMarketOrderReadyStatusRequest
-            ->forTokenIdentifier($YaMarketTokenUid)
-            ->update($CurrentOrderEvent->getOrderNumber());
-
-        if(false === $isUpdate)
-        {
-            $this->messageDispatch->dispatch(
-                message: $message,
-                stamps: [new MessageDelay('1 minutes')],
-                transport: $UserProfileUid.'-low',
-            );
-        }
-
-        $this->logger->info(
-            sprintf('%s: Отправили информацию о принятом в обработку заказе', $CurrentOrderEvent->getOrderNumber()),
-            [self::class.':'.__LINE__],
+        $UpdateYaMarketOrderReadyStatusMessage = new UpdateYaMarketOrderReadyStatusMessage(
+            $YaMarketTokenUid,
+            $UserProfileUid,
+            $CurrentOrderEvent->getOrderNumber(),
         );
 
 
-        $Deduplicator->save();
+        $this->messageDispatch->dispatch(
+            message: $UpdateYaMarketOrderReadyStatusMessage,
+            transport: (string) $UserProfileUid,
+        );
 
         /**
          * Создаем задание на получение стикеров
@@ -181,14 +172,10 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         foreach($YandexMarketOrderDTO->getPostingBox() as $box)
         {
             /**
-             * //             * @example
-             * //             * "id" => 111111111
-             * //             * "fulfilmentId" => "11111111111-1"
-             * //             */
-            //            foreach($shipments['boxes'] as $boxes)
-            //            {
-            //                dump($boxes);
-            //            }
+             * @example
+             * "id" => 111111111
+             * "fulfilmentId" => "11111111111-1"
+             * */
 
             $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                 token: $YaMarketTokenUid,
@@ -204,5 +191,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             );
 
         }
+
+        $Deduplicator->save();
     }
 }

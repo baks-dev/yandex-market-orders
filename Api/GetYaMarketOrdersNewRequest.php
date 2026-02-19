@@ -115,7 +115,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
             // получаем количество отправлений в заказе
             $totalBoxes = isset($order['delivery']['shipments'])
                 ? array_sum(array_map(static function($item) {
-                    return count($item['boxes']);
+                    return isset($item['boxes']) ? count($item['boxes']) : 0;
                 }, $order['delivery']['shipments']))
                 : 0;
 
@@ -200,24 +200,6 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 && $order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET'
             )
             {
-
-                // получаем количество товаров в заказе
-                $totalItems = array_sum(array_column($order['items'], 'count'));
-
-                // получаем количетсво отправлений в заказе
-                $totalBoxes = isset($order['delivery']['shipments'])
-                    ? array_sum(array_map(static function($item) {
-                        return isset($item['boxes']) ? count($item['boxes']) : 0;
-                    }, $order['delivery']['shipments']))
-                    : 0;
-
-
-                /** Пропускаем, если заказ не разделен на отправления */
-                if($totalItems !== $totalBoxes)
-                {
-                    continue;
-                }
-
                 $fbsOrder = $order;
 
                 foreach($order['delivery']['shipments'] as $key => $shipment)
@@ -239,6 +221,8 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         );
                     }
                 }
+
+                continue;
             }
 
 

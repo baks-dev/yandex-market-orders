@@ -25,13 +25,12 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Commands;
 
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\NewOrders\NewYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
-use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,9 +48,7 @@ class UpdateNewOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly GetYaMarketOrdersNewRequest $yandexMarketNewOrdersRequest,
-        private readonly NewYaMarketOrderHandler $yandexMarketOrderHandler,
-        private readonly YaMarketTokensByProfileInterface $YaMarketTokensByProfile,
+        private readonly MessageDispatchInterface $messageDispatch,
     )
     {
         parent::__construct();
@@ -153,39 +150,44 @@ class UpdateNewOrdersCommand extends Command
 
         /** Получаем все токены профиля */
 
-        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);
+        $this->messageDispatch->dispatch(
+            message: new NewYaMarketOrdersScheduleMessage($UserProfileUid),
+        );
 
-        if(false === $tokensByProfile || false === $tokensByProfile->valid())
-        {
-            $this->io->error(sprintf('Токенов авторизации профиля %s не найдено', $UserProfileUid->getAttr()));
-            return;
-        }
 
-        foreach($tokensByProfile as $YaMarketTokenUid)
-        {
-            $orders = $this->yandexMarketNewOrdersRequest
-                ->forTokenIdentifier($YaMarketTokenUid)
-                ->findAll(DateInterval::createFromDateString('1 week'));
+        //        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);
+        //
+        //        if(false === $tokensByProfile || false === $tokensByProfile->valid())
+        //        {
+        //            $this->io->error(sprintf('Токенов авторизации профиля %s не найдено', $UserProfileUid->getAttr()));
+        //            return;
+        //        }
 
-            if(false === $orders || false === $orders->valid())
-            {
-                $this->io->writeln(sprintf('<fg=gray>%s: новых заказов не найдено</>', $YaMarketTokenUid));
-                continue;
-            }
-
-            foreach($orders as $YandexMarketOrderDTO)
-            {
-                $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
-
-                if($handle instanceof Order)
-                {
-                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getPostingNumber()));
-                    continue;
-                }
-
-                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getPostingNumber()));
-            }
-
-        }
+        //        foreach($tokensByProfile as $YaMarketTokenUid)
+        //        {
+        //            $orders = $this->yandexMarketNewOrdersRequest
+        //                ->forTokenIdentifier($YaMarketTokenUid)
+        //                ->findAll(DateInterval::createFromDateString('1 week'));
+        //
+        //            if(false === $orders || false === $orders->valid())
+        //            {
+        //                $this->io->writeln(sprintf('<fg=gray>%s: новых заказов не найдено</>', $YaMarketTokenUid));
+        //                continue;
+        //            }
+        //
+        //            foreach($orders as $YandexMarketOrderDTO)
+        //            {
+        //                $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
+        //
+        //                if($handle instanceof Order)
+        //                {
+        //                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getPostingNumber()));
+        //                    continue;
+        //                }
+        //
+        //                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getPostingNumber()));
+        //            }
+        //
+        //        }
     }
 }

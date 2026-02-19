@@ -25,13 +25,11 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Commands;
 
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders\CancelYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
-use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -50,8 +48,7 @@ class UpdateCancelOrdersCommand extends Command
 
     public function __construct(
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
-        private readonly GetYaMarketOrdersCancelRequest $yandexMarketCancelOrdersRequest,
-        private readonly CancelYaMarketOrderStatusHandler $cancelYaMarketOrderStatusHandler,
+        private readonly MessageDispatchInterface $messageDispatch,
     )
     {
         parent::__construct();
@@ -85,7 +82,7 @@ class UpdateCancelOrdersCommand extends Command
         $question = new ChoiceQuestion(
             'Профиль пользователя',
             $questions,
-            0
+            0,
         );
 
         $profileName = $helper->ask($input, $output, $question);
@@ -128,30 +125,8 @@ class UpdateCancelOrdersCommand extends Command
     {
         $this->io->note(sprintf('Отменяем заказы профиля %s', $profile->getAttr()));
 
-        $orders = $this->yandexMarketCancelOrdersRequest
-            ->findAll(DateInterval::createFromDateString('1 day'));
-
-        if(false === $orders->valid())
-        {
-
-        }
-
-        /** @var NewYaMarketOrderDTO $order */
-        foreach($orders as $order)
-        {
-            /**
-             * Отменяем системный заказ
-             */
-            $handle = $this->cancelYaMarketOrderStatusHandler->handle($order, $profile);
-
-            if($handle instanceof Order)
-            {
-                $this->io->info(sprintf('Отменили заказ %s', $order->getPostingNumber()));
-                continue;
-            }
-
-            $this->io->error(sprintf('%s: Ошибка при отмене заказа %s', $handle, $order->getPostingNumber()));
-        }
-
+        $this->messageDispatch->dispatch(
+            new CancelYaMarketOrdersScheduleMessage($profile),
+        );
     }
 }

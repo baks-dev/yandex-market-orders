@@ -105,13 +105,14 @@ final readonly class NewYaMarketOrderScheduleHandler
     /** @param Generator<NewYaMarketOrderDTO> $orders */
     private function ordersCreate(Generator $orders): void
     {
+        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
                 ->deduplication([
-                    $YandexMarketOrderDTO->getNumber(),
+                    $YandexMarketOrderDTO->getPostingNumber(),
                     self::class,
                 ]);
 
@@ -125,7 +126,7 @@ final readonly class NewYaMarketOrderScheduleHandler
             if($handle instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getNumber()),
+                    sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getPostingNumber()),
                     [self::class.':'.__LINE__],
                 );
 

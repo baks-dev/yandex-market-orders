@@ -30,8 +30,8 @@ use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
+use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
 use BaksDev\Yandex\Market\Orders\Schedule\CancelOrders\CancelOrdersSchedule;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
@@ -105,7 +105,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
+        /** @var YaMarketCancelOrderDTO $YandexMarketOrderDTO */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */

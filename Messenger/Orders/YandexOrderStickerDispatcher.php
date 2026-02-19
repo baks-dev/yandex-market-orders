@@ -100,7 +100,7 @@ final class YandexOrderStickerDispatcher
 
             for($i = 1; $i <= $total; $i++)
             {
-                $number = str_replace('Y-', '', $OrderEvent->getOrderNumber()).'-'.$counter;
+                $number = str_replace('Y-', '', $OrderEvent->getPostingNumber());
                 $yandexSticker = $cache->getItem($number)->get();
 
                 $counter++;

@@ -60,7 +60,7 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
             $this->fromDate = new DateTimeImmutable()
                 ->setTimezone(new DateTimeZone('UTC'))
                 ->sub($interval ?? DateInterval::createFromDateString(CancelOrdersSchedule::INTERVAL))
-                ->sub(DateInterval::createFromDateString('1 hour'));
+                ->sub(DateInterval::createFromDateString('1 day'));
         }
 
         $response = $this->TokenHttpClient()
@@ -73,7 +73,7 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
                         'pageSize' => 50,
                         'status' => 'CANCELLED',
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
-                    ]
+                    ],
                 ],
             );
 
@@ -97,7 +97,41 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
-            yield new YaMarketCancelOrderDTO($order['id'], $order['substatus']);
+
+            // получаем количество товаров в заказе
+            $totalItems = array_sum(array_column($order['items'], 'count'));
+
+            // получаем количество отправлений в заказе
+            $totalBoxes = isset($order['delivery']['shipments'])
+                ? array_sum(array_map(static function($item) {
+                    return isset($item['boxes']) ? count($item['boxes']) : 0;
+                }, $order['delivery']['shipments']))
+                : 0;
+
+
+            if($totalItems !== $totalBoxes)
+            {
+                yield new YaMarketCancelOrderDTO($order['id'], $order['substatus']);
+
+                continue;
+            }
+
+
+            /** Получаем все отправления */
+
+
+            foreach($order['delivery']['shipments'] as $key => $shipment)
+            {
+                foreach($shipment['boxes'] as $box)
+                {
+                    yield new YaMarketCancelOrderDTO($box['fulfilmentId'], $order['substatus']);
+
+                }
+
+                /** Бросаем на непредвиденный случай идентификатор заказа */
+                yield new YaMarketCancelOrderDTO($order['id'], $order['substatus']);
+            }
+
         }
     }
 }

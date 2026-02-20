@@ -115,7 +115,7 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
             ->setValue(
                 isset($order['posting'])
                     ? 'Y-'.$order['posting']
-                    : $this->invariable->getNumber(),
+                    : 'Y-'.$order['id'],
             );
 
         $this->created = new DateTimeImmutable($order['creationDate'] ?: 'now');

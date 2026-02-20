@@ -109,62 +109,6 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 );
             }
 
-            // получаем количество товаров в заказе
-            $totalItems = array_sum(array_column($order['items'], 'count'));
-
-            // получаем количество отправлений в заказе
-            $totalBoxes = isset($order['delivery']['shipments'])
-                ? array_sum(array_map(static function($item) {
-                    return isset($item['boxes']) ? count($item['boxes']) : 0;
-                }, $order['delivery']['shipments']))
-                : 0;
-
-
-            if($totalItems !== $totalBoxes)
-            {
-                $products = [];
-
-                foreach($order['items'] as $product)
-                {
-                    for($i = 1; $i <= $product['count']; $i++)
-                    {
-                        $products[] = [
-                            'items' => [
-                                [
-                                    'id' => $product['id'], // идентификатор продукта
-                                    'fullCount' => 1,
-                                ],
-                            ],
-                        ];
-                    }
-                }
-
-                $responseBoxes = $this->TokenHttpClient()
-                    ->request(
-                        'PUT',
-                        sprintf('/campaigns/%s/orders/%s/boxes', $this->getCompany(), $order['id']),
-                        ['json' => ['boxes' => $products]],
-                    );
-
-                if($responseBoxes->getStatusCode() !== 200)
-                {
-
-                    $contentBoxes = $responseBoxes->toArray(false);
-
-                    $this->logger->critical(
-                        sprintf('yandex-market-orders: Ошибка %s при разделении упаковки заказа %s', $response->getStatusCode(), $order['id']),
-                        [$contentBoxes, $products, self::class.':'.__LINE__]);
-
-                    continue;
-                }
-
-                $this->logger->info(
-                    sprintf('%s: Разделили заказ на машиноместа', $order),
-                    [$products, self::class.':'.__LINE__],
-                );
-
-                continue;
-            }
 
             /**
              * Получаем информацию о клиенте
@@ -192,7 +136,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
 
             /**
-             * Если заказ FBS и он разделен на машиноместа
+             * Если заказ FBS
              */
 
             if(
@@ -200,6 +144,70 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 && $order['delivery']['deliveryPartnerType'] === 'YANDEX_MARKET'
             )
             {
+                // получаем количество товаров в заказе
+                $totalItems = array_sum(array_column($order['items'], 'count'));
+
+                // получаем количество отправлений в заказе
+                $totalBoxes = isset($order['delivery']['shipments'])
+                    ? array_sum(array_map(static function($item) {
+                        return isset($item['boxes']) ? count($item['boxes']) : 0;
+                    }, $order['delivery']['shipments']))
+                    : 0;
+
+
+                /**
+                 * Если заказ не разделен - отправляем уведомление на разделение
+                 */
+                if($totalItems !== $totalBoxes)
+                {
+                    $products = [];
+
+                    foreach($order['items'] as $product)
+                    {
+                        for($i = 1; $i <= $product['count']; $i++)
+                        {
+                            $products[] = [
+                                'items' => [
+                                    [
+                                        'id' => $product['id'], // идентификатор продукта
+                                        'fullCount' => 1,
+                                    ],
+                                ],
+                            ];
+                        }
+                    }
+
+                    $responseBoxes = $this->TokenHttpClient()
+                        ->request(
+                            'PUT',
+                            sprintf('/campaigns/%s/orders/%s/boxes', $this->getCompany(), $order['id']),
+                            ['json' => ['boxes' => $products]],
+                        );
+
+                    if($responseBoxes->getStatusCode() !== 200)
+                    {
+
+                        $contentBoxes = $responseBoxes->toArray(false);
+
+                        $this->logger->critical(
+                            sprintf('yandex-market-orders: Ошибка %s при разделении упаковки заказа %s', $response->getStatusCode(), $order['id']),
+                            [$contentBoxes, $products, self::class.':'.__LINE__]);
+
+                        continue;
+                    }
+
+                    $this->logger->info(
+                        sprintf('%s: Разделили заказ на машиноместа', $order),
+                        [$products, self::class.':'.__LINE__],
+                    );
+
+                    continue;
+                }
+
+                /**
+                 * Если заказ разделен - создаем отправления
+                 */
+
                 $fbsOrder = $order;
 
                 foreach($order['delivery']['shipments'] as $key => $shipment)

@@ -103,7 +103,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
 
     private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var NewYaMarketOrderDTO $order */
+        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */
@@ -111,7 +111,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
                 ->namespace('yandex-market-orders')
                 ->expiresAfter('1 day')
                 ->deduplication([
-                    $YandexMarketOrderDTO->getNumber(),
+                    $YandexMarketOrderDTO->getPostingNumber(),
                     self::class,
                 ]);
 
@@ -125,7 +125,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
             if($handle instanceof Order)
             {
                 $this->logger->info(
-                    sprintf('Создали неоплаченный заказ %s', $YandexMarketOrderDTO->getNumber()),
+                    sprintf('Создали неоплаченный заказ %s', $YandexMarketOrderDTO->getPostingNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

@@ -121,12 +121,10 @@ class UpdateCancelOrdersCommand extends Command
         return Command::SUCCESS;
     }
 
-    public function update(UserProfileUid $profile): void
+    public function update(UserProfileUid $UserProfileUid): void
     {
-        $this->io->note(sprintf('Отменяем заказы профиля %s', $profile->getAttr()));
+        $this->io->note(sprintf('Отменяем заказы профиля %s', $UserProfileUid->getAttr()));
 
-        $this->messageDispatch->dispatch(
-            new CancelYaMarketOrdersScheduleMessage($profile),
-        );
+        $this->messageDispatch->dispatch(new CancelYaMarketOrdersScheduleMessage($UserProfileUid));
     }
 }

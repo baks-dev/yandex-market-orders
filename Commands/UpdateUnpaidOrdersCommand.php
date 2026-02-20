@@ -25,13 +25,13 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\Commands;
 
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders\UnpaidYaMarketOrdersScheduleMessage;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
-use DateInterval;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -52,6 +52,7 @@ class UpdateUnpaidOrdersCommand extends Command
         private readonly AllProfileYaMarketTokenInterface $allProfileYaMarketToken,
         private readonly GetYaMarketOrdersUnpaidRequest $yandexMarketUnpaidOrdersRequest,
         private readonly UnpaidYaMarketOrderStatusHandler $unpaidYaMarketOrderHandler,
+        private readonly MessageDispatchInterface $messageDispatch,
     )
     {
         parent::__construct();
@@ -85,7 +86,7 @@ class UpdateUnpaidOrdersCommand extends Command
         $question = new ChoiceQuestion(
             'Профиль пользователя',
             $questions,
-            0
+            0,
         );
 
         $profileName = $helper->ask($input, $output, $question);
@@ -124,35 +125,12 @@ class UpdateUnpaidOrdersCommand extends Command
         return Command::SUCCESS;
     }
 
-    public function update(UserProfileUid $profile): void
+    public function update(UserProfileUid $UserProfileUid): void
     {
-        $this->io->note(sprintf('Обновляем неоплаченные заказы профиля %s', $profile->getAttr()));
+        $this->io->note(sprintf('Обновляем неоплаченные заказы профиля %s', $UserProfileUid->getAttr()));
 
-        $orders = $this->yandexMarketUnpaidOrdersRequest
-            ->findAll(DateInterval::createFromDateString('1 day'));
-
-
-        if(false === $orders->valid())
-        {
-            return;
-        }
-
-        /** @var NewYaMarketOrderDTO $order */
-        foreach($orders as $order)
-        {
-            /**
-             * Создаем системный заказ
-             */
-            $handle = $this->unpaidYaMarketOrderHandler->handle($order);
-
-            if($handle instanceof Order)
-            {
-                $this->io->info(sprintf('Добавили неоплаченный заказ %s', $order->getPostingNumber()));
-                continue;
-            }
-
-            $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $order->getPostingNumber()));
-        }
-
+        $this->messageDispatch->dispatch(
+            message: new UnpaidYaMarketOrdersScheduleMessage($UserProfileUid),
+        );
     }
 }

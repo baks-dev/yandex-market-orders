@@ -148,46 +148,8 @@ class UpdateNewOrdersCommand extends Command
     {
         $this->io->note(sprintf('Обновляем новые заказы профиля %s', $UserProfileUid->getAttr()));
 
-        /** Получаем все токены профиля */
-
         $this->messageDispatch->dispatch(
             message: new NewYaMarketOrdersScheduleMessage($UserProfileUid),
         );
-
-
-        //        $tokensByProfile = $this->YaMarketTokensByProfile->findAll($UserProfileUid);
-        //
-        //        if(false === $tokensByProfile || false === $tokensByProfile->valid())
-        //        {
-        //            $this->io->error(sprintf('Токенов авторизации профиля %s не найдено', $UserProfileUid->getAttr()));
-        //            return;
-        //        }
-
-        //        foreach($tokensByProfile as $YaMarketTokenUid)
-        //        {
-        //            $orders = $this->yandexMarketNewOrdersRequest
-        //                ->forTokenIdentifier($YaMarketTokenUid)
-        //                ->findAll(DateInterval::createFromDateString('1 week'));
-        //
-        //            if(false === $orders || false === $orders->valid())
-        //            {
-        //                $this->io->writeln(sprintf('<fg=gray>%s: новых заказов не найдено</>', $YaMarketTokenUid));
-        //                continue;
-        //            }
-        //
-        //            foreach($orders as $YandexMarketOrderDTO)
-        //            {
-        //                $handle = $this->yandexMarketOrderHandler->handle($YandexMarketOrderDTO);
-        //
-        //                if($handle instanceof Order)
-        //                {
-        //                    $this->io->info(sprintf('Добавили новый заказ %s', $YandexMarketOrderDTO->getPostingNumber()));
-        //                    continue;
-        //                }
-        //
-        //                $this->io->error(sprintf('%s: Ошибка при добавлении заказа %s', $handle, $YandexMarketOrderDTO->getPostingNumber()));
-        //            }
-        //
-        //        }
     }
 }

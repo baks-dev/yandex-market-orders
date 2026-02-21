@@ -63,7 +63,7 @@ final readonly class YaMarketCancelOrderDTO
     /**
      * Number
      */
-    public function getPostingNumber(): string
+    public function getOrderNumber(): string
     {
         return $this->number;
     }

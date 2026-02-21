@@ -35,7 +35,6 @@ use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 
 final readonly class CancelYaMarketOrderStatusHandler
 {
@@ -44,47 +43,54 @@ final readonly class CancelYaMarketOrderStatusHandler
         private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
     ) {}
 
-    public function handle(NewYaMarketOrderDTO|YaMarketCancelOrderDTO $command): Order|string|false
+    public function handle(YaMarketCancelOrderDTO $command): array|string|false
     {
-        $OrderEvent = $this->currentOrderEventByNumber->find($command->getPostingNumber());
+        $orders = [];
 
-        if(false === $OrderEvent)
-        {
-            return 'Заказа для отмены не найдено';
-        }
+        $results = $this->currentOrderEventByNumber->findAll($command->getOrderNumber());
 
-        $EditOrderDTO = new EditOrderDTO();
-        $OrderEvent->getDto($EditOrderDTO);
-
-        if(
-            true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class) ||
-            true === $OrderEvent->isStatusEquals(OrderStatusCompleted::class)
-        )
+        if(true === empty($results))
         {
             return false;
         }
 
-        /**
-         * Делаем отмену заказа
-         */
-
-        $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO();
-        $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
-
-        $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
-
-        /**
-         * Автоматически отменяем «Новый» либо «Не оплаченный» заказ
-         */
-
-        if(
-            true === $OrderEvent->isStatusEquals(OrderStatusNew::class) ||
-            true === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class)
-        )
+        foreach($results as $OrderEvent)
         {
-            $CancelYaMarketOrderStatusDTO->cancelOrder();
+            $EditOrderDTO = new EditOrderDTO();
+            $OrderEvent->getDto($EditOrderDTO);
+
+            if(
+                true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class)
+                || true === $OrderEvent->isDanger()
+            )
+            {
+                continue;
+            }
+
+
+            /**
+             * Делаем отмену заказа
+             */
+
+            $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO();
+            $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
+            $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
+
+            if(
+                true === $OrderEvent->isStatusEquals(OrderStatusNew::class)
+                || true === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class)
+            )
+            {
+                /** Автоматически отменяем «Новый» либо «Не оплаченный» заказ */
+                $CancelYaMarketOrderStatusDTO->cancelOrder();
+
+            }
+
+            $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
+
+            $orders[] = $this->currentOrderEventByNumber->findAll($command->getOrderNumber());
         }
 
-        return $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
+        return $orders;
     }
 }

@@ -81,11 +81,12 @@ final class NewYaMarketOrderHandler extends AbstractHandler
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
     }
 
-    public function handle(NewYaMarketOrderDTO $command): string|Order
+    public function handle(NewYaMarketOrderDTO $command): string|array|bool|Order
     {
         if(false === $command->getStatusEquals(OrderStatusNew::class))
         {
-            return 'Заказ не является в статусе New «Новый»';
+            //return 'Заказ не является в статусе New «Новый»';
+            return false;
         }
 
         $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
@@ -113,7 +114,8 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
         if($User === false)
         {
-            return 'Пользователь по профилю не найден';
+            return false;
+            // return 'Пользователь по профилю не найден';
         }
 
         $NewOrderInvariable->setUsr($User->getId());
@@ -187,7 +189,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
             $UserProfileDTO->getInfo()->setUsr($OrderUserDTO->getUsr());
             $UserProfile = $this->profileHandler->handle($UserProfileDTO);
 
-            if(!$UserProfile instanceof UserProfile)
+            if(false === ($UserProfile instanceof UserProfile))
             {
                 return $UserProfile;
             }

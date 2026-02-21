@@ -55,52 +55,58 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
     /**
      * Метод возвращает статус неоплаченного заказа UNPAID в статус NEW
      */
-    public function handle(NewYaMarketOrderDTO $command): string|Order
+    public function handle(NewYaMarketOrderDTO $command): array|false
     {
         $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
 
         if($isExists === false)
         {
-            return 'Заказ не найден';
+            return false;
         }
 
-        $OrderEvent = $this->currentOrderNumber->find($command->getPostingNumber());
+        $arrOrderEvent = $this->currentOrderNumber->findAll($command->getPostingNumber());
 
-
-        if(false === $OrderEvent)
+        if(true === empty($arrOrderEvent))
         {
-            return 'Заказ не найден';
+            return false;
         }
 
-        if(false === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class))
+        $orders = [];
+
+        foreach($arrOrderEvent as $OrderEvent)
         {
-            return 'Заказ уже добавлен, но его статус не является Unpaid «Не оплачен»';
+            if(false === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class))
+            {
+                continue;
+            }
+
+            /**
+             * Если заказ существует и его статус Unpaid «В ожидании оплаты» - обновляем на статус NEW «Новый»
+             */
+
+            $NewYaMarketOrderStatusDTO = new ToggleUnpaidToNewYaMarketOrderDTO();
+            $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
+            $OrderUserDTO = $NewYaMarketOrderStatusDTO->getUsr();
+
+            /** Обновляем информацию о клиенте */
+            $UserProfileUid = $this->fillProfile($command, $OrderUserDTO->getProfile());
+
+            if(false !== $UserProfileUid)
+            {
+                $OrderUserDTO->setProfile($UserProfileUid);
+            }
+
+            $NewYaMarketOrderStatusDTO->setOrderStatusNew();
+
+            /**
+             * Ожидается, что статус NEW «Новый» объявлен ранее для резерва продукции
+             * применяем статус без проверки дублей (deduplicator: false)
+             */
+            $orders[] = $this->orderStatusHandler->handle($NewYaMarketOrderStatusDTO, false);
+
         }
 
-        /**
-         * Если заказ существует и его статус Unpaid «В ожидании оплаты» - обновляем на статус NEW «Новый»
-         */
-
-        $NewYaMarketOrderStatusDTO = new ToggleUnpaidToNewYaMarketOrderDTO();
-        $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
-        $OrderUserDTO = $NewYaMarketOrderStatusDTO->getUsr();
-
-
-        /** Обновляем информацию о клиенте */
-        $UserProfileUid = $this->fillProfile($command, $OrderUserDTO->getProfile());
-
-        if(false !== $UserProfileUid)
-        {
-            $OrderUserDTO->setProfile($UserProfileUid);
-        }
-
-        $NewYaMarketOrderStatusDTO->setOrderStatusNew();
-
-        /**
-         * Ожидается, что статус NEW «Новый» объявлен ранее для резерва продукции
-         * применяем статус без проверки дублей (deduplicator: false)
-         */
-        return $this->orderStatusHandler->handle($NewYaMarketOrderStatusDTO, false);
+        return $orders;
     }
 
 

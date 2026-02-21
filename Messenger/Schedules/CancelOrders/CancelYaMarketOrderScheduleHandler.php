@@ -105,15 +105,15 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var YaMarketCancelOrderDTO $YandexMarketOrderDTO */
-        foreach($orders as $YandexMarketOrderDTO)
+        /** @var YaMarketCancelOrderDTO $YaMarketCancelOrderDTO */
+        foreach($orders as $YaMarketCancelOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */
             $Deduplicator = $this->deduplicator
                 ->namespace('yandex-market-orders')
                 ->expiresAfter('1 day')
                 ->deduplication([
-                    $YandexMarketOrderDTO->getPostingNumber(),
+                    $YaMarketCancelOrderDTO->getOrderNumber(),
                     self::class,
                 ]);
 
@@ -122,12 +122,13 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $Order = $this->cancelYaMarketOrderStatusHandler->handle($YandexMarketOrderDTO);
+            $arrOrdersCancel = $this->cancelYaMarketOrderStatusHandler->handle($YaMarketCancelOrderDTO);
 
-            if($Order instanceof Order)
+
+            if(false === empty($arrOrdersCancel))
             {
                 $this->logger->info(
-                    sprintf('Отменили заказ %s', $YandexMarketOrderDTO->getPostingNumber()),
+                    sprintf('Отменили заказ %s', $YaMarketCancelOrderDTO->getOrderNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
@@ -135,35 +136,37 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     ],
                 );
 
-                /** Скрываем идентификатор у всех пользователей */
-                $this->publish
-                    ->addData(['profile' => false]) // Скрывает у всех
-                    ->addData(['identifier' => (string) $Order->getId()])
-                    ->send('remove');
+                foreach($arrOrdersCancel as $Order)
+                {
+                    /** Скрываем идентификатор у всех пользователей */
+                    $this->publish
+                        ->addData(['profile' => false]) // Скрывает у всех
+                        ->addData(['identifier' => (string) $Order->getId()])
+                        ->send('remove');
 
-                $this->publish
-                    ->addData(['profile' => false]) // Скрывает у всех
-                    ->addData(['order' => (string) $Order->getId()])
-                    ->send('orders');
+                    $this->publish
+                        ->addData(['profile' => false]) // Скрывает у всех
+                        ->addData(['order' => (string) $Order->getId()])
+                        ->send('orders');
+                }
 
                 $Deduplicator->save();
 
                 continue;
             }
 
-            if($Order !== false)
-            {
-                $this->logger->critical(
-                    sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YandexMarketOrderDTO->getPostingNumber(), $Order),
-                    [
-                        self::class.':'.__LINE__,
-                        'attr' => (string) $profile->getAttr(),
-                        'profile' => (string) $profile,
-                    ],
-                );
 
-                $Deduplicator->save();
-            }
+            $this->logger->critical(
+                sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YaMarketCancelOrderDTO->getOrderNumber(), $Order),
+                [
+                    self::class.':'.__LINE__,
+                    'attr' => (string) $profile->getAttr(),
+                    'profile' => (string) $profile,
+                ],
+            );
+
+            $Deduplicator->save();
+
         }
     }
 }

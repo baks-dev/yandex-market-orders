@@ -86,9 +86,8 @@ final readonly class CancelYaMarketOrderStatusHandler
 
             }
 
-            $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
+            $orders[] = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
 
-            $orders[] = $this->currentOrderEventByNumber->findAll($command->getOrderNumber());
         }
 
         return $orders;

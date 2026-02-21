@@ -124,7 +124,6 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
             $arrOrdersCancel = $this->cancelYaMarketOrderStatusHandler->handle($YaMarketCancelOrderDTO);
 
-
             if(false === empty($arrOrdersCancel))
             {
                 $this->logger->info(
@@ -157,7 +156,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
 
             $this->logger->critical(
-                sprintf('Yandex: Ошибка при отмене заказа %s (%s)', $YaMarketCancelOrderDTO->getOrderNumber(), $Order),
+                sprintf('Yandex: Ошибка при отмене заказа %s', $YaMarketCancelOrderDTO->getOrderNumber()),
                 [
                     self::class.':'.__LINE__,
                     'attr' => (string) $profile->getAttr(),

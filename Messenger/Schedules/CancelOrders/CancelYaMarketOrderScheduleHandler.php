@@ -27,13 +27,11 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Schedules\CancelOrders;
 
 use BaksDev\Centrifugo\Server\Publish\CentrifugoPublishInterface;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
-use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\GetYaMarketOrdersCancelRequest;
 use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
 use BaksDev\Yandex\Market\Orders\Schedule\CancelOrders\CancelOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\Cancel\CancelYaMarketOrderStatusHandler;
-use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Generator;
@@ -124,39 +122,31 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
             $arrOrdersCancel = $this->cancelYaMarketOrderStatusHandler->handle($YaMarketCancelOrderDTO);
 
-            if(false === empty($arrOrdersCancel))
+            $Deduplicator->save();
+
+            /**
+             * Если заказов для отмены не найдено
+             */
+
+            if(empty($arrOrdersCancel))
             {
-                $this->logger->info(
-                    sprintf('Отменили заказ %s', $YaMarketCancelOrderDTO->getOrderNumber()),
+                $this->logger->critical(
+                    sprintf('yandex-market-orders: Ошибка при отмене заказа %s', $YaMarketCancelOrderDTO->getOrderNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),
                         'profile' => (string) $profile,
                     ],
                 );
-
-                foreach($arrOrdersCancel as $Order)
-                {
-                    /** Скрываем идентификатор у всех пользователей */
-                    $this->publish
-                        ->addData(['profile' => false]) // Скрывает у всех
-                        ->addData(['identifier' => (string) $Order->getId()])
-                        ->send('remove');
-
-                    $this->publish
-                        ->addData(['profile' => false]) // Скрывает у всех
-                        ->addData(['order' => (string) $Order->getId()])
-                        ->send('orders');
-                }
-
-                $Deduplicator->save();
-
-                continue;
             }
 
 
-            $this->logger->critical(
-                sprintf('Yandex: Ошибка при отмене заказа %s', $YaMarketCancelOrderDTO->getOrderNumber()),
+            /**
+             * Если имеются заказы для отмены - скрываем их идентификатор
+             */
+
+            $this->logger->info(
+                sprintf('Отменили заказ %s', $YaMarketCancelOrderDTO->getOrderNumber()),
                 [
                     self::class.':'.__LINE__,
                     'attr' => (string) $profile->getAttr(),
@@ -164,8 +154,22 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 ],
             );
 
-            $Deduplicator->save();
+            foreach($arrOrdersCancel as $Order)
+            {
+                /**
+                 * Скрываем идентификатор у всех пользователей
+                 */
 
+                $this->publish
+                    ->addData(['profile' => false]) // Скрывает у всех
+                    ->addData(['identifier' => (string) $Order->getId()])
+                    ->send('remove');
+
+                $this->publish
+                    ->addData(['profile' => false]) // Скрывает у всех
+                    ->addData(['order' => (string) $Order->getId()])
+                    ->send('orders');
+            }
         }
     }
 }

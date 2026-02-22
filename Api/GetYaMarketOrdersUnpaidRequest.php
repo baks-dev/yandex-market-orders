@@ -225,6 +225,8 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                         );
                     }
                 }
+
+                continue;
             }
 
             /**

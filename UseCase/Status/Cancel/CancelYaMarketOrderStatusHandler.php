@@ -29,6 +29,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Orders\Order\Repository\CurrentOrderNumber\CurrentOrderEventByNumberInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCanceled;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCompleted;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusMarketplace;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
@@ -56,17 +57,17 @@ final readonly class CancelYaMarketOrderStatusHandler
 
         foreach($results as $OrderEvent)
         {
-            $EditOrderDTO = new EditOrderDTO();
-            $OrderEvent->getDto($EditOrderDTO);
-
             if(
                 true === $OrderEvent->isStatusEquals(OrderStatusCanceled::class)
+                || true === $OrderEvent->isStatusEquals(OrderStatusMarketplace::class)
                 || true === $OrderEvent->isDanger()
             )
             {
                 continue;
             }
 
+            //$EditOrderDTO = new EditOrderDTO();
+            //$OrderEvent->getDto($EditOrderDTO);
 
             /**
              * Делаем отмену заказа
@@ -76,15 +77,27 @@ final readonly class CancelYaMarketOrderStatusHandler
             $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
             $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
 
+            /**
+             * Если заказ New «Новый» либо Unpaid «В ожидании оплаты»
+             * Автоматически отменяем «Новый» либо «Не оплаченный» заказ
+             */
             if(
                 true === $OrderEvent->isStatusEquals(OrderStatusNew::class)
                 || true === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class)
             )
             {
-                /** Автоматически отменяем «Новый» либо «Не оплаченный» заказ */
-                $CancelYaMarketOrderStatusDTO->cancelOrder();
 
+                $CancelYaMarketOrderStatusDTO->cancelOrder();
             }
+
+            /**
+             * Если заказ Completed «Выполнен» - переносим его в статус Marketplace «Ожидается возврат службой маркетплейса»
+             */
+            if(true === $OrderEvent->isStatusEquals(OrderStatusCompleted::class))
+            {
+                $CancelYaMarketOrderStatusDTO->returnOrderMarketplace();
+            }
+
 
             $orders[] = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
 

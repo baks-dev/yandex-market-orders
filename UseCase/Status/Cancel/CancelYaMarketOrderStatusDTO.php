@@ -29,6 +29,7 @@ use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusCanceled;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusMarketplace;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent */
@@ -40,7 +41,7 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     private readonly OrderEventUid $id;
 
     /** Выделить заказ */
-    private readonly bool $danger;
+    private bool $danger;
 
     /** Статус заказа */
     #[Assert\NotBlank]
@@ -83,6 +84,16 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     public function cancelOrder(): void
     {
         $this->status = new OrderStatus(OrderStatusCanceled::class);
+        $this->danger = false;
+    }
+
+    /**
+     * Статус «Маркетплейс» меняется в случае, если заказ «Выполнен»
+     */
+    public function returnOrderMarketplace(): void
+    {
+        $this->status = new OrderStatus(OrderStatusMarketplace::class);
+        $this->danger = false;
     }
 
     /**

@@ -28,10 +28,17 @@ namespace BaksDev\Yandex\Market\Orders\Messenger\Orders;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
+use BaksDev\Core\Messenger\MessageDelay;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\Sticker\OrderStickerMessage;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
+use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
+use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -44,6 +51,8 @@ final class YandexOrderStickerDispatcher
         private CurrentOrderEventInterface $CurrentOrderEventRepository,
         private AppCacheInterface $Cache,
         private DeduplicatorInterface $Deduplicator,
+        private GetYaMarketOrderInfoRequest $GetYaMarketOrderInfoRequest,
+        private MessageDispatchInterface $messageDispatch,
     ) {}
 
     public function __invoke(OrderStickerMessage $message): void
@@ -86,32 +95,83 @@ final class YandexOrderStickerDispatcher
             return;
         }
 
+
+        $UserProfileUid = $OrderEvent->getOrderProfile();
+
+        if(false === ($UserProfileUid instanceof UserProfileUid))
+        {
+            $this->logger->critical(
+                'yandex-market-orders: Идентификатор профиля заказа не определен',
+                [self::class.':'.__LINE__, var_export($message, true)],
+            );
+
+            return;
+        }
+
+
         /**
          * Получаем стикеры Yandex
          */
 
         $cache = $this->Cache->init('order-sticker');
+        $number = str_replace('Y-', '', $OrderEvent->getPostingNumber());
+        $yandexSticker = $cache->getItem($number)->get();
 
-        $counter = 1;
 
-        foreach($OrderEvent->getProduct() as $OrderProduct)
+        if(false === empty($yandexSticker))
         {
-            $total = $OrderProduct->getTotal();
+            $message->addResult(number: $number, code: $yandexSticker);
 
-            for($i = 1; $i <= $total; $i++)
+            return;
+        }
+
+
+        /** Если стикер не найден - пробуем запросить заново */
+
+        if(empty($yandexSticker))
+        {
+            /**
+             * Получаем информацию о заказе и всех отправлениях
+             */
+
+            if(true === empty($OrderEvent->getOrderTokenIdentifier()))
             {
-                $number = str_replace('Y-', '', $OrderEvent->getPostingNumber());
-                $yandexSticker = $cache->getItem($number)->get();
+                return;
+            }
 
-                $counter++;
+            /** Токен из заказа в системе (был установлен при получении заказа из Ozon) */
+            $YaMarketTokenUid = new YaMarketTokenUid($OrderEvent->getOrderTokenIdentifier());
 
-                /** Если стикер не найден - пробуем запросить заново */
-                if(empty($yandexSticker))
-                {
-                    continue;
-                }
+            $YandexMarketOrderDTO = $this->GetYaMarketOrderInfoRequest
+                ->forTokenIdentifier($YaMarketTokenUid)
+                ->find($OrderEvent->getOrderNumber());
 
-                $message->addResult(number: $number, code: $yandexSticker);
+            if(false === ($YandexMarketOrderDTO instanceof NewYaMarketOrderDTO))
+            {
+                return;
+            }
+
+            foreach($YandexMarketOrderDTO->getPostingBox() as $box)
+            {
+                /**
+                 * @example
+                 * "id" => 111111111
+                 * "fulfilmentId" => "11111111111-1"
+                 * */
+
+                $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
+                    token: $YaMarketTokenUid,
+                    order: $OrderEvent->getOrderNumber(),
+                    posting: $box['fulfilmentId'],
+                    box: $box['id'],
+                );
+
+                $this->messageDispatch->dispatch(
+                    message: $ProcessYandexPackageStickersMessage,
+                    stamps: [new MessageDelay('3 seconds')],
+                    transport: $UserProfileUid.'-low',
+                );
+
             }
         }
     }

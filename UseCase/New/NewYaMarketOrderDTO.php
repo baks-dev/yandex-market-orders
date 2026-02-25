@@ -467,5 +467,12 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         return $this->posting;
     }
 
+    public function getOrderNumber(): ?string
+    {
+        return $this->invariable->getNumber();
+    }
+
+
+
 
 }

@@ -64,7 +64,7 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
             return false;
         }
 
-        $arrOrderEvent = $this->currentOrderNumber->findAll($command->getPostingNumber());
+        $arrOrderEvent = $this->currentOrderNumber->findAll($command->getOrderNumber());
 
         if(true === empty($arrOrderEvent))
         {

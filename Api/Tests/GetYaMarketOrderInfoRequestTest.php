@@ -43,6 +43,8 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
+        /** FBS */
+
         self::$Authorization = new YaMarketAuthorizationToken(
             profile: UserProfileUid::TEST,
             token: $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
@@ -51,6 +53,19 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
             card: false,
             stocks: false,
         );
+
+        /** DBS */
+
+        /*self::$Authorization = new YaMarketAuthorizationToken(
+            profile: UserProfileUid::TEST,
+            token: $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
+            company: (int) $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
+            business: (int) $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS'],
+            card: false,
+            stocks: false,
+        );*/
+
+
     }
 
     public function testUseCase(): void
@@ -60,9 +75,9 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
         $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
-        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('1234567890');
+        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('54468735491');
 
-        //dump($YandexMarketOrderDTO);
+        dump($YandexMarketOrderDTO);
 
         self::assertTrue(true);
 

@@ -37,7 +37,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
     /**
      * Информация об одном заказе
      *
-     * Возвращает информацию о заказе.
+     * Возвращает информацию о заказе и его отправлениях.
      *
      * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder
      *
@@ -85,8 +85,8 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
                 sprintf(
                     '/campaigns/%s/orders/%s/buyer',
                     $this->getCompany(),
-                    $order['id']
-                )
+                    $order['id'],
+                ),
             );
 
             if($response->getStatusCode() === 200)
@@ -96,6 +96,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
             }
         }
 
+
         /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
         return new NewYaMarketOrderDTO(
             order: $order,
@@ -103,6 +104,5 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
             token: $this->getTokenIdentifier(),
             buyer: $client,
         );
-
     }
 }

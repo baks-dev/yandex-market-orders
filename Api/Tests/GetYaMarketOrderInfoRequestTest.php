@@ -77,7 +77,7 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
 
         $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('54468735491');
 
-        dump($YandexMarketOrderDTO);
+        // dump($YandexMarketOrderDTO);
 
         self::assertTrue(true);
 

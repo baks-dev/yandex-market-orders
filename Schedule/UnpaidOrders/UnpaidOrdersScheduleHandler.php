@@ -31,7 +31,7 @@ use BaksDev\Yandex\Market\Orders\Messenger\Schedules\UnpaidOrders\UnpaidYaMarket
 use BaksDev\Yandex\Market\Repository\AllProfileToken\AllProfileYaMarketTokenInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler]
+#[AsMessageHandler(priority: 0)]
 final readonly class UnpaidOrdersScheduleHandler
 {
     public function __construct(

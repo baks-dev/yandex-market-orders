@@ -32,6 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 /**
  * Информация о заказе
  */
+#[Autoconfigure(public: true)]
 final class GetYaMarketOrderInfoRequest extends YandexMarket
 {
     /**

@@ -32,10 +32,12 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Generator;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(public: true)]
 final class GetYaMarketOrdersCancelRequest extends YandexMarket
 {
     private int $page = 1;

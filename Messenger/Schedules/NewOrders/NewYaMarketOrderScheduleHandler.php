@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
-#[AsMessageHandler]
+#[AsMessageHandler(priority: 0)]
 final readonly class NewYaMarketOrderScheduleHandler
 {
     public function __construct(

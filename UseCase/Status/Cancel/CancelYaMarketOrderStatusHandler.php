@@ -102,9 +102,7 @@ final readonly class CancelYaMarketOrderStatusHandler
                 $CancelYaMarketOrderStatusDTO->returnOrderMarketplace();
             }
 
-
             $orders[] = $this->orderStatusHandler->handle($CancelYaMarketOrderStatusDTO, false);
-
         }
 
         return $orders;

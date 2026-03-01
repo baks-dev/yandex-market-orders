@@ -75,7 +75,11 @@ final readonly class CancelYaMarketOrderStatusHandler
 
             $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO();
             $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
-            $CancelYaMarketOrderStatusDTO->setComment($command->getComment());
+
+            $CancelYaMarketOrderStatusDTO
+                ->orderDanger()
+                ->setComment($command->getComment());
+
 
             /**
              * Если заказ New «Новый» либо Unpaid «В ожидании оплаты»

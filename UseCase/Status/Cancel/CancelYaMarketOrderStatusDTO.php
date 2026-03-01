@@ -61,6 +61,14 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
         return $this->id;
     }
 
+    public function orderDanger(): self
+    {
+        $this->danger = true;
+        return $this;
+    }
+
+
+
     /**
      * Danger
      */

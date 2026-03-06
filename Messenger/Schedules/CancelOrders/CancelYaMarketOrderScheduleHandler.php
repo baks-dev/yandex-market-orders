@@ -124,8 +124,6 @@ final readonly class CancelYaMarketOrderScheduleHandler
                 continue;
             }
 
-            $Deduplicator->save();
-
             $arrOrdersCancel = $this->cancelYaMarketOrderStatusHandler->handle($YaMarketCancelOrderDTO);
 
             /**
@@ -143,6 +141,8 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     ],
                 );
 
+                $Deduplicator->save();
+
                 continue;
             }
 
@@ -159,6 +159,8 @@ final readonly class CancelYaMarketOrderScheduleHandler
                     'profile' => (string) $profile,
                 ],
             );
+
+            $Deduplicator->save();
 
             foreach($arrOrdersCancel as $Order)
             {

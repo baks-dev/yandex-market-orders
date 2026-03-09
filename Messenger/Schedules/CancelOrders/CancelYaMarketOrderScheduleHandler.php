@@ -133,7 +133,7 @@ final readonly class CancelYaMarketOrderScheduleHandler
             if(empty($arrOrdersCancel))
             {
                 $this->logger->critical(
-                    sprintf('yandex-market-orders: Ошибка при отмене заказа %s', $YaMarketCancelOrderDTO->getOrderNumber()),
+                    sprintf('yandex-market-orders: Не найдено отправления для отмены заказа %s', $YaMarketCancelOrderDTO->getOrderNumber()),
                     [
                         self::class.':'.__LINE__,
                         'attr' => (string) $profile->getAttr(),

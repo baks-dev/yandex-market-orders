@@ -77,8 +77,8 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 sprintf('/v2/campaigns/%s/orders', $this->getCompany()),
                 ['query' =>
                     [
-                        'page' => $this->page,
-                        'pageSize' => 50,
+                        //'page' => $this->page,
+                        //'pageSize' => 50,
                         'status' => 'PROCESSING', // в тестовом окружении получаем все статусы
                         'substatus' => $this->isExecuteEnvironment() ? 'STARTED' : null, // в тестовом окружении получаем все СУБ-статусы
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),

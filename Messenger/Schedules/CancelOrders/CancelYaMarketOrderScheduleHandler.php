@@ -103,17 +103,14 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
     private function ordersCancel(Generator $orders, UserProfileUid $profile): void
     {
-        /** Индекс дедубдикации по номеру заказа */
-        $Deduplicator = $this->deduplicator
-            ->namespace('yandex-market-orders')
-            ->expiresAfter('1 day');
-
-
         /** @var YaMarketCancelOrderDTO $YaMarketCancelOrderDTO */
         foreach($orders as $YaMarketCancelOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */
-            $Deduplicator
+
+            $Deduplicator = $this->deduplicator
+                ->namespace('yandex-market-orders')
+                ->expiresAfter('1 day')
                 ->deduplication([
                     $YaMarketCancelOrderDTO->getOrderNumber(),
                     self::class,

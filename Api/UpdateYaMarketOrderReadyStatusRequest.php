@@ -72,6 +72,14 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
                 /** Заказ отменен */
                 if(str_contains($error['message'], 'CANCELLED_IN_PROCESSING'))
                 {
+                    $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
+                    return true;
+                }
+
+                /** Невозможно применить статус заказу */
+                if(str_contains($error['message'], 'STATUS_NOT_ALLOWED'))
+                {
+                    $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
                     return true;
                 }
 

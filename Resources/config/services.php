@@ -46,17 +46,17 @@ return static function(ContainerConfigurator $container) {
 
     $services->load(
         $NAMESPACE.'Type\DeliveryType\\',
-        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'DeliveryType'])
+        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'DeliveryType']),
     );
 
     $services->load(
         $NAMESPACE.'Type\ProfileType\\',
-        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'ProfileType'])
+        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'ProfileType']),
     );
 
     $services->load(
         $NAMESPACE.'Type\PaymentType\\',
-        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'PaymentType'])
+        $PATH.implode(DIRECTORY_SEPARATOR, ['Type', 'PaymentType']),
     );
 
 

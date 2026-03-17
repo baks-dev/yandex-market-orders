@@ -180,12 +180,4 @@ class AllUseCaseYaMarketOrderTest extends KernelTestCase
         }
     }
 
-    public static function tearDownAfterClass(): void
-    {
-        OrderNewTest::setUpBeforeClass();
-
-        NewUserProfileHandlerTest::setUpBeforeClass();
-
-    }
-
 }

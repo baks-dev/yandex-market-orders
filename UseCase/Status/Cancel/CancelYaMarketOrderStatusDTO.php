@@ -68,7 +68,6 @@ final class CancelYaMarketOrderStatusDTO implements OrderEventInterface
     }
 
 
-
     /**
      * Danger
      */

@@ -27,10 +27,9 @@ namespace BaksDev\Yandex\Market\Orders\Api\Canceled;
 
 final readonly class YaMarketCancelOrderDTO
 {
+    public string $comment;
     /** Идентификатор заказа YandexMarket */
     private string $number;
-
-    public string $comment;
 
     public function __construct(string|int $number, string $substatus)
     {

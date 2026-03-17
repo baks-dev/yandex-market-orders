@@ -76,6 +76,11 @@ class YandexMarketOrderFBSTest extends KernelTestCase
         DeleteOrderTest::tearDownAfterClass();
     }
 
+    public static function tearDownAfterClass(): void
+    {
+        DeleteOrderTest::tearDownAfterClass();
+    }
+
     public function testUseCase(): void
     {
 
@@ -160,11 +165,5 @@ class YandexMarketOrderFBSTest extends KernelTestCase
         {
             self::assertFalse($response->valid());
         }
-    }
-
-
-    public static function tearDownAfterClass(): void
-    {
-        DeleteOrderTest::tearDownAfterClass();
     }
 }

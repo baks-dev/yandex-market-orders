@@ -34,17 +34,6 @@ final class TypeDeliveryFbsYaMarket implements TypeDeliveryInterface
     /** Yandex Market */
     public const string TYPE = '8f3548d3-4560-7151-8f99-7d25feb9fbd6';
 
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 420;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
-    }
-
     public function __toString(): string
     {
         return self::TYPE;
@@ -54,5 +43,16 @@ final class TypeDeliveryFbsYaMarket implements TypeDeliveryInterface
     public function getValue(): string
     {
         return self::TYPE;
+    }
+
+    /** Сортировка */
+    public static function priority(): int
+    {
+        return 420;
+    }
+
+    public static function equals(mixed $uid): bool
+    {
+        return self::TYPE === (string) $uid;
     }
 }

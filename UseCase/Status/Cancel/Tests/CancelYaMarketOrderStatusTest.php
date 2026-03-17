@@ -47,12 +47,6 @@ use Symfony\Component\DependencyInjection\Attribute\When;
 #[Group('yandex-market-orders')]
 class CancelYaMarketOrderStatusTest extends KernelTestCase
 {
-    public static function tearDownAfterClass(): void
-    {
-        OrderNewTest::setUpBeforeClass();
-        NewUserProfileHandlerTest::setUpBeforeClass();
-    }
-
     #[DependsOnClass(NewYaMarketOrderStatusTest::class)]
     public function testUseCase(): void
     {
@@ -111,6 +105,12 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
 
         self::assertCount(4, $events);
 
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        OrderNewTest::setUpBeforeClass();
+        NewUserProfileHandlerTest::setUpBeforeClass();
     }
 
 }

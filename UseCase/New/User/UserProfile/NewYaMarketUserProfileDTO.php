@@ -62,17 +62,18 @@ final class NewYaMarketUserProfileDTO implements UserProfileEventInterface
         return $this->id;
     }
 
-    public function getType(): ?TypeProfileUid
-    {
-        return $this->type;
-    }
-
     /** Тип профиля */
 
     public function setType(?TypeProfileUid $type): void
     {
         $this->type = $type;
     }
+
+    public function getType(): ?TypeProfileUid
+    {
+        return $this->type;
+    }
+
 
     /** Информация профиля */
 

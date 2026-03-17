@@ -33,17 +33,6 @@ final class TypeProfileFbsYaMarket implements TypeProfileInterface
 {
     public const string TYPE = 'fb49eb69-d7aa-739e-8450-622a7b2d1da5';
 
-    /** Сортировка */
-    public static function priority(): int
-    {
-        return 420;
-    }
-
-    public static function equals(mixed $uid): bool
-    {
-        return self::TYPE === (string) $uid;
-    }
-
     public function __toString(): string
     {
         return self::TYPE;
@@ -53,5 +42,16 @@ final class TypeProfileFbsYaMarket implements TypeProfileInterface
     public function getValue(): string
     {
         return self::TYPE;
+    }
+
+    /** Сортировка */
+    public static function priority(): int
+    {
+        return 420;
+    }
+
+    public static function equals(mixed $uid): bool
+    {
+        return self::TYPE === (string) $uid;
     }
 }

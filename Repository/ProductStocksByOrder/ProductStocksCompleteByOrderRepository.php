@@ -91,7 +91,7 @@ final class ProductStocksCompleteByOrderRepository implements ProductStocksCompl
             'WITH',
             'event.id = stock.event
              AND event.status = :status
-            ',
+            '
         )->setParameter(
             'status',
             ProductStockStatusCompleted::class,

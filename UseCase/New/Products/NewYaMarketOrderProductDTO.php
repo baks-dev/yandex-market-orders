@@ -79,11 +79,6 @@ final class NewYaMarketOrderProductDTO implements OrderProductInterface
         $this->item = new ArrayCollection();
     }
 
-    public function getArticle(): string
-    {
-        return $this->article;
-    }
-
     /** Артикул продукта */
 
     public function setArticle(string $article): self
@@ -91,6 +86,12 @@ final class NewYaMarketOrderProductDTO implements OrderProductInterface
         $this->article = $article;
         return $this;
     }
+
+    public function getArticle(): string
+    {
+        return $this->article;
+    }
+
 
     /** Событие продукта */
     public function getProduct(): ProductEventUid

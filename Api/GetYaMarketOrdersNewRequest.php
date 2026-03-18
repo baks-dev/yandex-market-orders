@@ -160,6 +160,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 /**
                  * Если заказ не разделен - отправляем уведомление на разделение
                  */
+
                 if($totalItems !== $totalBoxes)
                 {
                     $products = [];
@@ -206,21 +207,37 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     continue;
                 }
 
+
                 /**
                  * Если заказ разделен - создаем отправления
                  */
 
-                $fbsOrder = $order;
+                /* Создаем массив из отправлений */
 
-                foreach($order['delivery']['shipments'] as $key => $shipment)
+                $boxes = null;
+
+                foreach($order['delivery']['shipments'] as $shipment)
                 {
                     foreach($shipment['boxes'] as $box)
                     {
-                        /** Создаем заказ на единицу продукции */
-                        $fbsOrder['posting'] = $box['fulfilmentId'];
+                        $boxes[] = $box['fulfilmentId'];
+                    }
+                }
+
+                /* Создаем на каждый продукт новый заказ с отправлением */
+
+                $fbsOrder = $order;
+
+                foreach($order['items'] as $item)
+                {
+                    for($i = 0; $i < $item['count']; $i++)
+                    {
+                        /** получаем одно отправление и переводим указатель на следующий */
+                        $fbsOrder['posting'] = current($boxes);
+                        next($boxes);
 
                         $fbsOrder['items'] = null;
-                        $fbsOrder['items'][0] = $order['items'][$key];
+                        $fbsOrder['items'][0] = $item;
                         $fbsOrder['items'][0]['count'] = 1;
 
                         yield new NewYaMarketOrderDTO(
@@ -231,6 +248,28 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         );
                     }
                 }
+
+                //                $fbsOrder = $order;
+                //
+                //                foreach($order['delivery']['shipments'] as $key => $shipment)
+                //                {
+                //                    foreach($shipment['boxes'] as $box)
+                //                    {
+                //                        /** Создаем заказ на единицу продукции */
+                //                        $fbsOrder['posting'] = $box['fulfilmentId'];
+                //
+                //                        $fbsOrder['items'] = null;
+                //                        $fbsOrder['items'][0] = $order['items'][$key];
+                //                        $fbsOrder['items'][0]['count'] = 1;
+                //
+                //                        yield new NewYaMarketOrderDTO(
+                //                            order: $fbsOrder,
+                //                            profile: $this->getProfile(),
+                //                            token: $this->getTokenIdentifier(),
+                //                            buyer: $client,
+                //                        );
+                //                    }
+                //                }
 
                 continue;
             }

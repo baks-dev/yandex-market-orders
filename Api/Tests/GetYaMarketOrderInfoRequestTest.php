@@ -75,9 +75,9 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
         $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
-        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('54468735491');
+        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('55038733059');
 
-        // dump($YandexMarketOrderDTO);
+        dump($YandexMarketOrderDTO);
 
         self::assertTrue(true);
 

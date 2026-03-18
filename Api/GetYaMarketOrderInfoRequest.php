@@ -97,7 +97,6 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
             }
         }
 
-
         /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
         return new NewYaMarketOrderDTO(
             order: $order,

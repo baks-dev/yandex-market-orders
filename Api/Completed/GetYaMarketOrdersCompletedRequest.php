@@ -30,10 +30,12 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Generator;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrdersCompletedRequest extends YandexMarket
 {
     private int $page = 1;

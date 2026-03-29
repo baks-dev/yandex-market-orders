@@ -37,7 +37,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 /**
  * Информация о заказах
  */
-// #[Autoconfigure(public: true)]
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrdersCancelRequest extends YandexMarket
 {
     private int $page = 1;

@@ -33,10 +33,12 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Generator;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
 {
     private int $page = 1;

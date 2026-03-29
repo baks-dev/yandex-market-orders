@@ -26,10 +26,12 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(shared: false)]
 final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
 {
     /**

@@ -23,13 +23,15 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Messenger\OrderYandexAutoPackage;
+namespace BaksDev\Yandex\Market\Orders\Messenger\AutoPackage;
 
 use BaksDev\Core\Deduplicator\DeduplicatorInterface;
+use BaksDev\Core\Messenger\MessageDelay;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\MultiplyOrdersPackage\MultiplyOrdersPackageMessage;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
+use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Users\User\Type\Id\UserUid;
@@ -41,11 +43,11 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 0)]
-final readonly class OrderYandexAutoPackageDispatcher
+final readonly class AutoPackageYandexOrderDispatcher
 {
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $Logger,
-        private OrderEventInterface $OrderEventRepository,
+        private CurrentOrderEventInterface $CurrentOrderEventRepository,
         private DeduplicatorInterface $Deduplicator,
         private MessageDispatchInterface $MessageDispatch,
     ) {}
@@ -63,8 +65,9 @@ final readonly class OrderYandexAutoPackageDispatcher
             return;
         }
 
-        $OrderEvent = $this->OrderEventRepository
-            ->find($message->getEvent());
+        $OrderEvent = $this->CurrentOrderEventRepository
+            ->forOrder($message->getId())
+            ->find();
 
         if(false === ($OrderEvent instanceof OrderEvent))
         {
@@ -89,10 +92,14 @@ final readonly class OrderYandexAutoPackageDispatcher
         $MultiplyOrdersPackageMessage = new MultiplyOrdersPackageMessage(
             $OrderEvent->getMain(),
             $OrderEvent->getOrderProfile(),
-            true === ($OrderEvent->getModifyUser() instanceof UserUid) ? $OrderEvent->getModifyUser() : $OrderEvent->getOrderUser()
+            true === ($OrderEvent->getModifyUser() instanceof UserUid) ? $OrderEvent->getModifyUser() : $OrderEvent->getOrderUser(),
         );
 
-        $this->MessageDispatch->dispatch($MultiplyOrdersPackageMessage);
+        $this->MessageDispatch->dispatch(
+            message: $MultiplyOrdersPackageMessage,
+            stamps: [new MessageDelay('5 seconds')],
+            transport: 'orders-order',
+        );
 
         $Deduplicator->save();
     }

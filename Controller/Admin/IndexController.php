@@ -55,7 +55,7 @@ final class IndexController extends AbstractController
             ->createForm(
                 type: SearchForm::class,
                 data: $search,
-                options: ['action' => $this->generateUrl('yandex-market-orders:admin.index')]
+                options: ['action' => $this->generateUrl('yandex-market-orders:admin.index')],
             )
             ->handleRequest($request);
 

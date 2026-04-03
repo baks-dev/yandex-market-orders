@@ -26,10 +26,12 @@ declare(strict_types=1);
 namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Yandex\Market\Api\YandexMarket;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * Информация о заказах
  */
+#[Autoconfigure(shared: false)]
 final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
 {
     /**
@@ -69,6 +71,20 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
         {
             foreach($content['errors'] as $error)
             {
+                /** Заказ отменен */
+                if($error['code'] === 'CANCELLED_IN_PROCESSING')
+                {
+                    $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
+                    return true;
+                }
+
+                /** Невозможно применить статус заказу */
+                if($error['code'] === 'STATUS_NOT_ALLOWED')
+                {
+                    $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
+                    return true;
+                }
+
                 $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
             }
 

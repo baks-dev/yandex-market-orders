@@ -79,7 +79,7 @@ class CancelYaMarketOrderStatusTest extends KernelTestCase
         }
 
         $CancelYaMarketOrderStatusDTO = new CancelYaMarketOrderStatusDTO(
-            new UserProfileUid(UserProfileUid::TEST)
+            new UserProfileUid(UserProfileUid::TEST),
         );
         $OrderEvent->getDto($CancelYaMarketOrderStatusDTO);
 

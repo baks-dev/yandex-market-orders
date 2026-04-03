@@ -35,7 +35,7 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Edit\EditOrderDTO;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
-use BaksDev\Yandex\Market\Orders\Api\Canceled\YaMarketCancelOrderDTO;
+use BaksDev\Yandex\Market\Orders\Messenger\Orders\Cancel\CancelYaMarketOrderMessage;
 
 final readonly class CancelYaMarketOrderStatusHandler
 {
@@ -44,7 +44,7 @@ final readonly class CancelYaMarketOrderStatusHandler
         private CurrentOrderEventByNumberInterface $currentOrderEventByNumber,
     ) {}
 
-    public function handle(YaMarketCancelOrderDTO $command): array|string|false
+    public function handle(CancelYaMarketOrderMessage $command): array|string|false
     {
         $orders = [];
 

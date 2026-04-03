@@ -66,7 +66,7 @@ final readonly class CompletedYaMarketOrderStatusHandler
 
         $CompletedProductStockDTO = new CompletedProductStockDTO(
             $ProductStockEvent->getId(),
-            $profile
+            $profile,
         );
 
         return $this->CompletedProductStockHandler->handle($CompletedProductStockDTO);

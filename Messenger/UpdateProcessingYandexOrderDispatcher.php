@@ -43,12 +43,14 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /**
  * Если поступает новый заказ YandexMarket - отправляем уведомление о статусе «Принят в обработку»
  */
+#[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 9)]
 final readonly class UpdateProcessingYandexOrderDispatcher
 {

@@ -29,10 +29,12 @@ namespace BaksDev\Yandex\Market\Orders\Messenger;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Products\Stocks\Messenger\Part\ProductStockPartMessage;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /** Получаем стикер маркировки заказов Yandex в сборочном листе */
+#[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 0)]
 final readonly class ProductStockPartYandexOrderDispatcher
 {

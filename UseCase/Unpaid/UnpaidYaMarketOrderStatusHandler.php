@@ -82,7 +82,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
             $this->logger->critical(sprintf(
                 'Пользователь профиля %s для заказа %s не найден',
                 $NewOrderInvariable->getProfile(),
-                $NewOrderInvariable->getNumber()
+                $NewOrderInvariable->getNumber(),
             ));
 
             return 'Пользователь по профилю не найден';

@@ -473,6 +473,4 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
     }
 
 
-
-
 }

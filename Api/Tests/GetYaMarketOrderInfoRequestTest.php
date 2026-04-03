@@ -28,10 +28,13 @@ namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DependsOnClass;
 use PHPUnit\Framework\Attributes\Group;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
@@ -71,17 +74,32 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
     public function testUseCase(): void
     {
 
+        self::assertTrue(true);
+
         /** @var GetYaMarketOrderInfoRequest $GetYaMarketOrderInfoRequest */
         $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
-        $YandexMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('54468735491');
+        $NewYaMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('55038733059');
 
-        // dump($YandexMarketOrderDTO);
+        if(false === ($NewYaMarketOrderDTO instanceof NewYaMarketOrderDTO))
+        {
+            return;
+        }
 
-        self::assertTrue(true);
+        // Вызываем все геттеры
+        $reflectionClass = new ReflectionClass(NewYaMarketOrderDTO::class);
+        $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
 
+        foreach($methods as $method)
+        {
+            // Методы без аргументов
+            if($method->getNumberOfParameters() === 0)
+            {
+                // Вызываем метод
+                $data = $method->invoke($NewYaMarketOrderDTO);
+                // dump($data);
+            }
+        }
     }
-
-
 }

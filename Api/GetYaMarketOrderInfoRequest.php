@@ -32,7 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 /**
  * Информация о заказе
  */
-#[Autoconfigure(public: true)]
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrderInfoRequest extends YandexMarket
 {
     /**
@@ -96,7 +96,6 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
                 $client = $clientResponse->toArray(false)['result'];
             }
         }
-
 
         /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrder#orderdto */
         return new NewYaMarketOrderDTO(

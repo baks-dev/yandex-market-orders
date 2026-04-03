@@ -95,7 +95,7 @@ final class ProductStocksCompleteByOrderRepository implements ProductStocksCompl
         )->setParameter(
             'status',
             ProductStockStatusCompleted::class,
-            ProductStockStatus::TYPE
+            ProductStockStatus::TYPE,
         );
 
         return $orm->getOneOrNullResult() ?: false;

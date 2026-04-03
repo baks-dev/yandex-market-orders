@@ -28,6 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Api\Pack;
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use Generator;
 
+#[Autoconfigure(shared: false)]
 final class UpdateYaMarketProductsPackByOrderRequest extends YandexMarket
 {
 

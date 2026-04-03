@@ -38,7 +38,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 /**
  * Информация о заказах
  */
-#[Autoconfigure(public: true)]
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrdersNewRequest extends YandexMarket
 {
     private int $page = 1;
@@ -77,8 +77,8 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 sprintf('/v2/campaigns/%s/orders', $this->getCompany()),
                 ['query' =>
                     [
-                        'page' => $this->page,
-                        'pageSize' => 50,
+                        //'page' => $this->page,
+                        //'pageSize' => 50,
                         'status' => 'PROCESSING', // в тестовом окружении получаем все статусы
                         'substatus' => $this->isExecuteEnvironment() ? 'STARTED' : null, // в тестовом окружении получаем все СУБ-статусы
                         'updatedAtFrom' => $this->fromDate->format(DateTimeInterface::ATOM),
@@ -160,6 +160,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 /**
                  * Если заказ не разделен - отправляем уведомление на разделение
                  */
+
                 if($totalItems !== $totalBoxes)
                 {
                     $products = [];
@@ -188,7 +189,6 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
                     if($responseBoxes->getStatusCode() !== 200)
                     {
-
                         $contentBoxes = $responseBoxes->toArray(false);
 
                         $this->logger->critical(
@@ -199,28 +199,44 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     }
 
                     $this->logger->info(
-                        sprintf('%s: Разделили заказ на машиноместа', $order),
+                        sprintf('%s: Разделили заказ на машиноместа', $order['id']),
                         [$products, self::class.':'.__LINE__],
                     );
 
                     continue;
                 }
 
+
                 /**
                  * Если заказ разделен - создаем отправления
                  */
 
-                $fbsOrder = $order;
+                /* Создаем массив из отправлений */
 
-                foreach($order['delivery']['shipments'] as $key => $shipment)
+                $boxes = null;
+
+                foreach($order['delivery']['shipments'] as $shipment)
                 {
                     foreach($shipment['boxes'] as $box)
                     {
-                        /** Создаем заказ на единицу продукции */
-                        $fbsOrder['posting'] = $box['fulfilmentId'];
+                        $boxes[] = $box['fulfilmentId'];
+                    }
+                }
+
+                /* Создаем на каждый продукт новый заказ с отправлением */
+
+                $fbsOrder = $order;
+
+                foreach($order['items'] as $item)
+                {
+                    for($i = 0; $i < $item['count']; $i++)
+                    {
+                        /** получаем одно отправление и переводим указатель на следующий */
+                        $fbsOrder['posting'] = current($boxes);
+                        next($boxes);
 
                         $fbsOrder['items'] = null;
-                        $fbsOrder['items'][0] = $order['items'][$key];
+                        $fbsOrder['items'][0] = $item;
                         $fbsOrder['items'][0]['count'] = 1;
 
                         yield new NewYaMarketOrderDTO(
@@ -231,6 +247,28 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         );
                     }
                 }
+
+                //                $fbsOrder = $order;
+                //
+                //                foreach($order['delivery']['shipments'] as $key => $shipment)
+                //                {
+                //                    foreach($shipment['boxes'] as $box)
+                //                    {
+                //                        /** Создаем заказ на единицу продукции */
+                //                        $fbsOrder['posting'] = $box['fulfilmentId'];
+                //
+                //                        $fbsOrder['items'] = null;
+                //                        $fbsOrder['items'][0] = $order['items'][$key];
+                //                        $fbsOrder['items'][0]['count'] = 1;
+                //
+                //                        yield new NewYaMarketOrderDTO(
+                //                            order: $fbsOrder,
+                //                            profile: $this->getProfile(),
+                //                            token: $this->getTokenIdentifier(),
+                //                            buyer: $client,
+                //                        );
+                //                    }
+                //                }
 
                 continue;
             }

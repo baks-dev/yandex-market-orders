@@ -29,8 +29,10 @@ use BaksDev\Yandex\Market\Api\YandexMarket;
 use DateInterval;
 use Exception;
 use Imagick;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Contracts\Cache\ItemInterface;
 
+#[Autoconfigure(shared: false)]
 final class GetYaMarketOrderStickerRequest extends YandexMarket
 {
     private string $number;

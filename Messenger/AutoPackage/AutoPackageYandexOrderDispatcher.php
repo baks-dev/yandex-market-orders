@@ -34,6 +34,7 @@ use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Repository\OrderEvent\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Users\User\Type\Id\UserUid;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use Psr\Log\LoggerInterface;
@@ -78,14 +79,18 @@ final readonly class AutoPackageYandexOrderDispatcher
             return;
         }
 
-
         /** Если заказ не является новым или если он не FBS - завершаем обработчик */
         if(
             false === $OrderEvent->isStatusEquals(OrderStatusNew::class) ||
             false === $OrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYaMarket::TYPE)
         )
         {
-            $Deduplicator->save();
+            /** Если заказ не оплачен - ожидаем возврата в статус новый */
+            if(false === $OrderEvent->isStatusEquals(OrderStatusUnpaid::class))
+            {
+                $Deduplicator->save();
+            }
+
             return;
         }
 

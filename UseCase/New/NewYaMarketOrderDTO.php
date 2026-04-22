@@ -140,8 +140,6 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
 
-        $deliveryDate = false;
-
         if(isset($shipments['shipmentDate']))
         {
             $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
@@ -152,6 +150,11 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
             $deliveryDate = new DateTimeImmutable($order['expiryDate']);
         }
 
+        // Доставка Магазином (DBS)
+        if($order['delivery']['deliveryPartnerType'] === 'SHOP')
+        {
+            $deliveryDate = new DateTimeImmutable($order['delivery']['dates']['fromDate']);
+        }
 
         $this->boxes = isset($shipments['boxes']) ? $shipments['boxes'] : null;
 
@@ -329,6 +332,18 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         }
 
         isset($order['notes']) ? $deliveryComment[] = $order['notes'] : false;
+
+        // Доставка Магазином (DBS) - добавляем комментарий о времени
+        if(
+            $order['delivery']['deliveryPartnerType'] === 'SHOP' &&
+            (
+                $order['delivery']['dates']['fromTime'] !== '00:00:00'
+                || $order['delivery']['dates']['toTime'] !== '00:00:00'
+            )
+        )
+        {
+            $deliveryComment[] = 'время c '.$order['delivery']['dates']['fromTime'].' до '.$order['delivery']['dates']['toTime'];
+        }
 
         /** Комментарий покупателя */
         $this->comment = implode(', ', $deliveryComment);

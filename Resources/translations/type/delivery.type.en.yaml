@@ -7,6 +7,13 @@ yandex:
       name: 'YaMarket pick-up point address'
       desc: 'Address of the Yandex Market order pick-up point selected by the client'
 
+  fbo:
+    name: 'FBO: Warehouse Yandex'
+    desc: 'Sales of goods from a Yandex warehouse'
+
+    address:
+      name: 'Warehouse address Yandex (FBO)'
+      desc: 'Address of Yandex goods collection point'
 
   dbs:
     name: 'Delivery to Yandex client'

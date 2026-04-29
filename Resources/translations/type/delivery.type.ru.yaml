@@ -7,6 +7,13 @@ yandex:
       name: 'Адрес ПВЗ YaMarket'
       desc: 'Адрес пункта выдачи заказов Yandex Market выбранный клиентом'
 
+  fbo:
+    name: 'FBO: Склад Yandex'
+    desc: 'Реализация товара со склада Yandex'
+
+    address:
+      name: 'Адрес склада Yandex (FBO)'
+      desc: 'Адрес пункта приема товаров Yandex'
 
   dbs:
     name: 'Доставка клиенту Yandex'

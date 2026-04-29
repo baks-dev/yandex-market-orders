@@ -6,3 +6,7 @@ yandex:
   dbs:
     name: 'DBS Yandex Market'
     desc: 'Payment for DBS Yandex Market'
+
+  fbo:
+    name: 'FBO: Yandex Market'
+    desc: 'Payment FBO Yandex Market'

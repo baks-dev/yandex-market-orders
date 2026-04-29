@@ -16,6 +16,10 @@ yandex:
             name: 'Контактное лицо'
             desc: 'ФИО пользователя'
 
+  fbo:
+    name: 'FBO: Yandex Market'
+    desc: 'Склад Yandex Market'
+
 
   dbs:
 

@@ -16,6 +16,9 @@ yandex:
             name: 'Contact person'
             desc: 'User name'
 
+  fbo:
+    name: 'FBO: Yandex Market'
+    desc: 'Warehouse Yandex Market'
 
   dbs:
 

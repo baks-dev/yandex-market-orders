@@ -51,7 +51,7 @@ final readonly class YaMarketCancelOrderDTO
                 'USER_UNREACHABLE' => 'Не удалось связаться с покупателем',
                 'USER_WANTS_TO_CHANGE_DELIVERY_DATE' => 'Покупатель хочет получить заказ в другой день',
                 'CANCELLED_COURIER_NOT_FOUND' => 'Не удалось найти курьера',
-
+                'FULL_NOT_RANSOM' => 'Заказ не выкуплен клиентом',
                 'USER_BOUGHT_CHEAPER' => 'Покупатель нашел дешевле',
                 'USER_WANTED_ANOTHER_PAYMENT_METHOD' => 'Покупатель выбрал другой способ оплаты',
                 'USER_WANTS_TO_CHANGE_ADDRESS' => 'Пользователь пожелал изменить адрес доставки',

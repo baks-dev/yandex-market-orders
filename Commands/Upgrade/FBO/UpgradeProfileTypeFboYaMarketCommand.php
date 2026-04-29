@@ -87,69 +87,6 @@ class UpgradeProfileTypeFboYaMarketCommand extends Command
                 $ProfileTrans->setDescription($desc);
             }
 
-            //            /**
-            //             * Создаем секцию Контактные данные
-            //             */
-            //            $SectionDTO = new SectionDTO();
-            //            $SectionDTO->setSort(100);
-            //
-            //            /** @var SectionTransDTO $SectionTrans */
-            //            foreach($SectionDTO->getTranslate() as $SectionTrans)
-            //            {
-            //                $name = $this->translator->trans('yandex.fbo.section.contact.name', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
-            //                $desc = $this->translator->trans('yandex.fbo.section.contact.desc', domain: 'profile.type', locale: $SectionTrans->getLocal()->getLocalValue());
-            //
-            //                $SectionTrans->setName($name);
-            //                $SectionTrans->setDescription($desc);
-            //            }
-
-            //            $TypeProfileDTO->addSection($SectionDTO);
-
-            //            /* Добавляем поля для заполнения */
-            //
-            //            $fields = ['name', 'email', 'phone'];
-            //
-            //            foreach($fields as $sort => $field)
-            //            {
-            //                $SectionFieldDTO = new SectionFieldDTO();
-            //                $SectionFieldDTO->setSort($sort);
-            //                $SectionFieldDTO->setPublic(true);
-            //                $SectionFieldDTO->setRequired(true);
-            //
-            //                $SectionFieldDTO->setType(new InputField('input_field'));
-            //
-            //                if($field === 'name')
-            //                {
-            //                    $SectionFieldDTO->setType(new InputField('contact_field'));
-            //                }
-            //
-            //                if($field === 'email')
-            //                {
-            //                    $SectionFieldDTO->setType(new InputField('account_email'));
-            //                    $SectionFieldDTO->setRequired(false);
-            //                }
-            //
-            //                if($field === 'phone')
-            //                {
-            //                    $SectionFieldDTO->setType(new InputField('phone_field'));
-            //                }
-            //
-            //
-            //                /** @var SectionFieldTransDTO $SectionFieldTrans */
-            //                foreach($SectionFieldDTO->getTranslate() as $SectionFieldTrans)
-            //                {
-            //                    $name = $this->translator->trans('yandex.fbo.section.contact.field.'.$field.'.name', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
-            //                    $desc = $this->translator->trans('yandex.fbo.section.contact.field.'.$field.'.desc', domain: 'profile.type', locale: $SectionFieldTrans->getLocal()->getLocalValue());
-            //
-            //                    $SectionFieldTrans->setName($name);
-            //                    $SectionFieldTrans->setDescription($desc);
-            //                }
-            //
-            //                $SectionDTO->addField($SectionFieldDTO);
-            //            }
-
-            //            $TypeProfileDTO->addSection($SectionDTO);
-
             $handle = $this->profileHandler->handle($TypeProfileDTO);
 
             if(!$handle instanceof TypeProfile)

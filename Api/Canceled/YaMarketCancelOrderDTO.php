@@ -56,6 +56,7 @@ final readonly class YaMarketCancelOrderDTO
                 'USER_WANTED_ANOTHER_PAYMENT_METHOD' => 'Покупатель выбрал другой способ оплаты',
                 'USER_WANTS_TO_CHANGE_ADDRESS' => 'Пользователь пожелал изменить адрес доставки',
                 'USER_FORGOT_TO_USE_BONUS' => 'Пользователь забыл использовать бонус',
+                'USER_HAS_NO_TIME_TO_PICKUP_ORDER' => 'Не удалось доставить заказ',
 
                 default => sprintf('неизвестная причина (%s)', $substatus),
             };

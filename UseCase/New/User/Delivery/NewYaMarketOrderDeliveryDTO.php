@@ -189,9 +189,9 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
         return $this->deliveryDate;
     }
 
-    public function setDeliveryDate(DateTimeImmutable $deliveryDate): self
+    public function setDeliveryDate(?DateTimeImmutable $deliveryDate): self
     {
-        $this->deliveryDate = $deliveryDate;
+        $this->deliveryDate = $deliveryDate ?: new DateTimeImmutable();
         return $this;
     }
 

@@ -102,7 +102,7 @@ final readonly class AutoPackageYandexOrderDispatcher
 
         $this->MessageDispatch->dispatch(
             message: $MultiplyOrdersPackageMessage,
-            stamps: [new MessageDelay('1 minute')],
+            stamps: [new MessageDelay('30 seconds')],
             transport: 'orders-order',
         );
 

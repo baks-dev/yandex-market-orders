@@ -156,6 +156,9 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
             $deliveryDate = new DateTimeImmutable($order['delivery']['dates']['fromDate']);
         }
 
+        $OrderDeliveryDTO = $this->usr->getDelivery()
+            ->setDeliveryDate($deliveryDate);
+
         $this->boxes = isset($shipments['boxes']) ? $shipments['boxes'] : null;
 
 
@@ -180,48 +183,46 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
          * Адрес и геолокация клиента
          */
 
-        $address = $order['delivery']['address'];
-
-        $OrderDeliveryDTO = $this->usr->getDelivery()
-            ->setDeliveryDate($deliveryDate)
-            ->setLatitude(new GpsLatitude($address['gps']['latitude']))
-            ->setLongitude(new GpsLongitude($address['gps']['longitude']));
-
-
-        /** Адрес доставки клиента */
-
+        $address = $order['delivery']['address'] ?? null;
         $deliveryAddress = [];
 
-        foreach($address as $key => $data)
+        if($address)
         {
-            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
-            if(
-                empty($data) ||
-                in_array($key, [
-                    'gps', // GPS-координаты.
-                    'postcode', // Почтовый индекс.
-                    'recipient', // Фамилия, имя и отчество получателя заказа.
-                    'subway', // Станция метро.
-                    'phone', // Телефон получателя заказа.
-                    'entryphone', // Код домофона.
-                    'floor', // Этаж
-                    'apartment', // Номер квартиры или офиса.
-                ])
-            )
+            $OrderDeliveryDTO
+                ->setLatitude(new GpsLatitude($address['gps']['latitude']))
+                ->setLongitude(new GpsLongitude($address['gps']['longitude']));
+
+            foreach($address as $key => $data)
             {
-                /** Пропускаем элементы, добавляя их в комментарий */
-                continue;
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
+                if(
+                    empty($data) ||
+                    in_array($key, [
+                        'gps', // GPS-координаты.
+                        'postcode', // Почтовый индекс.
+                        'recipient', // Фамилия, имя и отчество получателя заказа.
+                        'subway', // Станция метро.
+                        'phone', // Телефон получателя заказа.
+                        'entryphone', // Код домофона.
+                        'floor', // Этаж
+                        'apartment', // Номер квартиры или офиса.
+                    ])
+                )
+                {
+                    /** Пропускаем элементы, добавляя их в комментарий */
+                    continue;
+                }
+
+                $deliveryAddress[] = match ($key)
+                {
+                    //'street' => 'улица '.trim(str_replace('улица', '', $data)),
+                    'house' => 'дом '.$data,
+                    'block' => 'корпус '.$data,
+                    'entrance' => 'подъезд '.$data,
+
+                    default => $data,
+                };
             }
-
-            $deliveryAddress[] = match ($key)
-            {
-                //'street' => 'улица '.trim(str_replace('улица', '', $data)),
-                'house' => 'дом '.$data,
-                'block' => 'корпус '.$data,
-                'entrance' => 'подъезд '.$data,
-
-                default => $data,
-            };
         }
 
         $OrderDeliveryDTO->setAddress(implode(', ', $deliveryAddress));
@@ -298,38 +299,42 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
             }
         }
 
-
-        foreach($address as $key => $data)
+        if(false === empty($address))
         {
-            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
-            if(
-                empty($data) ||
-                !in_array($key, [
-                    //'postcode', // Почтовый индекс.
-                    'recipient', // Фамилия, имя и отчество получателя заказа.
-                    'subway', // Станция метро.
-                    'apartment', // Квартира или офис.
-                    'floor', // Этаж
-                    'phone', // Телефон получателя заказа.
-                ])
-            )
+            foreach($address as $key => $data)
             {
-                continue;
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdeliveryaddressdto */
+                if(
+                    empty($data) ||
+                    !in_array($key, [
+                        //'postcode', // Почтовый индекс.
+                        'recipient', // Фамилия, имя и отчество получателя заказа.
+                        'subway', // Станция метро.
+                        'apartment', // Квартира или офис.
+                        'floor', // Этаж
+                        'phone', // Телефон получателя заказа.
+                    ])
+                )
+                {
+                    continue;
+                }
+
+                $deliveryComment[] = match ($key)
+                {
+                    //'postcode' => 'инд. '.$data,
+                    'recipient' => 'получатель '.$data,
+                    'phone' => 'тел. '.$data,
+                    'subway' => 'ст.метро '.$data,
+                    'entryphone' => 'код домофона '.$data,
+                    'floor' => 'этаж '.$data,
+                    'apartment' => 'кв. '.$data,
+
+                    default => $data,
+                };
             }
-
-            $deliveryComment[] = match ($key)
-            {
-                //'postcode' => 'инд. '.$data,
-                'recipient' => 'получатель '.$data,
-                'phone' => 'тел. '.$data,
-                'subway' => 'ст.метро '.$data,
-                'entryphone' => 'код домофона '.$data,
-                'floor' => 'этаж '.$data,
-                'apartment' => 'кв. '.$data,
-
-                default => $data,
-            };
         }
+
+
 
         isset($order['notes']) ? $deliveryComment[] = $order['notes'] : false;
 

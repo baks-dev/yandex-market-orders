@@ -140,6 +140,8 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
         /** Дата доставки */
         $shipments = current($order['delivery']['shipments']);
 
+        $deliveryDate = new DateTimeImmutable('now');
+
         if(isset($shipments['shipmentDate']))
         {
             $deliveryDate = new DateTimeImmutable($shipments['shipmentDate']);
@@ -333,7 +335,6 @@ final class NewYaMarketOrderDTO implements OrderEventInterface
                 };
             }
         }
-
 
 
         isset($order['notes']) ? $deliveryComment[] = $order['notes'] : false;

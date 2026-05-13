@@ -170,15 +170,19 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
          */
         $dates = $delivery['dates'];
 
-        $fromDate = match (true)
+        if($order['programType'] === 'FBS')
         {
-            isset($dates['realDeliveryDate']) => $dates['realDeliveryDate'],
-            isset($delivery['shipment']['shipmentDate']) => $delivery['shipment']['shipmentDate'],
-            default => $dates['fromDate']
-        };
+            $fromDate = $delivery['shipment']['shipmentDate'];
+            $deliveryDate = new DateTimeImmutable($fromDate);
+            $this->usr->getDelivery()->setDeliveryDate($deliveryDate);
+        }
 
-        $deliveryDate = new DateTimeImmutable($fromDate);
-        $this->usr->getDelivery()->setDeliveryDate($deliveryDate);
+        if($order['programType'] === 'DBS')
+        {
+            $fromDate = $dates['realDeliveryDate'] ?? $dates['toDate'] ?? $dates['fromDate'];
+            $deliveryDate = new DateTimeImmutable($fromDate);
+            $this->usr->getDelivery()->setDeliveryDate($deliveryDate);
+        }
 
         /**
          * Информация о коробке (для заказов в кабинете).

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -39,6 +40,7 @@ use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\UserProfileDTO;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\UserProfileHandler;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Value\ValueDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 
 final readonly class ToggleUnpaidToNewYaMarketOrderHandler
@@ -55,7 +57,7 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
     /**
      * Метод возвращает статус неоплаченного заказа UNPAID в статус NEW
      */
-    public function handle(NewYaMarketOrderDTO $command): array|false
+    public function handle(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): array|false
     {
         $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
 
@@ -84,9 +86,9 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
              * Если заказ существует и его статус Unpaid «В ожидании оплаты» - обновляем на статус NEW «Новый»
              */
 
-            $NewYaMarketOrderStatusDTO = new ToggleUnpaidToNewYaMarketOrderDTO();
-            $OrderEvent->getDto($NewYaMarketOrderStatusDTO);
-            $OrderUserDTO = $NewYaMarketOrderStatusDTO->getUsr();
+            $ToggleUnpaidToNewYaMarketOrderDTO = new ToggleUnpaidToNewYaMarketOrderDTO();
+            $OrderEvent->getDto($ToggleUnpaidToNewYaMarketOrderDTO);
+            $OrderUserDTO = $ToggleUnpaidToNewYaMarketOrderDTO->getUsr();
 
             /** Обновляем информацию о клиенте */
             $UserProfileUid = $this->fillProfile($command, $OrderUserDTO->getProfile());
@@ -96,13 +98,13 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
                 $OrderUserDTO->setProfile($UserProfileUid);
             }
 
-            $NewYaMarketOrderStatusDTO->setOrderStatusNew();
+            $ToggleUnpaidToNewYaMarketOrderDTO->setOrderStatusNew();
 
             /**
              * Ожидается, что статус NEW «Новый» объявлен ранее для резерва продукции
              * применяем статус без проверки дублей (deduplicator: false)
              */
-            $orders[] = $this->orderStatusHandler->handle($NewYaMarketOrderStatusDTO, false);
+            $orders[] = $this->orderStatusHandler->handle($ToggleUnpaidToNewYaMarketOrderDTO, false);
 
         }
 
@@ -110,7 +112,10 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
     }
 
 
-    public function fillProfile(NewYaMarketOrderDTO $command, UserProfileEventUid $profile): UserProfileEventUid|false
+    public function fillProfile(
+        NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command,
+        UserProfileEventUid $profile
+    ): UserProfileEventUid|false
     {
 
         if(empty($command->getBuyer()))

@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -104,25 +105,6 @@ class UpgradeDeliveryTypeFbsYaMarketCommand extends Command
                 $DeliveryTrans->setDescription($desc);
             }
 
-
-            /**
-             * Создаем пользовательское поле с адресом доставки
-             */
-            $DeliveryFieldDTO = new DeliveryFieldDTO();
-            $DeliveryFieldDTO->setSort(100);
-            $DeliveryFieldDTO->setType(new InputField('address_field'));
-
-            /** @var DeliveryFieldTransDTO $DeliveryFieldTrans */
-            foreach($DeliveryFieldDTO->getTranslate() as $DeliveryFieldTrans)
-            {
-                $name = $this->translator->trans('yandex.fbs.address.name', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
-                $desc = $this->translator->trans('yandex.fbs.address.desc', domain: 'delivery.type', locale: $DeliveryFieldTrans->getLocal()->getLocalValue());
-
-                $DeliveryFieldTrans->setName($name);
-                $DeliveryFieldTrans->setDescription($desc);
-            }
-
-            $DeliveryDTO->addField($DeliveryFieldDTO);
 
             $handle = $this->deliveryHandler->handle($DeliveryDTO);
 

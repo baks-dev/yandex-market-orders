@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -44,8 +45,7 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
     private DeliveryUid $delivery;
 
     /** Адрес клиента */
-    #[Assert\NotBlank]
-    private string $address;
+    private ?string $address = null;
 
 
     /** Событие способа доставки (для расчета стоимости) */
@@ -59,13 +59,11 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
     /**
      * GPS широта.
      */
-    #[Assert\NotBlank]
     private ?GpsLatitude $latitude = null;
 
     /**
      * GPS долгота.
      */
-    #[Assert\NotBlank]
     private ?GpsLongitude $longitude = null;
 
 
@@ -96,11 +94,6 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
         $this->delivery = $delivery;
         return $this;
     }
-
-    //    public function setDelivery(DeliveryUid $delivery): void
-    //    {
-    //        $this->delivery = $delivery;
-    //    }
 
     /** Событие способа оплаты (для расчета стоимости) */
     public function getEvent(): DeliveryEventUid
@@ -198,7 +191,7 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
     /**
      * Address
      */
-    public function getAddress(): string
+    public function getAddress(): ?string
     {
         return $this->address;
     }

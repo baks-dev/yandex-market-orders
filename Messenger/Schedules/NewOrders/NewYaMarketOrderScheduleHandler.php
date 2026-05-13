@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -29,9 +30,9 @@ use BaksDev\Core\Deduplicator\DeduplicatorInterface;
 use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\NewOrders\NewOrdersSchedule;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
-use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Generator;
@@ -89,7 +90,7 @@ final readonly class NewYaMarketOrderScheduleHandler
 
             $orders = $this->yandexMarketNewOrdersRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
-                ->findAll();
+                ->findAllNew();
 
             if(false === $orders || false === $orders->valid())
             {
@@ -104,10 +105,10 @@ final readonly class NewYaMarketOrderScheduleHandler
         }
     }
 
-    /** @param Generator<NewYaMarketOrderDTO> $orders */
+    /** @param Generator<int, NewYaMarketOrderDTO>|Generator<int, NewYaMarketOrderByBusinessDTO> $orders */
     private function ordersCreate(Generator $orders): void
     {
-        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
+        /** @var NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $YandexMarketOrderDTO */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */

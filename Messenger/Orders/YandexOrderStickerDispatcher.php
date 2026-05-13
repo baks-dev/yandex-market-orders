@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -46,7 +47,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 0)]
-final class YandexOrderStickerDispatcher
+final readonly class YandexOrderStickerDispatcher
 {
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $Logger,
@@ -102,7 +103,7 @@ final class YandexOrderStickerDispatcher
 
         if(false === ($UserProfileUid instanceof UserProfileUid))
         {
-            $this->logger->critical(
+            $this->Logger->critical(
                 'yandex-market-orders: Идентификатор профиля заказа не определен',
                 [self::class.':'.__LINE__, var_export($message, true)],
             );

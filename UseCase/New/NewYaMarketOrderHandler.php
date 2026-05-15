@@ -93,8 +93,6 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
         $isExists = $this->existsOrderNumberRepository->isExists($command->getPostingNumber());
 
-        dump($isExists);
-
         if($isExists)
         {
             /**

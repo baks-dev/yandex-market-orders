@@ -90,9 +90,8 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                 ->sub(DateInterval::createFromDateString('14 days'));
         }
 
-
-        /** Заказы */
-        $orders = [];
+        /** Лимит для прерывания бесконечного цикла */
+        $limit = 0;
 
         /**
          * Идентификатор страницы
@@ -102,6 +101,8 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
 
         while(true)
         {
+            ++$limit;
+
             $response = $this->TokenHttpClient()
                 ->request(
                     'POST',
@@ -143,18 +144,195 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                 break;
             }
 
-            $orders = array_merge($orders, $content['orders']);
+            /** Если нет заказов в ответе - прерываем цикл */
+            if(true === empty($content['orders']))
+            {
+                break;
+            }
+
+            foreach($content['orders'] as $order)
+            {
+                /** @note выполняется в тестовой среде */
+                if(false === $this->isExecuteEnvironment())
+                {
+                    /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+                    yield new NewYaMarketOrderByBusinessDTO(
+                        order: $order,
+                        profile: $this->getProfile(),
+                        token: $this->getTokenIdentifier(),
+                    );
+
+                    continue;
+                }
+
+                /**
+                 * Получаем информацию о клиенте
+                 */
+
+                $client = null;
+
+                if($order['programType'] === 'DBS')
+                {
+                    /**
+                     * Информация о покупателе — физическом лице
+                     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrderBuyerInfo
+                     */
+                    $clientRequest = $this->TokenHttpClient()->request(
+                        method: 'GET',
+                        url: sprintf(
+                            '/campaigns/%s/orders/%s/buyer',
+                            $this->getCompany(),
+                            $order['orderId'],
+                        ),
+                    );
+
+                    if($response->getStatusCode() === 200)
+                    {
+                        /** Добавляем информацию о клиенте */
+                        $clientResponse = $clientRequest->toArray(false);
+
+                        if(isset($clientResponse['result']))
+                        {
+                            $client = $clientResponse['result'];
+                        }
+                    }
+                }
+
+                $delivery = $order['delivery'];
+
+                /**
+                 * Если заказ FBS
+                 */
+
+                if($order['programType'] === 'FBS')
+                {
+
+                    /** Получаем сумму всех товаров в заказе */
+                    $totalItems = array_sum(array_column($order['items'], 'count'));
+
+                    /**
+                     * Получаем количество отправлений в заказе
+                     *
+                     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderBoxLayoutDTO
+                     */
+                    $totalBoxes = empty($delivery['boxesLayout']) ? 0 : count($delivery['boxesLayout']);
+
+                    /**
+                     * Если заказ не разделен - отправляем уведомление на разделение
+                     */
+
+                    if($totalItems !== $totalBoxes)
+                    {
+                        $products = [];
+
+                        foreach($order['items'] as $product)
+                        {
+                            for($i = 1; $i <= $product['count']; $i++)
+                            {
+                                $products[] = [
+                                    'items' => [
+                                        [
+                                            'id' => $product['id'], // идентификатор продукта
+                                            'fullCount' => 1,
+                                        ],
+                                    ],
+                                ];
+                            }
+                        }
+
+                        $responseBoxes = $this->boxesYaMarketProductRequest
+                            ->products($products)
+                            ->update((string) $order['orderId']);
+
+                        if(false === $responseBoxes)
+                        {
+                            continue;
+                        }
+
+                        $this->logger->info(
+                            message: sprintf('%s: Разделили заказ на машиноместа', $order['orderId']),
+                            context: [$products, self::class.':'.__LINE__],
+                        );
+
+                        continue;
+                    }
+
+                    /** Создаем массив из отправлений */
+
+                    $boxes = null;
+
+                    foreach($delivery['boxesLayout'] as $box)
+                    {
+                        $boxes[] = $box['barcode'];
+                    }
+
+                    /** Создаем на каждый продукт новый заказ с отправлением */
+
+                    $fbsOrder = $order;
+
+                    foreach($order['items'] as $item)
+                    {
+                        for($i = 0; $i < $item['count']; $i++)
+                        {
+                            /** Получаем одно отправление и переводим указатель на следующий */
+                            $fbsOrder['posting'] = current($boxes);
+                            next($boxes);
+
+                            $fbsOrder['items'] = null;
+                            $fbsOrder['items'][0] = $item;
+                            $fbsOrder['items'][0]['count'] = 1;
+
+                            /** Сумма платежа покупателя */
+                            $payment = ($item['prices']['payment']['value'] * 100) / $item['count'];
+                            $fbsOrder['items'][0]['prices']['payment']['value'] = $payment / 100;
+
+                            /** Общая сумма вознаграждений продавцу*/
+                            if(true === isset($item['prices']['subsidy']))
+                            {
+                                $subsidy = ($item['prices']['subsidy']['value'] * 100) / $item['count'];
+                                $fbsOrder['items'][0]['prices']['subsidy']['value'] = $subsidy / 100;
+                            }
+
+                            /** Сумма, которая оплачена баллами Плюса */
+                            if(true === isset($item['prices']['cashback']))
+                            {
+                                $cashback = ($item['prices']['cashback']['value'] * 100) / $item['count'];
+                                $fbsOrder['items'][0]['prices']['cashback']['value'] = $cashback / 100;
+                            }
+
+                            yield new NewYaMarketOrderByBusinessDTO(
+                                order: $fbsOrder,
+                                profile: $this->getProfile(),
+                                token: $this->getTokenIdentifier(),
+                                buyer: $client,
+                            );
+                        }
+                    }
+
+                    continue;
+                }
+
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderDTO */
+                yield new NewYaMarketOrderByBusinessDTO(
+                    order: $order,
+                    profile: $this->getProfile(),
+                    token: $this->getTokenIdentifier(),
+                    buyer: $client,
+                );
+            }
 
             /**
-             * Прерываем цикл по условиям:
+             * По условиям прерываем цикл:
              * - нет ключа для хранения информации о следующей страницы
              * - нет ключа для хранения токена следующей страницы
              * - нет токена следующей страницы
+             * - превышен установленный нами лимит
              */
             if(
                 false === isset($content['paging'])
                 || true === empty($content['paging'])
                 || false === isset($content['paging']['nextPageToken'])
+                || $limit === 100
             )
             {
                 break;
@@ -162,182 +340,6 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
 
             /** Сохраняем токен следующей страницы */
             $pageToken = $content['paging']['nextPageToken'];
-        }
-
-        if(true === empty($orders))
-        {
-            return false;
-        }
-
-        foreach($orders as $order)
-        {
-            /** @note выполняется в тестовой среде */
-            if(false === $this->isExecuteEnvironment())
-            {
-                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
-                yield new NewYaMarketOrderByBusinessDTO(
-                    order: $order,
-                    profile: $this->getProfile(),
-                    token: $this->getTokenIdentifier(),
-                );
-
-                continue;
-            }
-
-            /**
-             * Получаем информацию о клиенте
-             */
-
-            $client = null;
-
-            if($order['programType'] === 'DBS')
-            {
-                /**
-                 * Информация о покупателе — физическом лице
-                 * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrderBuyerInfo
-                 */
-                $clientRequest = $this->TokenHttpClient()->request(
-                    method: 'GET',
-                    url: sprintf(
-                        '/campaigns/%s/orders/%s/buyer',
-                        $this->getCompany(),
-                        $order['orderId'],
-                    ),
-                );
-
-                if($response->getStatusCode() === 200)
-                {
-                    /** Добавляем информацию о клиенте */
-                    $clientResponse = $clientRequest->toArray(false);
-
-                    if(isset($clientResponse['result']))
-                    {
-                        $client = $clientResponse['result'];
-                    }
-                }
-            }
-
-            $delivery = $order['delivery'];
-
-            /**
-             * Если заказ FBS
-             */
-
-            if(isset($delivery['deliveryPartnerType']) && $delivery['deliveryPartnerType'] === 'YANDEX_MARKET')
-            {
-
-                /** Получаем сумму всех товаров в заказе */
-                $totalItems = array_sum(array_column($order['items'], 'count'));
-
-                /**
-                 * Получаем количество отправлений в заказе
-                 *
-                 * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderBoxLayoutDTO
-                 */
-                $totalBoxes = empty($delivery['boxesLayout']) ? 0 : count($delivery['boxesLayout']);
-
-                /**
-                 * Если заказ не разделен - отправляем уведомление на разделение
-                 */
-
-                if($totalItems !== $totalBoxes)
-                {
-                    $products = [];
-
-                    foreach($order['items'] as $product)
-                    {
-                        for($i = 1; $i <= $product['count']; $i++)
-                        {
-                            $products[] = [
-                                'items' => [
-                                    [
-                                        'id' => $product['id'], // идентификатор продукта
-                                        'fullCount' => 1,
-                                    ],
-                                ],
-                            ];
-                        }
-                    }
-
-                    $responseBoxes = $this->boxesYaMarketProductRequest
-                        ->products($products)
-                        ->update((string) $order['orderId']);
-
-                    if(false === $responseBoxes)
-                    {
-                        continue;
-                    }
-
-                    $this->logger->info(
-                        message: sprintf('%s: Разделили заказ на машиноместа', $order['orderId']),
-                        context: [$products, self::class.':'.__LINE__],
-                    );
-
-                    continue;
-                }
-
-                /** Создаем массив из отправлений */
-
-                $boxes = null;
-
-                foreach($delivery['boxesLayout'] as $box)
-                {
-                    $boxes[] = $box['barcode'];
-                }
-
-                /** Создаем на каждый продукт новый заказ с отправлением */
-
-                $fbsOrder = $order;
-
-                foreach($order['items'] as $item)
-                {
-                    for($i = 0; $i < $item['count']; $i++)
-                    {
-                        /** Получаем одно отправление и переводим указатель на следующий */
-                        $fbsOrder['posting'] = current($boxes);
-                        next($boxes);
-
-                        $fbsOrder['items'] = null;
-                        $fbsOrder['items'][0] = $item;
-                        $fbsOrder['items'][0]['count'] = 1;
-
-                        /** Сумма платежа покупателя */
-                        $payment = ($item['prices']['payment']['value'] * 100) / $item['count'];
-                        $fbsOrder['items'][0]['prices']['payment']['value'] = $payment / 100;
-
-                        /** Общая сумма вознаграждений продавцу*/
-                        if(true === isset($item['prices']['subsidy']))
-                        {
-                            $subsidy = ($item['prices']['subsidy']['value'] * 100) / $item['count'];
-                            $fbsOrder['items'][0]['prices']['subsidy']['value'] = $subsidy / 100;
-                        }
-
-                        /** Сумма, которая оплачена баллами Плюса */
-                        if(true === isset($item['prices']['cashback']))
-                        {
-                            $cashback = ($item['prices']['cashback']['value'] * 100) / $item['count'];
-                            $fbsOrder['items'][0]['prices']['cashback']['value'] = $cashback / 100;
-                        }
-
-                        yield new NewYaMarketOrderByBusinessDTO(
-                            order: $fbsOrder,
-                            profile: $this->getProfile(),
-                            token: $this->getTokenIdentifier(),
-                            buyer: $client,
-                        );
-                    }
-                }
-
-                continue;
-            }
-
-            /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderDTO */
-            yield new NewYaMarketOrderByBusinessDTO(
-                order: $order,
-                profile: $this->getProfile(),
-                token: $this->getTokenIdentifier(),
-                buyer: $client,
-            );
         }
     }
 

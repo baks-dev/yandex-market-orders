@@ -97,7 +97,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
                 ->forTokenIdentifier($YaMarketTokenUid)
                 ->findAllNew();
 
-            if($orders->valid())
+            if(false !== $orders && $orders->valid())
             {
                 $this->ordersUnpaid($orders, $message->getProfile());
             }

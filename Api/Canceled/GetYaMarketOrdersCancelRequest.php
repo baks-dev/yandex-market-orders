@@ -71,9 +71,8 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
                 ->sub(DateInterval::createFromDateString('1 day'));
         }
 
-
-        /** Заказы */
-        $orders = [];
+        /** Лимит для прерывания бесконечного цикла */
+        $limit = 0;
 
         /**
          * Идентификатор страницы
@@ -83,6 +82,8 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
 
         while(true)
         {
+            ++$limit;
+
             $response = $this->TokenHttpClient()
                 ->request(
                     method: 'POST',
@@ -124,19 +125,29 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
                 break;
             }
 
+            /** Если нет заказов в ответе - прерываем цикл */
+            if(true === empty($content['orders']))
+            {
+                break;
+            }
 
-            $orders = array_merge($orders, $content['orders']);
+            foreach($content['orders'] as $order)
+            {
+                yield new YaMarketCancelOrderDTO($order['orderId'], $order['substatus']);
+            }
 
             /**
-             * Прерываем цикл по условиям:
+             * По условиям прерываем цикл:
              * - нет ключа для хранения информации о следующей страницы
              * - нет ключа для хранения токена следующей страницы
              * - нет токена следующей страницы
+             * - превышен установленный нами лимит
              */
             if(
                 false === isset($content['paging'])
                 || true === empty($content['paging'])
                 || false === isset($content['paging']['nextPageToken'])
+                || $limit === 100
             )
             {
                 break;
@@ -144,16 +155,6 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
 
             /** Сохраняем токен следующей страницы */
             $pageToken = $content['paging']['nextPageToken'];
-        }
-
-        if(true === empty($orders))
-        {
-            return false;
-        }
-
-        foreach($orders as $order)
-        {
-            yield new YaMarketCancelOrderDTO($order['orderId'], $order['substatus']);
         }
     }
 

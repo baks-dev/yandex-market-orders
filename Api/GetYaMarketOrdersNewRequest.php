@@ -241,6 +241,11 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
                 foreach($order['delivery']['shipments'] as $shipment)
                 {
+                    if(true === empty($shipment['boxes']))
+                    {
+                        continue 2;
+                    }
+
                     foreach($shipment['boxes'] as $box)
                     {
                         $boxes[] = $box['fulfilmentId'];
@@ -319,7 +324,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                         ],
                     'json' => [
                         "campaignIds" => [
-                            $this->getCompany()
+                            $this->getCompany(),
                         ],
                         'statuses' => [
                             'PROCESSING',
@@ -343,7 +348,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
             {
                 $this->logger->critical(
                     message: $error['code'].': '.$error['message'],
-                    context: [self::class.':'.__LINE__]
+                    context: [self::class.':'.__LINE__],
                 );
             }
 
@@ -391,19 +396,26 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
              * Если заказ FBS
              */
 
-            if(isset($delivery['deliveryPartnerType']) && $delivery['deliveryPartnerType'] === 'YANDEX_MARKET')
+            if($order['programType'] === 'FBS')
             {
-
                 /** Получаем сумму всех товаров в заказе */
                 $totalItems = array_sum(array_column($order['items'], 'count'));
 
                 /** Получаем количество отправлений в заказе */
-                $totalBoxes = isset($delivery['boxesLayout'])
-                    ? array_sum(array_map(static function($box) {
+                $totalBoxes = empty($delivery['boxesLayout']) ? 0 : count($delivery['boxesLayout']);
 
-                        return current($box['items'])['fullCount'] ?? 0;
-                    }, $delivery['boxesLayout']))
-                    : 0;
+
+                //                    ? array_sum(array_map(static function($item) {
+                //                        return isset($item['boxes']) ? count($item['boxes']) : 0;
+                //                    }, $delivery['boxesLayout']))
+                //                    : 0;
+
+                //                $totalBoxes = isset($delivery['boxesLayout'])
+                //                    ? array_sum(array_map(static function($box) {
+                //
+                //                        return current($box['items'])['fullCount'] ?? 0;
+                //                    }, $delivery['boxesLayout']))
+                //                    : 0;
 
                 /**
                  * Если заказ не разделен - отправляем уведомление на разделение
@@ -445,20 +457,6 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     continue;
                 }
 
-
-                /**
-                 * Если заказ разделен - создаем отправления
-                 */
-
-                if(false === isset($delivery['boxesLayout']))
-                {
-                    $this->logger->critical(
-                        message: sprintf('Ошибка при получении упаковок из заказа %s', $order['orderId']),
-                        context: [self::class.':'.__LINE__]
-                    );
-
-                    return false;
-                }
 
                 /** Создаем массив из отправлений */
 

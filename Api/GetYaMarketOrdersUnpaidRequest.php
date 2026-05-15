@@ -109,7 +109,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                     [
                         'query' =>
                             [
-                                'limit' => 1,
+                                'limit' => 50,
                                 'pageToken' => $pageToken,
                             ],
                         'json' => [

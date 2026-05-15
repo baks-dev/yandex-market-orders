@@ -37,7 +37,7 @@ use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersNewRequest;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\PaymentType\TypePaymentFbsYandex;
 use BaksDev\Yandex\Market\Orders\Type\ProfileType\TypeProfileFbsYaMarket;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\NewYaMarketOrderUserDTO;
@@ -105,7 +105,7 @@ class YandexMarketOrderFBSTest extends KernelTestCase
             /** @var ProductConstByArticleInterface $ProductConstByArticleInterface */
             $ProductConstByArticleInterface = self::getContainer()->get(ProductConstByArticleInterface::class);
 
-            /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
+            /** @var NewYaMarketOrderByBusinessDTO $YandexMarketOrderDTO */
             foreach($response as $YandexMarketOrderDTO)
             {
                 /** т.к. в тестовом окружении получаем все статусы - пропускаем до НОВОГО */

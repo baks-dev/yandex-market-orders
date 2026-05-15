@@ -74,7 +74,7 @@ class GetYaMarketOrdersNewRequestTest extends KernelTestCase
             return;
         }
 
-        foreach($response as $NewYaMarketOrderDTO)
+        foreach($response as $NewYaMarketOrderByBusinessDTO)
         {
             // Вызываем все геттеры
             $reflectionClass = new ReflectionClass(NewYaMarketOrderByBusinessDTO::class);
@@ -86,7 +86,7 @@ class GetYaMarketOrdersNewRequestTest extends KernelTestCase
                 if($method->getNumberOfParameters() === 0)
                 {
                     // Вызываем метод
-                    $data = $method->invoke($NewYaMarketOrderDTO);
+                    $data = $method->invoke($NewYaMarketOrderByBusinessDTO);
                     //dump($data);
                 }
             }

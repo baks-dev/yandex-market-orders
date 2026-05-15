@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -84,11 +85,12 @@ final readonly class CancelYaMarketOrderScheduleHandler
 
             /**
              * Получаем список ОТМЕНЕННЫХ сборочных заданий по основному идентификатору компании
+             * @note по умолчанию за 1 день
              */
 
             $orders = $this->yandexMarketCancelOrdersRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
-                ->findAll();
+                ->findAllNew();
 
             if(false === $orders || false === $orders->valid())
             {

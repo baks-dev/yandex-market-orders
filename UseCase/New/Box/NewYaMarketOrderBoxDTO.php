@@ -26,6 +26,10 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New\Box;
 
+/**
+ * Информация о коробке (для заказов в кабинете)
+ * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderBoxLayoutDTO
+ */
 final readonly class NewYaMarketOrderBoxDTO
 {
     public function __construct(
@@ -34,16 +38,28 @@ final readonly class NewYaMarketOrderBoxDTO
         private array $items
     ) {}
 
+    /**
+     * Идентификатор коробки
+     */
     public function getBoxId(): int
     {
         return $this->boxId;
     }
 
+    /**
+     * Идентификатор грузового места в системе магазина
+     */
     public function getBarcode(): string
     {
         return $this->barcode;
     }
 
+    /**
+     * Список товаров в коробке.
+     * Если в коробке едет часть большого товара, в списке может быть только один пункт
+     *
+     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderBoxLayoutItemDTO
+     */
     public function getItems(): array
     {
         return $this->items;

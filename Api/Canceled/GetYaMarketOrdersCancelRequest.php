@@ -41,8 +41,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
  * @note использует тот же запрос:
  * @see GetYaMarketOrdersNewRequest
  * @see GetYaMarketOrdersCancelRequest
- * @see GetYaMarketOrdersCompletedRequest
  * @see GetYaMarketOrdersUnpaidRequest
+ * @see GetYaMarketOrderInfoRequest
+ * @see GetYaMarketOrdersCompletedRequest
  */
 #[Autoconfigure(shared: false)]
 final class GetYaMarketOrdersCancelRequest extends YandexMarket
@@ -52,18 +53,126 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
     private ?DateTimeImmutable $fromDate = null;
 
     /**
+     * Возвращает информацию о заказах:
+     *
+     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders
+     *
+     * @return Generator<int, YaMarketCancelOrderDTO>|false
+     *
+     */
+    public function findAllNew(?DateInterval $interval = null): Generator|false
+    {
+        /** Если не передано время интервала присваиваем  */
+        if(false === ($this->fromDate instanceof DateTimeImmutable))
+        {
+            $this->fromDate = new DateTimeImmutable()
+                ->setTimezone(new DateTimeZone('UTC'))
+                ->sub($interval ?? DateInterval::createFromDateString(CancelOrdersSchedule::INTERVAL))
+                ->sub(DateInterval::createFromDateString('1 day'));
+        }
+
+        /** Лимит для прерывания бесконечного цикла */
+        $limit = 0;
+
+        /**
+         * Идентификатор страницы
+         * Передавая значение, полученное при последнем запросе - получаем следующую страницу
+         */
+        $pageToken = '';
+
+        while(true)
+        {
+            ++$limit;
+
+            $response = $this->TokenHttpClient()
+                ->request(
+                    method: 'POST',
+                    url: sprintf('/v1/businesses/%s/orders', $this->getBusiness()),
+                    options: [
+                        'query' =>
+                            [
+                                'limit' => 50,
+                                'pageToken' => $pageToken,
+                            ],
+                        'json' => [
+                            "campaignIds" => [
+                                $this->getCompany()
+                            ],
+                            'statuses' => [
+                                'CANCELLED',
+                            ],
+                            'dates' => [
+                                'creationDateFrom' => $this->fromDate->format('Y-m-d'),
+                            ],
+                            'fake' => false,
+                        ],
+                    ],
+                );
+
+            $content = $response->toArray(false);
+
+            /** Если ошибка получения заказов - прерываем цикл */
+            if($response->getStatusCode() !== 200)
+            {
+                foreach($content['errors'] as $error)
+                {
+                    $this->logger->critical(
+                        message: $error['code'].': '.$error['message'],
+                        context: [self::class.':'.__LINE__]
+                    );
+                }
+
+                break;
+            }
+
+            /** Если нет заказов в ответе - прерываем цикл */
+            if(true === empty($content['orders']))
+            {
+                break;
+            }
+
+            foreach($content['orders'] as $order)
+            {
+                yield new YaMarketCancelOrderDTO($order['orderId'], $order['substatus']);
+            }
+
+            /**
+             * По условиям прерываем цикл:
+             * - нет ключа для хранения информации о следующей страницы
+             * - нет ключа для хранения токена следующей страницы
+             * - нет токена следующей страницы
+             * - превышен установленный нами лимит
+             */
+            if(
+                false === isset($content['paging'])
+                || true === empty($content['paging'])
+                || false === isset($content['paging']['nextPageToken'])
+                || $limit === 100
+            )
+            {
+                break;
+            }
+
+            /** Сохраняем токен следующей страницы */
+            $pageToken = $content['paging']['nextPageToken'];
+        }
+    }
+
+    /**
+     * @return Generator<YaMarketCancelOrderDTO>|false
+     *
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
+     *
+     * @deprecated
+     *
      * Возвращает информацию о 50 последних заказах со статусом:
      *
      * CANCELLED - заказ отменен.
      *
      * Лимит: 1 000 000 запросов в час (~16666 в минуту | ~277 в секунду)
      *
-     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders
-     *
-     * @return Generator<YaMarketCancelOrderDTO>|false
-     *
      */
-    public function findAll(?DateInterval $interval = null): Generator|false
+    public function findAllOld(?DateInterval $interval = null): Generator|false
     {
         /** Если не передано время интервала присваиваем  */
         if(false === ($this->fromDate instanceof DateTimeImmutable))
@@ -77,7 +186,7 @@ final class GetYaMarketOrdersCancelRequest extends YandexMarket
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
-                sprintf('/campaigns/%s/orders', $this->getCompany()), // @TODO v2?
+                sprintf('/campaigns/%s/orders', $this->getCompany()),
                 ['query' =>
                     [
                         'page' => $this->page,

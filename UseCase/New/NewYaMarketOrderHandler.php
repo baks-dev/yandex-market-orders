@@ -31,7 +31,6 @@ use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Core\Type\Field\InputField;
 use BaksDev\Core\Validator\ValidatorCollectionInterface;
-use BaksDev\Delivery\Entity\Event\DeliveryEvent;
 use BaksDev\Delivery\Repository\CurrentDeliveryEvent\CurrentDeliveryEventInterface;
 use BaksDev\Delivery\Type\Event\DeliveryEventUid;
 use BaksDev\Field\Pack\Phone\Type\PhoneField;
@@ -51,8 +50,8 @@ use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormDT
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormInterface;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
 use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
-use BaksDev\Users\User\Type\Id\UserUid;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\Items\NewYaMarketOrderProductItemDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\NewYaMarketOrderDeliveryFieldDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\NewYaMarketUserProfileValueDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
@@ -63,15 +62,15 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 {
     public function __construct(
         private readonly UserProfileHandler $profileHandler,
-        private readonly ProductConstByArticleInterface $productConstByArticle,
-        private readonly FieldByDeliveryChoiceInterface $deliveryFields,
-        private readonly CurrentDeliveryEventInterface $currentDeliveryEvent,
         private readonly GeocodeAddressParser $geocodeAddressParser,
-        private readonly FieldValueFormInterface $fieldValue,
-        private readonly ExistsOrderNumberInterface $existsOrderNumber,
-        private readonly ToggleUnpaidToNewYaMarketOrderHandler $newYaMarketOrderStatusHandler,
-        private readonly UserByUserProfileInterface $userByUserProfile,
-        private readonly PickupByGeolocationInterface $pickupByGeolocation,
+        private readonly ToggleUnpaidToNewYaMarketOrderHandler $toggleUnpaidToNewYaMarketOrderHandler,
+        private readonly ProductConstByArticleInterface $productConstByArticleRepository,
+        private readonly FieldByDeliveryChoiceInterface $deliveryFieldsRepository,
+        private readonly CurrentDeliveryEventInterface $currentDeliveryEventRepository,
+        private readonly FieldValueFormInterface $fieldValueRepository,
+        private readonly ExistsOrderNumberInterface $existsOrderNumberRepository,
+        private readonly UserByUserProfileInterface $userByUserProfileRepository,
+        private readonly PickupByGeolocationInterface $pickupByGeolocationRepository,
 
         EntityManagerInterface $entityManager,
         MessageDispatchInterface $messageDispatch,
@@ -85,13 +84,14 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
     public function handle(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): string|array|bool|Order
     {
+
         if(false === $command->getStatusEquals(OrderStatusNew::class))
         {
             //return 'Заказ не является в статусе New «Новый»';
             return false;
         }
 
-        $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
+        $isExists = $this->existsOrderNumberRepository->isExists($command->getPostingNumber());
 
         if($isExists)
         {
@@ -99,7 +99,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
              * Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый»
              * в сервисе проверит, что заказ в статусе Unpaid
              */
-            return $this->newYaMarketOrderStatusHandler->handle($command);
+            return $this->toggleUnpaidToNewYaMarketOrderHandler->handle($command);
         }
 
         /**
@@ -110,7 +110,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
         $NewOrderInvariable = $command->getInvariable();
 
-        $User = $this->userByUserProfile
+        $User = $this->userByUserProfileRepository
             ->forProfile($NewOrderInvariable->getProfile())
             ->find();
 
@@ -122,14 +122,15 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
         $NewOrderInvariable->setUsr($User->getId());
 
+
         /**
          * Получаем события продукции
          *
-         * @var Products\NewYaMarketOrderProductDTO $product
+         * @var NewYaMarketOrderProductDTO $product
          */
         foreach($command->getProduct() as $product)
         {
-            $ProductData = $this->productConstByArticle->find($product->getArticle());
+            $ProductData = $this->productConstByArticleRepository->find($product->getArticle());
 
             if(false === ($ProductData instanceof CurrentProductByBarcodeResult))
             {
@@ -253,7 +254,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
         $Buyer = $command->getBuyer();
 
         /** Определяем свойства клиента при доставке DBS */
-        $profileFields = $this->fieldValue->get($TypeProfileUid);
+        $profileFields = $this->fieldValueRepository->get($TypeProfileUid);
 
         /** @var FieldValueFormDTO $profileField */
         foreach($profileFields as $profileField)
@@ -346,7 +347,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
          * Определяем свойства доставки и присваиваем адрес
          */
 
-        $fields = $this->deliveryFields->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
+        $fields = $this->deliveryFieldsRepository->fetchDeliveryFields($OrderDeliveryDTO->getDelivery());
 
 
         /** Указываем адрес доставки */
@@ -385,7 +386,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
                 $OrderDeliveryFieldDTO->setField($contacts_field);
 
                 /** Определяем по геолокации ПВЗ */
-                $PickupByGeolocationDTO = $this->pickupByGeolocation
+                $PickupByGeolocationDTO = $this->pickupByGeolocationRepository
                     ->latitude($OrderDeliveryDTO->getLatitude())
                     ->longitude($OrderDeliveryDTO->getLongitude())
                     ->execute();
@@ -403,7 +404,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
          * Присваиваем активное событие доставки
          */
 
-        $DeliveryEventUid = $this->currentDeliveryEvent
+        $DeliveryEventUid = $this->currentDeliveryEventRepository
             ->forDelivery($OrderDeliveryDTO->getDelivery())
             ->getId();
 

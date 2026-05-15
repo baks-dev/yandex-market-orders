@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -32,6 +33,8 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusUnpaid;
 use BaksDev\Orders\Order\UseCase\Admin\Status\OrderStatusHandler;
 use BaksDev\Users\Profile\UserProfile\Repository\UserByUserProfile\UserByUserProfileInterface;
+use BaksDev\Users\User\Type\Id\UserUid;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use Psr\Log\LoggerInterface;
@@ -50,7 +53,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
     ) {}
 
     /** @see YandexMarket */
-    public function handle(NewYaMarketOrderDTO $command): string|Order
+    public function handle(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): string|Order
     {
         /** Не добавляем неоплаченный заказ, если он не «В ожидании оплаты» */
         if(false === $command->getStatusEquals(OrderStatusUnpaid::class))
@@ -66,29 +69,29 @@ final readonly class UnpaidYaMarketOrderStatusHandler
             return sprintf('%s: Ошибка при создании заказа неоплаченного (заказ уже добавлен)!', $command->getPostingNumber());
         }
 
-        /**
-         * Присваиваем идентификатор пользователя @UserUid по идентификатору профиля @UserProfileUid
-         */
-
-        $NewOrderInvariable = $command->getInvariable();
-        $UserProfileUid = $NewOrderInvariable->getProfile();
-
-        $User = $this->userByUserProfile
-            ->forProfile($UserProfileUid)
-            ->find();
-
-        if($User === false)
-        {
-            $this->logger->critical(sprintf(
-                'Пользователь профиля %s для заказа %s не найден',
-                $NewOrderInvariable->getProfile(),
-                $NewOrderInvariable->getNumber(),
-            ));
-
-            return 'Пользователь по профилю не найден';
-        }
-
-        $NewOrderInvariable->setUsr($User->getId());
+        //        /**
+        //         * Присваиваем идентификатор пользователя @UserUid по идентификатору профиля @UserProfileUid
+        //         */
+        //
+        //        $NewOrderInvariable = $command->getInvariable();
+        //        $UserProfileUid = $NewOrderInvariable->getProfile();
+        //
+        //        $User = $this->userByUserProfile
+        //            ->forProfile($UserProfileUid)
+        //            ->find();
+        //
+        //        if($User === false)
+        //        {
+        //            $this->logger->critical(sprintf(
+        //                'Пользователь профиля %s для заказа %s не найден',
+        //                $NewOrderInvariable->getProfile(),
+        //                $NewOrderInvariable->getNumber(),
+        //            ));
+        //
+        //            return 'Пользователь по профилю не найден';
+        //        }
+        //
+        //        $NewOrderInvariable->setUsr($User->getId());
 
 
         /** Создаем заказ со статусом New «Новый» */
@@ -128,6 +131,9 @@ final readonly class UnpaidYaMarketOrderStatusHandler
              * Обновляем статус «Не оплачено»
              * В статус «Не оплачено» может перевестись только новый заказ
              */
+
+            $User = $command->getInvariable()->getUsr();
+            $UserProfileUid = $command->getInvariable()->getProfile();
 
             $UnpaidOrderStatusDTO = new UnpaidYaMarketOrderStatusDTO($User, $UserProfileUid);
             $OrderEvent->getDto($UnpaidOrderStatusDTO);

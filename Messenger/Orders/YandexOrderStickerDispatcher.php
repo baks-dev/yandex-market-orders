@@ -38,7 +38,8 @@ use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Box\NewYaMarketOrderBoxDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
@@ -145,28 +146,23 @@ final readonly class YandexOrderStickerDispatcher
             /** Токен из заказа в системе (был установлен при получении заказа из Ozon) */
             $YaMarketTokenUid = new YaMarketTokenUid($OrderEvent->getOrderTokenIdentifier());
 
-            $YandexMarketOrderDTO = $this->GetYaMarketOrderInfoRequest
+            $NewYaMarketOrderByBusinessDTO = $this->GetYaMarketOrderInfoRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
-                ->find($OrderEvent->getOrderNumber());
+                ->findNew($OrderEvent->getOrderNumber());
 
-            if(false === ($YandexMarketOrderDTO instanceof NewYaMarketOrderDTO))
+            if(false === ($NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO))
             {
                 return;
             }
 
-            foreach($YandexMarketOrderDTO->getPostingBox() as $box)
+            /** @var NewYaMarketOrderBoxDTO $box */
+            foreach($NewYaMarketOrderByBusinessDTO->getPostingBox() as $box)
             {
-                /**
-                 * @example
-                 * "id" => 111111111
-                 * "fulfilmentId" => "11111111111-1"
-                 * */
-
                 $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                     token: $YaMarketTokenUid,
                     order: $OrderEvent->getOrderNumber(),
-                    posting: $box['fulfilmentId'],
-                    box: $box['id'],
+                    posting: $box->getBarcode(),
+                    box: $box->getBoxId(),
                 );
 
                 $this->messageDispatch->dispatch(
@@ -174,7 +170,6 @@ final readonly class YandexOrderStickerDispatcher
                     stamps: [new MessageDelay('3 seconds')],
                     transport: $UserProfileUid.'-low',
                 );
-
             }
         }
     }

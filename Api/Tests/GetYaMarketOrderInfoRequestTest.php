@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2025.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -28,7 +29,7 @@ namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DependsOnClass;
@@ -80,15 +81,16 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
         $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
-        $NewYaMarketOrderDTO = $GetYaMarketOrderInfoRequest->find('Y-57099404290');
+        $NewYaMarketOrderByBusinessDTO = $GetYaMarketOrderInfoRequest->findNew('57113641859');
 
-        if(false === ($NewYaMarketOrderDTO instanceof NewYaMarketOrderDTO))
+        if(false === ($NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO))
         {
+            echo sprintf('%s результат запроса не протестирован  %s %s', PHP_EOL, self::class, PHP_EOL);
             return;
         }
 
         // Вызываем все геттеры
-        $reflectionClass = new ReflectionClass(NewYaMarketOrderDTO::class);
+        $reflectionClass = new ReflectionClass(NewYaMarketOrderByBusinessDTO::class);
         $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
 
         foreach($methods as $method)
@@ -97,7 +99,7 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
             if($method->getNumberOfParameters() === 0)
             {
                 // Вызываем метод
-                $data = $method->invoke($NewYaMarketOrderDTO);
+                $data = $method->invoke($NewYaMarketOrderByBusinessDTO);
                 // dump($data);
             }
         }

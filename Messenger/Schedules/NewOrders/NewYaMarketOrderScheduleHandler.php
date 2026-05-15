@@ -90,7 +90,7 @@ final readonly class NewYaMarketOrderScheduleHandler
 
             $orders = $this->yandexMarketNewOrdersRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
-                ->findAllNew();
+                ->findAllOld();
 
             if(false === $orders || false === $orders->valid())
             {

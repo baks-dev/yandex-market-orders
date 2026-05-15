@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -38,17 +39,25 @@ final readonly class YaMarketCancelOrderDTO
 
         $this->comment = 'Yandex Seller: '.match ($substatus)
             {
+                //** статусы, перечисленные в новом запросе */
+                'RESERVATION_EXPIRED' => 'покупатель не завершил оформление зарезервированного заказа в течение 10 минут',
+                'USER_NOT_PAID' => 'покупатель не оплатил заказ (для типа оплаты PREPAID) в течение 30 минут',
+                'USER_UNREACHABLE' => 'не удалось связаться с покупателем',
+                'USER_CHANGED_MIND' => 'покупатель отменил заказ по личным причинам',
+                'USER_REFUSED_DELIVERY' => 'покупателя не устроили условия доставки',
+                'USER_REFUSED_PRODUCT' => 'покупателю не подошел товар',
+                'SHOP_FAILED' => 'магазин не может выполнить заказ',
+                'USER_REFUSED_QUALITY' => 'покупателя не устроило качество товара',
+                'REPLACING_ORDER' => 'покупатель решил заменить товар другим по собственной инициативе',
+                'PROCESSING_EXPIRED' => 'значение более не используется',
+                'PICKUP_EXPIRED' => 'закончился срок хранения заказа в пункт выдачи',
+                'TOO_MANY_DELIVERY_DATE_CHANGES' => 'заказ переносили слишком много раз',
+                'TOO_LONG_DELIVERY' => 'заказ доставляется слишком долго',
+                'INCORRECT_PERSONAL_DATA' => 'для заказа из-за рубежа указаны неправильные данные получателя, заказ не пройдет проверку на таможне',
+
+                //** статусы, НЕ перечисленные в новом запросе */
                 'DELIVERY_SERVICE_UNDELIVERED' => 'Служба доставки не смогла доставить заказ',
-                'REPLACING_ORDER' => 'Покупатель решил заменить товар другим по собственной инициативе',
-                'RESERVATION_EXPIRED' => 'Покупатель не завершил оформление зарезервированного заказа в течение 10 минут',
                 'RESERVATION_FAILED' => 'Маркет не может продолжить дальнейшую обработку заказа',
-                'SHOP_FAILED' => 'Магазин не может выполнить заказ',
-                'USER_CHANGED_MIND' => 'Покупатель отменил заказ по личным причинам',
-                'USER_NOT_PAID' => 'Покупатель не оплатил заказ в течение 30 минут',
-                'USER_REFUSED_DELIVERY' => 'Покупателя не устроили условия доставки',
-                'USER_REFUSED_PRODUCT' => 'Покупателю не подошел товар',
-                'USER_REFUSED_QUALITY' => 'Покупателя не устроило качество товара',
-                'USER_UNREACHABLE' => 'Не удалось связаться с покупателем',
                 'USER_WANTS_TO_CHANGE_DELIVERY_DATE' => 'Покупатель хочет получить заказ в другой день',
                 'CANCELLED_COURIER_NOT_FOUND' => 'Не удалось найти курьера',
                 'FULL_NOT_RANSOM' => 'Заказ не выкуплен клиентом',

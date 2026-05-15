@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2024.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -39,7 +40,8 @@ use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessY
 use BaksDev\Yandex\Market\Orders\Messenger\Ready\UpdateYaMarketOrderReadyStatusMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\Box\NewYaMarketOrderBoxDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Psr\Log\LoggerInterface;
@@ -137,16 +139,16 @@ final readonly class UpdateProcessingYandexOrderDispatcher
          * Получаем информацию о заказе и проверяем что заказ Новый
          */
 
-        $YandexMarketOrderDTO = $this->yaMarketOrdersInfoRequest
+        $NewYaMarketOrderByBusinessDTO = $this->yaMarketOrdersInfoRequest
             ->forTokenIdentifier($YaMarketTokenUid)
-            ->find($CurrentOrderEvent->getOrderNumber());
+            ->findNew($CurrentOrderEvent->getOrderNumber());
 
-        if(false === $YandexMarketOrderDTO instanceof NewYaMarketOrderDTO)
+        if(false === $NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO)
         {
             return;
         }
 
-        if(false === $YandexMarketOrderDTO->getStatusEquals(OrderStatusNew::class))
+        if(false === $NewYaMarketOrderByBusinessDTO->getStatusEquals(OrderStatusNew::class))
         {
             return;
         }
@@ -171,19 +173,14 @@ final readonly class UpdateProcessingYandexOrderDispatcher
          * Создаем задание на получение стикеров
          */
 
-        foreach($YandexMarketOrderDTO->getPostingBox() as $box)
+        /** @var NewYaMarketOrderBoxDTO $box */
+        foreach($NewYaMarketOrderByBusinessDTO->getPostingBox() as $box)
         {
-            /**
-             * @example
-             * "id" => 111111111
-             * "fulfilmentId" => "11111111111-1"
-             * */
-
             $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                 token: $YaMarketTokenUid,
                 order: $CurrentOrderEvent->getOrderNumber(),
-                posting: $box['fulfilmentId'],
-                box: $box['id'],
+                posting: $box->getBarcode(),
+                box: $box->getBoxId(),
             );
 
             $this->messageDispatch->dispatch(

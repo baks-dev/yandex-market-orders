@@ -34,12 +34,13 @@ use Generator;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
+ * @deprecated
+ *
  * Информация о заказах
  *
  * @note использует тот же запрос:
  * @see GetYaMarketOrdersNewRequest
  * @see GetYaMarketOrdersCancelRequest
- * @see GetYaMarketOrdersCompletedRequest
  * @see GetYaMarketOrdersUnpaidRequest
  */
 #[Autoconfigure(shared: false)]
@@ -50,6 +51,9 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
     private ?DateTimeImmutable $fromDate = null;
 
     /**
+     * @deprecated
+     * @note не используется
+     *
      * Возвращает информацию о 50 последних заказах со статусом:
      *
      * DELIVERY — заказ передан в службу доставки.
@@ -70,7 +74,7 @@ final class GetYaMarketOrdersCompletedRequest extends YandexMarket
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
-                sprintf('/campaigns/%s/orders', $this->getCompany()), // @TODO v2?
+                sprintf('/campaigns/%s/orders', $this->getCompany()),
                 ['query' =>
                     [
                         'page' => $this->page,

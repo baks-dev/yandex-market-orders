@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -30,7 +31,7 @@ use BaksDev\Orders\Order\Entity\Order;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
 use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
@@ -89,10 +90,12 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
 
             /**
              * Получаем список НЕОПЛАЧЕННЫХ сборочных заданий по основному идентификатору компании
+             *
+             * @note по умолчанию за 14 дней
              */
             $orders = $this->yandexMarketUnpaidOrdersRequest
                 ->forTokenIdentifier($YaMarketTokenUid)
-                ->findAll();
+                ->findAllNew();
 
             if($orders->valid())
             {
@@ -105,7 +108,7 @@ final readonly class UnpaidYaMarketOrderScheduleHandler
 
     private function ordersUnpaid(Generator $orders, UserProfileUid $profile): void
     {
-        /** @var NewYaMarketOrderDTO $YandexMarketOrderDTO */
+        /** @var NewYaMarketOrderByBusinessDTO $YandexMarketOrderDTO | */
         foreach($orders as $YandexMarketOrderDTO)
         {
             /** Индекс дедубдикации по номеру заказа */

@@ -294,15 +294,11 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
     /**
      * Возвращает информацию о заказах:
      *
-     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-OrderStatusType
+     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders
      *
      * @return Generator<int, NewYaMarketOrderByBusinessDTO>|false
-     *
      */
-    public
-    function findAllNew(
-        ?DateInterval $interval = null
-    ): Generator|false
+    public function findAllNew(?DateInterval $interval = null): Generator|false
     {
         /** Если не передано время интервала присваиваем  */
         if(false === ($this->fromDate instanceof DateTimeImmutable))
@@ -315,9 +311,9 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
         $response = $this->TokenHttpClient()
             ->request(
-                'POST',
-                sprintf('/v1/businesses/%s/orders', $this->getBusiness()),
-                [
+                method: 'POST',
+                url: sprintf('/v1/businesses/%s/orders', $this->getBusiness()),
+                options: [
                     'query' =>
                         [
                             'limit' => 50,
@@ -357,6 +353,19 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
 
         foreach($content['orders'] as $order)
         {
+            /** @note выполняется в тестовой среде */
+            if(false === $this->isExecuteEnvironment())
+            {
+                /** @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getOrders#orderdto */
+                yield new NewYaMarketOrderByBusinessDTO(
+                    order: $order,
+                    profile: $this->getProfile(),
+                    token: $this->getTokenIdentifier(),
+                );
+
+                continue;
+            }
+
             /**
              * Получаем информацию о клиенте
              */
@@ -390,6 +399,11 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 }
             }
 
+
+            /**
+             * Информация о доставке заказа
+             * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderDeliveryDTO
+             */
             $delivery = $order['delivery'];
 
             /**
@@ -401,7 +415,11 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 /** Получаем сумму всех товаров в заказе */
                 $totalItems = array_sum(array_column($order['items'], 'count'));
 
-                /** Получаем количество отправлений в заказе */
+                /**
+                 * Получаем количество отправлений в заказе
+                 *
+                 * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderBoxLayoutDTO
+                 */
                 $totalBoxes = empty($delivery['boxesLayout']) ? 0 : count($delivery['boxesLayout']);
 
 

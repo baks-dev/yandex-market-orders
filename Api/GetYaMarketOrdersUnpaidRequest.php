@@ -241,6 +241,7 @@ final class GetYaMarketOrdersUnpaidRequest extends YandexMarket
                         }
 
                         $responseBoxes = $this->boxesYaMarketProductRequest
+                            ->forTokenIdentifier($this->getTokenIdentifier())
                             ->products($products)
                             ->update((string) $order['orderId']);
 

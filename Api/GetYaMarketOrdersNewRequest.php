@@ -95,6 +95,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                 ->sub(DateInterval::createFromDateString('14 days'));
         }
 
+
         $response = $this->TokenHttpClient()
             ->request(
                 'GET',
@@ -459,6 +460,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     }
 
                     $responseBoxes = $this->boxesYaMarketProductRequest
+                        ->forTokenIdentifier($this->getTokenIdentifier())
                         ->products($products)
                         ->update((string) $order['orderId']);
 

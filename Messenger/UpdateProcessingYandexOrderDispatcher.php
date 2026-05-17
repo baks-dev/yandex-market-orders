@@ -144,7 +144,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-        if(true === ($CurrentOrderEvent->getOrderTokenIdentifier() instanceof Uuid))
+        if(true === empty($CurrentOrderEvent->getOrderTokenIdentifier()))
         {
             return;
         }

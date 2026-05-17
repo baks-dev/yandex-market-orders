@@ -377,10 +377,8 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
                     );
             }
 
-            /**
-             * Доставка в пункт выдачи заказов Маркета
-             */
-            if($delivery['dispatchType'] === 'MARKET_BRANDED_OUTLET')
+            /** Доставка в пункт выдачи заказов Маркета */
+            if($deliveryPartnerType === 'SHOP' && $delivery['dispatchType'] === 'MARKET_BRANDED_OUTLET')
             {
                 $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
             }

@@ -29,7 +29,9 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 use BaksDev\Yandex\Market\Api\YandexMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use DateInterval;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * Информация о заказе
@@ -54,44 +56,58 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
     {
         $order = str_replace('Y-', '', (string) $order);
 
-        $response = $this->TokenHttpClient()
-            ->request(
-                method: 'POST',
-                url: sprintf('/v1/businesses/%s/orders', $this->getBusiness()),
-                options: [
-                    'json' => [
-                        "campaignIds" => [
-                            $this->getCompany()
+
+        $cache = $this->getCacheInit('yandex-market-orders');
+
+        $key = $this->getBusiness().$this->getCompany().$order;
+
+        $order = $cache->get($key, function(ItemInterface $item) use ($order): array|false {
+
+            /** Временно кешируем этикетку на 1 секунду */
+            $item->expiresAfter(DateInterval::createFromDateString('1 seconds'));
+
+            $response = $this->TokenHttpClient()
+                ->request(
+                    method: 'POST',
+                    url: sprintf('/v1/businesses/%s/orders', $this->getBusiness()),
+                    options: [
+                        'json' => [
+                            "campaignIds" => [
+                                $this->getCompany(),
+                            ],
+                            "orderIds" => [
+                                (int) $order,
+                            ],
+                            'fake' => false,
                         ],
-                        "orderIds" => [
-                            (int) $order
-                        ],
-                        'fake' => false,
                     ],
-                ],
-            );
-
-        $content = $response->toArray(false);
-
-        if($response->getStatusCode() !== 200)
-        {
-            foreach($content['errors'] as $error)
-            {
-                $this->logger->critical(
-                    message: $error['code'].': '.$error['message'],
-                    context: [self::class.':'.__LINE__]
                 );
+
+            $content = $response->toArray(false);
+
+            if($response->getStatusCode() !== 200)
+            {
+                foreach($content['errors'] as $error)
+                {
+                    $this->logger->critical(
+                        message: $error['code'].': '.$error['message'],
+                        context: [self::class.':'.__LINE__],
+                    );
+                }
+
+                return false;
             }
 
-            return false;
-        }
+            if(true === empty($content['orders']))
+            {
+                return false;
+            }
 
-        if(true === empty($content['orders']))
-        {
-            return false;
-        }
+            $item->expiresAfter(DateInterval::createFromDateString('5 seconds'));
 
-        $order = current($content['orders']);
+            return current($content['orders']);
+
+        });
 
         /**
          * Получаем информацию о клиенте
@@ -114,7 +130,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
                 ),
             );
 
-            if($response->getStatusCode() === 200)
+            if($clientRequest->getStatusCode() === 200)
             {
                 /** Добавляем информацию о клиенте */
                 $clientResponse = $clientRequest->toArray(false);
@@ -193,7 +209,7 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
                 ),
             );
 
-            if($response->getStatusCode() === 200)
+            if($clientResponse->getStatusCode() === 200)
             {
                 // Добавляем информацию о клиенте
                 $client = $clientResponse->toArray(false)['result'];

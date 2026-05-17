@@ -30,7 +30,7 @@ use BaksDev\Yandex\Market\Api\YandexMarket;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 #[Autoconfigure(shared: false)]
-final class BoxesYaMarketProductRequest extends YandexMarket
+final class UpdateBoxesYaMarketProductRequest extends YandexMarket
 {
     private array $products = [];
 
@@ -41,32 +41,52 @@ final class BoxesYaMarketProductRequest extends YandexMarket
     }
 
     /**
-     * Позволяет передать Маркету информацию о распределении товаров по коробкам.
+     * Позволяет передать Маркету информацию о распределении товаров по грузоместам
      *
-     * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/setOrderBoxLayout
+     * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/setOrderBoxLayout
      *
      */
-    public function update(string $order): bool
+    public function update(string|int $order): bool
     {
-
         if($this->isExecuteEnvironment() === false)
         {
             $this->logger->critical(
                 message: 'Запрос может быть выполнен только в PROD окружении',
-                context: [self::class.':'.__LINE__]
+                context: [self::class.':'.__LINE__],
             );
 
-            return false;
+            return true;
         }
 
         if(empty($this->products))
         {
             $this->logger->critical(
                 message: sprintf('Не переданы продукты для разделения заказа %s', $order),
-                context: [self::class.':'.__LINE__]
+                context: [self::class.':'.__LINE__],
             );
 
             return false;
+        }
+
+        $order = str_replace('Y-', '', (string) $order);
+
+        $products = [];
+
+        foreach($this->products as $product)
+        {
+            $products[] = [
+                'items' => [
+                    [
+                        /**
+                         * Идентификатор товара в заказе.
+                         *
+                         * @see https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/setOrderBoxLayout#entity-OrderBoxLayoutItemDTO
+                         */
+                        'id' => $product,
+                        'fullCount' => 1,
+                    ],
+                ],
+            ];
         }
 
         $response = $this->TokenHttpClient()
@@ -75,8 +95,8 @@ final class BoxesYaMarketProductRequest extends YandexMarket
                 url: sprintf('/campaigns/%s/orders/%s/boxes', $this->getCompany(), $order),
                 options: [
                     'json' => [
-                        'boxes' => $this->products
-                    ]
+                        'boxes' => $products,
+                    ],
                 ],
             );
 
@@ -91,8 +111,12 @@ final class BoxesYaMarketProductRequest extends YandexMarket
                     context: [self::class.':'.__LINE__]);
             }
 
+            $this->products = [];
+
             return false;
         }
+
+        $this->products = [];
 
         return true;
     }

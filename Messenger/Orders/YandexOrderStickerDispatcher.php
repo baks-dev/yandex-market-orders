@@ -161,7 +161,7 @@ final readonly class YandexOrderStickerDispatcher
                 $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                     token: $YaMarketTokenUid,
                     order: $OrderEvent->getOrderNumber(),
-                    posting: $box->getBarcode(),
+                    posting: $box->getPostingNumber(),
                     box: $box->getBoxId(),
                 );
 

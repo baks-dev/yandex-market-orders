@@ -28,7 +28,7 @@ namespace BaksDev\Yandex\Market\Orders\Api;
 
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Yandex\Market\Api\YandexMarket;
-use BaksDev\Yandex\Market\Orders\Api\Boxes\BoxesYaMarketProductRequest;
+use BaksDev\Yandex\Market\Orders\Api\Boxes\UpdateBoxesYaMarketProductRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\NewOrders\NewOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
@@ -63,7 +63,7 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
         YaMarketTokenInterface $YaMarketToken,
         AppCacheInterface $cache,
 
-        private readonly BoxesYaMarketProductRequest $boxesYaMarketProductRequest,
+        private readonly UpdateBoxesYaMarketProductRequest $UpdateBoxesYaMarketProductRequest,
     )
     {
         parent::__construct($environment, $logger, $YaMarketToken, $cache);
@@ -448,18 +448,11 @@ final class GetYaMarketOrdersNewRequest extends YandexMarket
                     {
                         for($i = 1; $i <= $product['count']; $i++)
                         {
-                            $products[] = [
-                                'items' => [
-                                    [
-                                        'id' => $product['id'], // идентификатор продукта
-                                        'fullCount' => 1,
-                                    ],
-                                ],
-                            ];
+                            $products[] = $product['id'];
                         }
                     }
 
-                    $responseBoxes = $this->boxesYaMarketProductRequest
+                    $responseBoxes = $this->UpdateBoxesYaMarketProductRequest
                         ->forTokenIdentifier($this->getTokenIdentifier())
                         ->products($products)
                         ->update((string) $order['orderId']);

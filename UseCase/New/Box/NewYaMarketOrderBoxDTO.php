@@ -49,7 +49,7 @@ final readonly class NewYaMarketOrderBoxDTO
     /**
      * Идентификатор грузового места в системе магазина
      */
-    public function getBarcode(): string
+    public function getPostingNumber(): string
     {
         return $this->barcode;
     }

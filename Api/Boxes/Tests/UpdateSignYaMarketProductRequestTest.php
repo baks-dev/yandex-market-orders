@@ -24,20 +24,16 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\Api\Tests;
+namespace BaksDev\Yandex\Market\Orders\Api\Boxes\Tests;
 
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
-use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
-use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
+use BaksDev\Yandex\Market\Orders\Api\Boxes\UpdateSignYaMarketProductRequest;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DependsOnClass;
 use PHPUnit\Framework\Attributes\Group;
-use ReflectionClass;
-use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
@@ -48,7 +44,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 #[When(env: 'test')]
 #[Group('yandex-market-orders')]
-class GetYaMarketOrderInfoRequestTest extends KernelTestCase
+class UpdateSignYaMarketProductRequestTest extends KernelTestCase
 {
     private static YaMarketAuthorizationToken $Authorization;
 
@@ -86,44 +82,25 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
 
     public function testUseCase(): void
     {
-
         self::assertTrue(true);
 
-        /** @var GetYaMarketOrderInfoRequest $GetYaMarketOrderInfoRequest */
-        $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
-        $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
+        /** @var UpdateSignYaMarketProductRequest $UpdateSignYaMarketProductRequest */
+        $UpdateSignYaMarketProductRequest = self::getContainer()->get(UpdateSignYaMarketProductRequest::class);
+        $UpdateSignYaMarketProductRequest->TokenHttpClient(self::$Authorization);
 
-        $NewYaMarketOrderByBusinessDTO = $GetYaMarketOrderInfoRequest
-            ->findNew('Y-57182722179');
-
-        if(false === ($NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO))
-        {
-            echo sprintf('%s результат запроса не протестирован %s %s', PHP_EOL, self::class, PHP_EOL);
-            return;
-        }
-
-        /**
-         * Пробуем сохранить заказ
-         *
-         * @var NewYaMarketOrderHandler $NewYaMarketOrderHandler
-         */
-        $NewYaMarketOrderHandler = self::getContainer()->get(NewYaMarketOrderHandler::class);
-        $NewYaMarketOrderHandler->handle($NewYaMarketOrderByBusinessDTO);
+        $isUpdate = $UpdateSignYaMarketProductRequest
+            ->products([
+                0 => 111111111,
+                1 => 2222222222,
+            ])
+            ->signs([
+                0 => 'code1',
+                1 => 'code2',
+            ])
+            ->update('order');
 
 
-        // Вызываем все геттеры
-        $reflectionClass = new ReflectionClass(NewYaMarketOrderByBusinessDTO::class);
-        $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+        self::assertIsBool($isUpdate);
 
-        foreach($methods as $method)
-        {
-            // Методы без аргументов
-            if($method->getNumberOfParameters() === 0)
-            {
-                // Вызываем метод
-                $data = $method->invoke($NewYaMarketOrderByBusinessDTO);
-                // dump($data);
-            }
-        }
     }
 }

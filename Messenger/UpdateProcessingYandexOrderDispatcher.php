@@ -33,21 +33,21 @@ use BaksDev\Orders\Order\Entity\Event\OrderEvent;
 use BaksDev\Orders\Order\Messenger\OrderMessage;
 use BaksDev\Orders\Order\Repository\CurrentOrderEvent\CurrentOrderEventInterface;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
+use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusPackage;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
-use BaksDev\Yandex\Market\Orders\Api\Pack\UpdateYaMarketProductsPackByOrderRequest;
 use BaksDev\Yandex\Market\Orders\Messenger\ProcessYandexPackageStickers\ProcessYandexPackageStickersMessage;
 use BaksDev\Yandex\Market\Orders\Messenger\Ready\UpdateYaMarketOrderReadyStatusMessage;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryDbsYaMarket;
 use BaksDev\Yandex\Market\Orders\Type\DeliveryType\TypeDeliveryFbsYaMarket;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Box\NewYaMarketOrderBoxDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
-use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * Если поступает новый заказ YandexMarket - отправляем уведомление о статусе «Принят в обработку»
@@ -98,21 +98,37 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-
-        /**
-         * Если статус заказа не Статус New «Новый» - завершаем обработчик
-         */
-        if(false === $CurrentOrderEvent->isStatusEquals(OrderStatusNew::class))
-        {
-            return;
-        }
-
+        /** Если тип заказа не Yandex Market */
         if(
             false === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYaMarket::TYPE) &&
             false === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
         )
         {
             $Deduplicator->save();
+            return;
+        }
+
+        /**
+         * Для FBS заказов:
+         * - Если статус заказа не Статус Package «Упаковка заказов» - завершаем обработчик в ожидании автоматической упаковки
+         */
+        if(
+            true === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryFbsYaMarket::TYPE)
+            && false === $CurrentOrderEvent->isStatusEquals(OrderStatusPackage::class)
+        )
+        {
+            return;
+        }
+
+        /**
+         * Для DBS заказов:
+         * - Если статус заказа не Статус New «Новый» - завершаем обработчик
+         */
+        if(
+            true === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
+            && false === $CurrentOrderEvent->isStatusEquals(OrderStatusNew::class)
+        )
+        {
             return;
         }
 
@@ -128,7 +144,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             return;
         }
 
-        if(true === empty($CurrentOrderEvent->getOrderTokenIdentifier()))
+        if(true === ($CurrentOrderEvent->getOrderTokenIdentifier() instanceof Uuid))
         {
             return;
         }
@@ -136,7 +152,7 @@ final readonly class UpdateProcessingYandexOrderDispatcher
         $YaMarketTokenUid = new YaMarketTokenUid($CurrentOrderEvent->getOrderTokenIdentifier());
 
         /**
-         * Получаем информацию о заказе и проверяем что заказ Новый
+         * Получаем информацию о заказе в маркетплейсе и проверяем что заказ Новый
          */
 
         $NewYaMarketOrderByBusinessDTO = $this->yaMarketOrdersInfoRequest
@@ -163,9 +179,15 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             $CurrentOrderEvent->getOrderNumber(),
         );
 
-
         $this->messageDispatch->dispatch(
             message: $UpdateYaMarketOrderReadyStatusMessage,
+            stamps: [
+                new MessageDelay(
+                    true === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
+                        ? '1 seconds' // DBS
+                        : '1 minutes', // FBS
+                ),
+            ],
             transport: (string) $UserProfileUid,
         );
 
@@ -179,13 +201,19 @@ final readonly class UpdateProcessingYandexOrderDispatcher
             $ProcessYandexPackageStickersMessage = new ProcessYandexPackageStickersMessage(
                 token: $YaMarketTokenUid,
                 order: $CurrentOrderEvent->getOrderNumber(),
-                posting: $box->getBarcode(),
+                posting: $box->getPostingNumber(),
                 box: $box->getBoxId(),
             );
 
             $this->messageDispatch->dispatch(
                 message: $ProcessYandexPackageStickersMessage,
-                stamps: [new MessageDelay('3 seconds')],
+                stamps: [
+                    new MessageDelay(
+                        true === $CurrentOrderEvent->isDeliveryTypeEquals(TypeDeliveryDbsYaMarket::TYPE)
+                            ? '5 seconds' // DBS
+                            : '2 minutes', // FBS
+                    ),
+                ],
                 transport: $UserProfileUid.'-low',
             );
 

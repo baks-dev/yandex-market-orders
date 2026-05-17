@@ -45,6 +45,9 @@ class GetYaMarketOrdersNewRequestTest extends KernelTestCase
 
     public static function setUpBeforeClass(): void
     {
+
+        /** FBS */
+
         self::$Authorization = new YaMarketAuthorizationToken(
             profile: UserProfileUid::TEST,
             token: $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
@@ -53,6 +56,17 @@ class GetYaMarketOrdersNewRequestTest extends KernelTestCase
             card: false,
             stocks: false,
         );
+
+        /** DBS */
+
+        /*self::$Authorization = new YaMarketAuthorizationToken(
+            profile: UserProfileUid::TEST,
+            token: $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
+            company: (int) $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
+            business: (int) $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS'],
+            card: false,
+            stocks: false,
+        );*/
     }
 
     public function testUseCase(): void

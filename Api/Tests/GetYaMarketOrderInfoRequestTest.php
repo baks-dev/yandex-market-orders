@@ -28,8 +28,10 @@ namespace BaksDev\Yandex\Market\Orders\Api\Tests;
 
 use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Users\Profile\UserProfile\Type\Id\UserProfileUid;
+use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Tests\NewUserProfileHandlerTest;
 use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrderInfoRequest;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
+use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderHandler;
 use BaksDev\Yandex\Market\Type\Authorization\YaMarketAuthorizationToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DependsOnClass;
@@ -37,7 +39,12 @@ use PHPUnit\Framework\Attributes\Group;
 use ReflectionClass;
 use ReflectionMethod;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 #[When(env: 'test')]
 #[Group('yandex-market-orders')]
@@ -49,27 +56,32 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
     {
         /** FBS */
 
-        self::$Authorization = new YaMarketAuthorizationToken(
+        /*self::$Authorization = new YaMarketAuthorizationToken(
             profile: UserProfileUid::TEST,
             token: $_SERVER['TEST_YANDEX_MARKET_TOKEN'],
             company: (int) $_SERVER['TEST_YANDEX_MARKET_COMPANY'],
             business: (int) $_SERVER['TEST_YANDEX_MARKET_BUSINESS'],
             card: false,
             stocks: false,
-        );
+        );*/
 
         /** DBS */
 
-        /*self::$Authorization = new YaMarketAuthorizationToken(
+        self::$Authorization = new YaMarketAuthorizationToken(
             profile: UserProfileUid::TEST,
             token: $_SERVER['TEST_YANDEX_MARKET_TOKEN_DBS'],
-            company: (int) $_SERVER['TEST_YANDEX_MARKET_COMPANY_DBS'],
+            company: (int) 148730824,
             business: (int) $_SERVER['TEST_YANDEX_MARKET_BUSINESS_DBS'],
             card: false,
             stocks: false,
-        );*/
+        );
 
+        // Бросаем событие консольной комманды
+        $dispatcher = self::getContainer()->get(EventDispatcherInterface::class);
+        $event = new ConsoleCommandEvent(new Command(), new StringInput(''), new NullOutput());
+        $dispatcher->dispatch($event, 'console.command');
 
+        NewUserProfileHandlerTest::setUpBeforeClass();
     }
 
     public function testUseCase(): void
@@ -81,13 +93,24 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
         $GetYaMarketOrderInfoRequest = self::getContainer()->get(GetYaMarketOrderInfoRequest::class);
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
-        $NewYaMarketOrderByBusinessDTO = $GetYaMarketOrderInfoRequest->findNew('57113641859');
+        $NewYaMarketOrderByBusinessDTO = $GetYaMarketOrderInfoRequest
+            ->findNew('number');
 
         if(false === ($NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO))
         {
-            echo sprintf('%s результат запроса не протестирован  %s %s', PHP_EOL, self::class, PHP_EOL);
+            echo sprintf('%s результат запроса не протестирован %s %s', PHP_EOL, self::class, PHP_EOL);
             return;
         }
+
+
+        /**
+         * Пробуем сохранить заказ
+         *
+         * @var NewYaMarketOrderHandler $NewYaMarketOrderHandler
+         */
+        $NewYaMarketOrderHandler = self::getContainer()->get(NewYaMarketOrderHandler::class);
+        $NewYaMarketOrderHandler->handle($NewYaMarketOrderByBusinessDTO);
+
 
         // Вызываем все геттеры
         $reflectionClass = new ReflectionClass(NewYaMarketOrderByBusinessDTO::class);

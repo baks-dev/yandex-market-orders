@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace BaksDev\Yandex\Market\Orders\UseCase\New;
 
+use BaksDev\Contacts\Region\Repository\PickupByGeolocation\PickupByGeolocationDTO;
 use BaksDev\Contacts\Region\Repository\PickupByGeolocation\PickupByGeolocationInterface;
 use BaksDev\Core\Entity\AbstractHandler;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
@@ -45,6 +46,7 @@ use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\CurrentProductByBarcodeResult;
 use BaksDev\Products\Product\Repository\CurrentProductByArticle\ProductConstByArticleInterface;
 use BaksDev\Users\Address\Services\GeocodeAddressParser;
+use BaksDev\Users\Address\UseCase\Geocode\GeocodeAddressDTO;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormDTO;
 use BaksDev\Users\Profile\UserProfile\Repository\FieldValueForm\FieldValueFormInterface;
@@ -84,10 +86,8 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
     public function handle(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): string|array|bool|Order
     {
-
         if(false === $command->getStatusEquals(OrderStatusNew::class))
         {
-            //return 'Заказ не является в статусе New «Новый»';
             return false;
         }
 
@@ -188,6 +188,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
                 return $this->validatorCollection->getErrorUniqid();
             }
 
+
             /* Присваиваем новому профилю идентификатор пользователя */
             $UserProfileDTO->getInfo()->setUsr($OrderUserDTO->getUsr());
             $UserProfile = $this->profileHandler->handle($UserProfileDTO);
@@ -207,11 +208,13 @@ final class NewYaMarketOrderHandler extends AbstractHandler
             ->setCommand($command)
             ->preEventPersistOrUpdate(Order::class, OrderEvent::class);
 
+
         /** Валидация всех объектов */
         if($this->validatorCollection->isInvalid())
         {
             return $this->validatorCollection->getErrorUniqid();
         }
+
 
         $this->flush();
 
@@ -229,6 +232,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
     public function fillProfile(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): void
     {
+
         if(empty($command->getBuyer()))
         {
             return;
@@ -316,6 +320,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
          */
 
         $GeocodeAddress = null;
+
         if($OrderDeliveryDTO->getLatitude() && $OrderDeliveryDTO->getLongitude())
         {
             /** Пробуем определить по геолокации */
@@ -391,10 +396,32 @@ final class NewYaMarketOrderHandler extends AbstractHandler
                     ->longitude($OrderDeliveryDTO->getLongitude())
                     ->execute();
 
+                /** Если по геолокации не определили - продуем определить по адресу ПВЗ  */
+                if(false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO))
+                {
+                    $GeocodeAddress = $this->geocodeAddressParser
+                        ->getGeocode($OrderDeliveryDTO->getAddress());
+
+                    if($GeocodeAddress instanceof GeocodeAddressDTO)
+                    {
+                        $PickupByGeolocationDTO = $this->pickupByGeolocationRepository
+                            ->latitude($GeocodeAddress->getLatitude())
+                            ->longitude($GeocodeAddress->getLongitude())
+                            ->execute();
+                    }
+                }
+
+                /** Если склад не определен - присваиваем текущий */
+                if(false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO))
+                {
+
+                }
+
                 if($PickupByGeolocationDTO)
                 {
                     $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
                 }
+
 
                 $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
             }

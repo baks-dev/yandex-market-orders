@@ -209,6 +209,7 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
         /** Комментарий к заказу */
         isset($order['notes']) ? $deliveryComment[] = $order['notes'] : false;
 
+
         /**
          * Информация о курьерской доставке
          * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderCourierDeliveryDTO
@@ -267,33 +268,6 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
 
             $NewYaMarketOrderDeliveryDTO->setAddress(implode(', ', $deliveryAddress));
 
-
-            /**
-             * Способ доставки
-             * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-OrderDeliveryDispatchType
-             */
-            if(isset($delivery['dispatchType']))
-            {
-                /**
-                 * Доставка в пункт выдачи заказов магазина
-                 */
-                if($delivery['dispatchType'] === 'SHOP_OUTLET')
-                {
-                    $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
-                    $NewYaMarketOrderDeliveryDTO->setDelivery($Delivery);
-
-                    $deliveryComment[] = 'Самовывоз';
-                }
-
-                /**
-                 * Доставка в пункт выдачи заказов Маркета
-                 */
-                if($delivery['dispatchType'] === 'MARKET_BRANDED_OUTLET')
-                {
-                    $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
-                }
-            }
-
             /**
              * Информация о курьерской доставке
              * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-BusinessOrderDeliveryAddressDTO
@@ -337,8 +311,6 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
             }
         }
 
-        /** Комментарий покупателя */
-        $this->comment = implode(', ', $deliveryComment);
 
         /** Доставка YandexMarket (FBS) */
         if($deliveryPartnerType === 'YANDEX_MARKET')
@@ -365,13 +337,57 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
 
             /** Способ доставки Магазином (DBS Yandex Market) */
             $Delivery = new DeliveryUid(TypeDeliveryDbsYaMarket::class);
-
             $NewYaMarketOrderDeliveryDTO->setDelivery($Delivery);
 
             /** Способ оплаты DBS Yandex Market  */
             $Payment = new PaymentUid(TypePaymentDbsYaMarket::class);
             $this->usr->getPayment()->setPayment($Payment);
         }
+
+
+        /**
+         * Способ доставки Самовывоз
+         * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/getBusinessOrders#entity-OrderDeliveryDispatchType
+         */
+        if(isset($delivery['dispatchType']))
+        {
+            /**
+             * Доставка в пункт выдачи заказов магазина
+             */
+            if($delivery['dispatchType'] === 'SHOP_OUTLET')
+            {
+                $Delivery = new DeliveryUid(TypeDeliveryPickup::class);
+                $NewYaMarketOrderDeliveryDTO->setDelivery($Delivery);
+
+                $deliveryComment[] = 'Самовывоз';
+
+                /** Информация о пунте выдачи заказов магазина */
+
+                $NewYaMarketOrderDeliveryDTO
+                    ->setLatitude(new GpsLatitude($delivery['pickup']['address']['gps']['latitude']))
+                    ->setLongitude(new GpsLongitude($delivery['pickup']['address']['gps']['longitude']))
+                    ->setAddress(
+                        implode(', ',
+                            [
+                                $delivery['pickup']['address']['country'],
+                                $delivery['pickup']['address']['city'],
+                                $delivery['pickup']['address']['street'],
+                                $delivery['pickup']['address']['house'],
+                            ]),
+                    );
+            }
+
+            /**
+             * Доставка в пункт выдачи заказов Маркета
+             */
+            if($delivery['dispatchType'] === 'MARKET_BRANDED_OUTLET')
+            {
+                $deliveryComment[] = 'Самовывоз из ПВЗ Яндекс Маркет';
+            }
+        }
+
+        /** Комментарий покупателя */
+        $this->comment = implode(', ', $deliveryComment);
 
         /**
          * Продукция

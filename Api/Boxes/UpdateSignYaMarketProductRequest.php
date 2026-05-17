@@ -67,7 +67,7 @@ final class UpdateSignYaMarketProductRequest extends YandexMarket
             // return true;
         }
 
-        if(empty($this->product))
+        if(empty($this->products))
         {
             $this->logger->critical(
                 message: sprintf('Не передан продукт для заказа %s', $order),
@@ -90,7 +90,6 @@ final class UpdateSignYaMarketProductRequest extends YandexMarket
         }
 
         $order = str_replace('Y-', '', (string) $order);
-
         $products = [];
 
         foreach($this->products as $box => $product)
@@ -110,14 +109,12 @@ final class UpdateSignYaMarketProductRequest extends YandexMarket
                          * Код маркировки товара в системе «Честный ЗНАК»
                          * https://yandex.ru/dev/market/partner-api/doc/ru/reference/orders/setOrderBoxLayout#entity-BriefOrderItemInstanceDTO
                          */
-                        "instances" => [
-                            $this->signs[$box] ?: null,
-                        ],
+                        "instances" => $this->signs[$box] ?: [null],
+
                     ],
                 ],
             ];
         }
-
 
         $response = $this->TokenHttpClient()
             ->request(
@@ -131,6 +128,7 @@ final class UpdateSignYaMarketProductRequest extends YandexMarket
             );
 
         $content = $response->toArray(false);
+
 
         if($response->getStatusCode() !== 200)
         {

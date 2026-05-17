@@ -173,12 +173,13 @@ final class SubmitOrderProductSignDispatcher
         $products = [];
         $signs = [];
 
+
         /** Итерируемся по отправлениям заказа */
         foreach($posting as $PostingOrderEvent)
         {
             /** Получаем честный знак отправления */
             $ProductSignByOrder = $this->ProductSignByOrderRepository
-                ->forOrder($PostingOrderEvent->getOrderId())
+                ->forOrder($PostingOrderEvent->getMain())
                 ->findAll();
 
             /** Завершаем обработчик если честного знака на отправление не найдено */
@@ -188,9 +189,14 @@ final class SubmitOrderProductSignDispatcher
             }
 
             /** Ищем грузоместо согласно отправлению */
+
+            $orderPostingNumber = str_replace('Y-', '', $PostingOrderEvent->getPostingNumber());
+
             foreach($NewOzonOrderDTO->getPostingBox() as $NewYaMarketOrderBoxDTO)
             {
-                if($NewYaMarketOrderBoxDTO->getPostingNumber() === $PostingOrderEvent->getPostingNumber())
+                $yandexPostingNumber = str_replace('Y-', '', $NewYaMarketOrderBoxDTO->getPostingNumber());
+
+                if($yandexPostingNumber === $orderPostingNumber)
                 {
                     $item = current($NewYaMarketOrderBoxDTO->getItems());
 
@@ -210,20 +216,9 @@ final class SubmitOrderProductSignDispatcher
         }
 
         /** Отправляем честные знаки */
-        $this->Logger->critical(
-            message: sprintf('DEBUG %s: лог отправки честных знаков по яндекс-заказу', $SignOrderEvent->getOrderNumber()),
-            context: [
-                self::class.':'.__LINE__,
-                $products,
-                $signs,
-            ],
-        );
-
-
-        return;
-
 
         $isUpdate = $this->UpdateSignYaMarketProductRequest
+            ->forTokenIdentifier($YaMarketTokenUid)
             ->products($products)
             ->signs($signs)
             ->update($SignOrderEvent->getOrderNumber());
@@ -234,7 +229,13 @@ final class SubmitOrderProductSignDispatcher
                 message: sprintf('yandex-market-orders: Не найдено информации о заказе %s', $SignOrderEvent->getOrderNumber()),
                 context: [self::class.':'.__LINE__],
             );
+
+            return;
         }
 
+        $this->Logger->info(
+            message: sprintf('%s: Отправили код маркировки заказ', $SignOrderEvent->getOrderNumber()),
+            context: [self::class.':'.__LINE__, $signs],
+        );
     }
 }

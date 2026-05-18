@@ -59,6 +59,7 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\User\UserProfile\Value\NewYaMarketU
 use BaksDev\Yandex\Market\Orders\UseCase\Status\New\ToggleUnpaidToNewYaMarketOrderHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class NewYaMarketOrderHandler extends AbstractHandler
 {
@@ -79,6 +80,8 @@ final class NewYaMarketOrderHandler extends AbstractHandler
         ValidatorCollectionInterface $validatorCollection,
         ImageUploadInterface $imageUpload,
         FileUploadInterface $fileUpload,
+
+        #[Autowire(env: 'PROJECT_PROFILE')] string|null $projectProfile = null,
     )
     {
         parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
@@ -411,17 +414,19 @@ final class NewYaMarketOrderHandler extends AbstractHandler
                     }
                 }
 
-                /** Если склад не определен - присваиваем текущий */
-                if(false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO))
-                {
-
-                }
-
-                if($PickupByGeolocationDTO)
+                if(true === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO))
                 {
                     $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
                 }
 
+                /** Если склад не определен - присваиваем текущий из .env PROJECT_PROFILE */
+                if(
+                    false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO)
+                    && false === empty($this->projectProfile)
+                )
+                {
+                    $OrderDeliveryFieldDTO->setValue((string) $PickupByGeolocationDTO->getId());
+                }
 
                 $OrderDeliveryDTO->addField($OrderDeliveryFieldDTO);
             }

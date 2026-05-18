@@ -32,6 +32,7 @@ use BaksDev\Delivery\Type\Event\DeliveryEventUid;
 use BaksDev\Delivery\Type\Id\DeliveryUid;
 use BaksDev\Orders\Order\Entity\User\Delivery\OrderDeliveryInterface;
 use BaksDev\Users\Address\Type\Geocode\GeocodeAddressUid;
+use BaksDev\Yandex\Market\Orders\UseCase\New\User\Delivery\Field\NewYaMarketOrderDeliveryFieldDTO;
 use DateInterval;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -119,7 +120,7 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
         return $this;
     }
 
-    public function addField(Field\NewYaMarketOrderDeliveryFieldDTO $field): void
+    public function addField(NewYaMarketOrderDeliveryFieldDTO $field): void
     {
         if(!$this->field->contains($field))
         {
@@ -127,7 +128,7 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
         }
     }
 
-    public function removeField(Field\NewYaMarketOrderDeliveryFieldDTO $field): void
+    public function removeField(NewYaMarketOrderDeliveryFieldDTO $field): void
     {
         $this->field->removeElement($field);
     }
@@ -201,6 +202,4 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
         $this->address = $address;
         return $this;
     }
-
-
 }

@@ -109,6 +109,11 @@ final class GetYaMarketOrderInfoRequest extends YandexMarket
 
         });
 
+        if(false === $order)
+        {
+            return false;
+        }
+
         /**
          * Получаем информацию о клиенте
          */

@@ -42,7 +42,11 @@ use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\UserProfileHandler;
 use BaksDev\Users\Profile\UserProfile\UseCase\Admin\NewEdit\Value\ValueDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderDTO;
+use DateTimeImmutable;
 
+/**
+ * Возвращает статус неоплаченного заказа из статуса Unpaid «В ожидании оплаты» в статус New «Новый»
+ */
 final readonly class ToggleUnpaidToNewYaMarketOrderHandler
 {
     public function __construct(
@@ -54,9 +58,6 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
         private UserProfileHandler $userProfileHandler,
     ) {}
 
-    /**
-     * Метод возвращает статус неоплаченного заказа UNPAID в статус NEW
-     */
     public function handle(NewYaMarketOrderDTO|NewYaMarketOrderByBusinessDTO $command): array|false
     {
         $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
@@ -66,12 +67,16 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
             return false;
         }
 
+        /** Получаем все отправления по номеру заказа */
         $arrOrderEvent = $this->currentOrderNumber->findAll($command->getOrderNumber());
 
         if(true === empty($arrOrderEvent))
         {
             return false;
         }
+
+        /** Дата доставки */
+        $dativeDate = $command->getUsr()->getDelivery()->getDeliveryDate();
 
         $orders = [];
 
@@ -99,6 +104,12 @@ final readonly class ToggleUnpaidToNewYaMarketOrderHandler
             }
 
             $ToggleUnpaidToNewYaMarketOrderDTO->setOrderStatusNew();
+
+            /** Обновляем дату доставки заказа, полученную из запроса к Api Yandex Market */
+            if(true === ($dativeDate instanceof DateTimeImmutable))
+            {
+                $ToggleUnpaidToNewYaMarketOrderDTO->getUsr()->getDelivery()->setDeliveryDate($dativeDate);
+            }
 
             /**
              * Ожидается, что статус NEW «Новый» объявлен ранее для резерва продукции

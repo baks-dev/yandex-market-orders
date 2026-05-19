@@ -24,42 +24,27 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Yandex\Market\Orders\UseCase\Status\New\User;
+namespace BaksDev\Yandex\Market\Orders\UseCase\Status\New\User\Delivery;
 
-use BaksDev\Orders\Order\Entity\User\OrderUser;
-use BaksDev\Orders\Order\Entity\User\OrderUserInterface;
-use BaksDev\Users\Profile\UserProfile\Type\Event\UserProfileEventUid;
-use BaksDev\Yandex\Market\Orders\UseCase\Status\New\User\Delivery\ToggleYaMarketOrderDeliveryDTO;
+use BaksDev\Orders\Order\Entity\User\Delivery\OrderDeliveryInterface;
+use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see OrderUser */
-final class OrderUserDTO implements OrderUserInterface
+/** @see OrderDelivery */
+final class ToggleYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
 {
-    /** Идентификатор События!! профиля клиента */
-    private UserProfileEventUid $profile;
+    /** Дата доставки заказа */
+    #[Assert\NotBlank]
+    private DateTimeImmutable $deliveryDate;
 
-    /** Информация о доставке */
-    #[Assert\Valid]
-    private ToggleYaMarketOrderDeliveryDTO $delivery;
-
-    public function __construct()
+    public function getDeliveryDate(): DateTimeImmutable
     {
-        $this->delivery = new ToggleYaMarketOrderDeliveryDTO();
+        return $this->deliveryDate;
     }
 
-    public function getProfile(): UserProfileEventUid
+    public function setDeliveryDate(DateTimeImmutable $deliveryDate): self
     {
-        return $this->profile;
-    }
-
-    public function setProfile(UserProfileEventUid $profile): self
-    {
-        $this->profile = $profile;
+        $this->deliveryDate = $deliveryDate;
         return $this;
-    }
-
-    public function getDelivery(): ToggleYaMarketOrderDeliveryDTO
-    {
-        return $this->delivery;
     }
 }

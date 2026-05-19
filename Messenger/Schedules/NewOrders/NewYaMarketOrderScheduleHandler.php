@@ -40,6 +40,13 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
+/**
+ * По расписанию получает и сохраняет заказы из Yandex Market
+ * @see NewOrdersScheduleHandler
+ *
+ * @note заказы так же добавляются
+ * @see UnpaidYaMarketOrderScheduleHandler
+ */
 #[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 0)]
 final readonly class NewYaMarketOrderScheduleHandler

@@ -33,7 +33,6 @@ use BaksDev\Yandex\Market\Orders\Api\GetYaMarketOrdersUnpaidRequest;
 use BaksDev\Yandex\Market\Orders\Schedule\UnpaidOrders\UnpaidOrdersSchedule;
 use BaksDev\Yandex\Market\Orders\UseCase\New\NewYaMarketOrderByBusinessDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\Unpaid\UnpaidYaMarketOrderStatusHandler;
-use BaksDev\Yandex\Market\Repository\YaMarketTokenExtraCompany\YaMarketTokenExtraCompanyInterface;
 use BaksDev\Yandex\Market\Repository\YaMarketTokensByProfile\YaMarketTokensByProfileInterface;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
 use Generator;
@@ -42,6 +41,13 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
+/**
+ * По расписанию получает и сохраняет заказы из Yandex Market
+ * @see UnpaidOrdersScheduleHandler
+ *
+ * @note заказы так же добавляются
+ * @see NewYaMarketOrderScheduleHandler
+ */
 #[Autoconfigure(shared: false)]
 #[AsMessageHandler(priority: 0)]
 final readonly class UnpaidYaMarketOrderScheduleHandler

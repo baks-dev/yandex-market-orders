@@ -61,11 +61,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+/**
+ * Создает заказ со статусом New «Новый» или переводит заказа в статусе Unpaid в статус New «Новый»
+ */
 final class NewYaMarketOrderHandler extends AbstractHandler
 {
     public function __construct(
-        private readonly UserProfileHandler $profileHandler,
         private readonly GeocodeAddressParser $geocodeAddressParser,
+        private readonly UserProfileHandler $profileHandler,
         private readonly ToggleUnpaidToNewYaMarketOrderHandler $toggleUnpaidToNewYaMarketOrderHandler,
         private readonly ProductConstByArticleInterface $productConstByArticleRepository,
         private readonly FieldByDeliveryChoiceInterface $deliveryFieldsRepository,
@@ -99,8 +102,10 @@ final class NewYaMarketOrderHandler extends AbstractHandler
         if($isExists)
         {
             /**
-             * Если заказ в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый»
+             * Если заказ был создан в статусе Unpaid «В ожидании оплаты» - вернуть заказ в New «Новый»
              * в сервисе проверит, что заказ в статусе Unpaid
+             *
+             * @see UnpaidYaMarketOrderStatusHandler
              */
             return $this->toggleUnpaidToNewYaMarketOrderHandler->handle($command);
         }

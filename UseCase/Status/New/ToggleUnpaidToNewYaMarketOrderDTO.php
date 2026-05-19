@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2026.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -29,6 +30,7 @@ use BaksDev\Orders\Order\Entity\Event\OrderEventInterface;
 use BaksDev\Orders\Order\Type\Event\OrderEventUid;
 use BaksDev\Orders\Order\Type\Status\OrderStatus;
 use BaksDev\Orders\Order\Type\Status\OrderStatus\Collection\OrderStatusNew;
+use BaksDev\Yandex\Market\Orders\UseCase\Status\New\User\OrderUserDTO;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /** @see OrderEvent $var */
@@ -45,11 +47,11 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
 
     /** Пользователь */
     #[Assert\Valid]
-    private User\OrderUserDTO $usr;
+    private OrderUserDTO $usr;
 
     public function __construct()
     {
-        $this->usr = new User\OrderUserDTO();
+        $this->usr = new OrderUserDTO();
     }
 
     /** Идентификатор события */
@@ -64,16 +66,14 @@ final class ToggleUnpaidToNewYaMarketOrderDTO implements OrderEventInterface
         return $this;
     }
 
-    /**
-     * Status
-     */
+    /** Статус заказа */
     public function getStatus(): OrderStatus
     {
         return $this->status;
     }
 
-
-    public function getUsr(): User\OrderUserDTO
+    /** Пользователь */
+    public function getUsr(): OrderUserDTO
     {
         return $this->usr;
     }

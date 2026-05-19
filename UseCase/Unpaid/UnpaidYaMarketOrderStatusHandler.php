@@ -44,12 +44,11 @@ final readonly class UnpaidYaMarketOrderStatusHandler
 {
     public function __construct(
         #[Target('yandexMarketOrdersLogger')] private LoggerInterface $logger,
+        private CurrentOrderEventInterface $currentOrderEventRepository,
+        private UserByUserProfileInterface $userByUserProfileRepository,
+        private ExistsOrderNumberInterface $existsOrderNumberRepository,
         private NewYaMarketOrderHandler $yandexMarketOrderHandler,
-        private CurrentOrderEventInterface $currentOrderEvent,
-        private UserByUserProfileInterface $userByUserProfile,
         private OrderStatusHandler $orderStatusHandler,
-        private ExistsOrderNumberInterface $existsOrderNumber,
-
     ) {}
 
     /** @see YandexMarket */
@@ -62,7 +61,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
         }
 
         /** Не добавляем заказ, если он уже создан */
-        $isExists = $this->existsOrderNumber->isExists($command->getPostingNumber());
+        $isExists = $this->existsOrderNumberRepository->isExists($command->getPostingNumber());
 
         if($isExists)
         {
@@ -93,7 +92,6 @@ final readonly class UnpaidYaMarketOrderStatusHandler
         //
         //        $NewOrderInvariable->setUsr($User->getId());
 
-
         /** Создаем заказ со статусом New «Новый» */
         $command->setStatus(OrderStatusNew::class);
         $handle = $this->yandexMarketOrderHandler->handle($command);
@@ -105,7 +103,7 @@ final readonly class UnpaidYaMarketOrderStatusHandler
         if($handle instanceof Order)
         {
             $OrderEvent = $this
-                ->currentOrderEvent
+                ->currentOrderEventRepository
                 ->forOrder($handle->getId())
                 ->find();
 

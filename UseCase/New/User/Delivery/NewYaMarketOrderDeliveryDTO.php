@@ -73,7 +73,7 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
 
     /** Дата доставки заказа */
     #[Assert\NotBlank]
-    private ?DateTimeImmutable $deliveryDate;
+    private DateTimeImmutable $deliveryDate;
 
 
     public function __construct()
@@ -178,14 +178,14 @@ final class NewYaMarketOrderDeliveryDTO implements OrderDeliveryInterface
     /**
      * DeliveryDate
      */
-    public function getDeliveryDate(): ?DateTimeImmutable
+    public function getDeliveryDate(): DateTimeImmutable
     {
         return $this->deliveryDate;
     }
 
-    public function setDeliveryDate(?DateTimeImmutable $deliveryDate): self
+    public function setDeliveryDate(DateTimeImmutable $deliveryDate): self
     {
-        $this->deliveryDate = $deliveryDate ?: new DateTimeImmutable();
+        $this->deliveryDate = $deliveryDate;
         return $this;
     }
 

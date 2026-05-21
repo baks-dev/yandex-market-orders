@@ -56,6 +56,7 @@ use BaksDev\Yandex\Market\Orders\UseCase\New\Posting\NewYaMarketOrderPostingDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\Products\NewYaMarketOrderProductDTO;
 use BaksDev\Yandex\Market\Orders\UseCase\New\User\NewYaMarketOrderUserDTO;
 use BaksDev\Yandex\Market\Type\Id\YaMarketTokenUid;
+use DateInterval;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -188,6 +189,24 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
         }
 
         $deliveryDate = new DateTimeImmutable($fromDate);
+
+        /**
+         * Предполагаем, что если Yandex Market дает возможность постоплаты заказа. Тогда:
+         * - в поле даты в ответе будет метка времени Unix (1 января 1970 0:00:00)
+         * - время для оплаты заказа +7 дней с момента создания заказа
+         *
+         * Изменяем дату исходя из этих условий
+         */
+        if(
+            isset($order['buyerType']) && $order['buyerType'] === 'BUSINESS'
+            && $order['status'] === 'UNPAID'
+            && $deliveryDate < new DateTimeImmutable('now')
+        )
+        {
+            $deliveryDate = new DateTimeImmutable($order['creationDate'])
+                ->add(DateInterval::createFromDateString('7 days'));
+        }
+
         $this->usr->getDelivery()->setDeliveryDate($deliveryDate);
 
         /**

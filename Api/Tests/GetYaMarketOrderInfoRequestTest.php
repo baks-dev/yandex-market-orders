@@ -94,7 +94,7 @@ class GetYaMarketOrderInfoRequestTest extends KernelTestCase
         $GetYaMarketOrderInfoRequest->TokenHttpClient(self::$Authorization);
 
         $NewYaMarketOrderByBusinessDTO = $GetYaMarketOrderInfoRequest
-            ->findNew('Y-57182722179');
+            ->findNew('Y-11111111111111');
 
         if(false === ($NewYaMarketOrderByBusinessDTO instanceof NewYaMarketOrderByBusinessDTO))
         {

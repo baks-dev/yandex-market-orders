@@ -82,6 +82,13 @@ final class UpdateYaMarketOrderReadyStatusRequest extends YandexMarket
                 if($error['code'] === 'STATUS_NOT_ALLOWED')
                 {
                     $this->logger->critical($error['code'].': '.$error['message'], ['order' => $order, self::class.':'.__LINE__]);
+
+                    // Для заказа требуется передача обязательной информации
+                    if(str_contains($error['message'], 'Order requires valid'))
+                    {
+                        return false;
+                    }
+
                     return true;
                 }
 

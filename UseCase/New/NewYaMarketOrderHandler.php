@@ -350,7 +350,8 @@ final class NewYaMarketOrderHandler extends AbstractHandler
         /** Если определили адрес - присваиваем */
         if(false === empty($GeocodeAddress))
         {
-            $OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
+            // Не переприсваиваем адрес
+            //$OrderDeliveryDTO->setAddress($GeocodeAddress->getAddress());
             $OrderDeliveryDTO->setLatitude($GeocodeAddress->getLatitude());
             $OrderDeliveryDTO->setLongitude($GeocodeAddress->getLongitude());
         }

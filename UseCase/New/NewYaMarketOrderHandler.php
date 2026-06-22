@@ -387,7 +387,7 @@ final class NewYaMarketOrderHandler extends AbstractHandler
 
             /** При самовывозе указываем ПВЗ */
 
-            $contacts_region = array_filter($fields, function($v) {
+            $contacts_region = array_filter($fields, static function($v) {
                 /** @var InputField $InputField */
                 return $v->getType()->getType() === 'contacts_region_type';
             });

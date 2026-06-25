@@ -398,15 +398,22 @@ final class NewYaMarketOrderHandler extends AbstractHandler
             {
                 $OrderDeliveryFieldDTO = new NewYaMarketOrderDeliveryFieldDTO();
                 $OrderDeliveryFieldDTO->setField($contacts_field);
+                $PickupByGeolocationDTO = false;
 
-                /** Определяем по геолокации ПВЗ */
-                $PickupByGeolocationDTO = $this->pickupByGeolocationRepository
-                    ->latitude($OrderDeliveryDTO->getLatitude())
-                    ->longitude($OrderDeliveryDTO->getLongitude())
-                    ->execute();
+                if($OrderDeliveryDTO->getLatitude() && $OrderDeliveryDTO->getLongitude())
+                {
+                    /** Определяем по геолокации ПВЗ */
+                    $PickupByGeolocationDTO = $this->pickupByGeolocationRepository
+                        ->latitude($OrderDeliveryDTO->getLatitude())
+                        ->longitude($OrderDeliveryDTO->getLongitude())
+                        ->execute();
+                }
 
                 /** Если по геолокации не определили - продуем определить по адресу ПВЗ  */
-                if(false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO))
+                if(
+                    false === ($PickupByGeolocationDTO instanceof PickupByGeolocationDTO)
+                    && $OrderDeliveryDTO->getAddress()
+                )
                 {
                     $GeocodeAddress = $this->geocodeAddressParser
                         ->getGeocode($OrderDeliveryDTO->getAddress());

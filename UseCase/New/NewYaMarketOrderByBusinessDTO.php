@@ -380,20 +380,22 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
 
                 $deliveryComment[] = 'Самовывоз';
 
-                /** Информация о пунте выдачи заказов магазина */
-
-                $NewYaMarketOrderDeliveryDTO
-                    ->setLatitude(new GpsLatitude($delivery['pickup']['address']['gps']['latitude']))
-                    ->setLongitude(new GpsLongitude($delivery['pickup']['address']['gps']['longitude']))
-                    ->setAddress(
-                        implode(', ',
-                            [
-                                $delivery['pickup']['address']['country'],
-                                $delivery['pickup']['address']['city'],
-                                $delivery['pickup']['address']['street'],
-                                $delivery['pickup']['address']['house'],
-                            ]),
-                    );
+                if(isset($delivery['pickup']['address']))
+                {
+                    /** Информация о пунте выдачи заказов */
+                    $NewYaMarketOrderDeliveryDTO
+                        ->setLatitude(new GpsLatitude($delivery['pickup']['address']['gps']['latitude']))
+                        ->setLongitude(new GpsLongitude($delivery['pickup']['address']['gps']['longitude']))
+                        ->setAddress(
+                            implode(', ',
+                                [
+                                    $delivery['pickup']['address']['country'],
+                                    $delivery['pickup']['address']['city'],
+                                    $delivery['pickup']['address']['street'],
+                                    $delivery['pickup']['address']['house'],
+                                ]),
+                        );
+                }
             }
 
             /** Доставка в пункт выдачи заказов Маркета */

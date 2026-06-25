@@ -200,7 +200,7 @@ final class NewYaMarketOrderByBusinessDTO implements OrderEventInterface
         if(
             isset($order['buyerType']) && $order['buyerType'] === 'BUSINESS'
             && $order['status'] === 'UNPAID'
-            && $deliveryDate < new DateTimeImmutable('now')
+            && $deliveryDate < (new DateTimeImmutable('now'))->setTime(0, 0)
         )
         {
             $deliveryDate = new DateTimeImmutable($order['creationDate'])
